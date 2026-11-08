@@ -6,9 +6,10 @@ namespace CustomHUD.Config;
 // Null on every list profile, which keeps them on the row path untouched.
 public sealed class MenuPageProfile
 {
-    // Both on Variables.TitlePanel. The eyebrow is the sidebar root's title, or
-    // Eyebrow when the menu is its own root; a customhud.eyebrow.<Eyebrow>
-    // translation wins over the literal text.
+    // Both on Variables.TitlePanel. The eyebrow is the sidebar root's title, or, when the menu is
+    // its own root, a customhud.eyebrow.<plugin> translation, then Eyebrow (its
+    // customhud.eyebrow.<Eyebrow> translation winning over the literal text), then
+    // customhud.eyebrow.default.
     public string EyebrowVar { get; set; } = "eyebrow";
     public string Eyebrow { get; set; } = "";
     // The parent page's title, shown before this one's.

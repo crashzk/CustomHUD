@@ -493,9 +493,12 @@ whatever is left, then the right side. WeaponSkins' keyboard list is
 Rows are sized by what they hold: 36px, 52px with art or a second line, 62px
 with a badge and a sub (three lines), 44px with a meter or as a ballot's
 answer, 24px a heading. On the cursor's row the second line brightens with the
-name, so it reads on the orange. A fact (a row the cursor
-skips, or one marked `info` that it only passes through) and a meter sit on
-the panel with no ground and no key. The right side
+name, so it reads on the orange. In Mouse mode the row under the pointer is
+drawn as the cursor's row, on a row a click acts on. A fact (a row the cursor
+skips, or one marked `info` that it only passes through, as a plain
+`TextComponent` is) and a meter sit on the panel with no ground, no key and no
+hover; a rank on Ranks' ladder (`grp-road`) is
+the exception, a card on the row's ground like a MapChooser map. The right side
 is the component's control: `kind-toggle` a switch, `kind-selector` `‹ value ›`,
 `kind-choice` the value and a cycle mark, `kind-slider` the track (`bar-N`
 sizes it, `track-wear` bands it), `kind-input` a field with a pen,
@@ -613,9 +616,10 @@ These come from the data a frame carries. Styling cannot close them:
   slider or choice lands in the value slot, but a plain line reading
   `"Label: value"` stays in the label slot unless it carries a tab.
 - **No eyebrow data.** The WeaponSkins locker's `WEAPONSKINS` eyebrow is static
-  and untranslated; the generic grid has none. `menu_locker` shows the root
-  menu's title, or the plugin's translated name (`customhud.eyebrow.*`) when
-  the plugin opens without a root.
+  and untranslated; the generic grid has none. `menu_locker` and the lists show
+  the root menu's title, or, when the plugin opens without a root, its
+  `customhud.eyebrow.<plugin>`, a built-in page's name, or
+  `customhud.eyebrow.default`, in that order.
 - **Captured native text can contain `#localization` tokens**, which are
   rendered verbatim.
 - **Multi-line native stacks flatten to one line.** `MaxVisibleLines` defaults

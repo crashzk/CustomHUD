@@ -41,6 +41,19 @@ internal readonly record struct PageBudget(int Items, int Lines, int Focusables)
         }
         return Math.Max(1, count);
     }
+
+    // What a page of `count` rows from `start` can still take in its main list, counted as Measure counts.
+    public int Room(IReadOnlyList<IMenuComponent> body, int start, int count, Func<IMenuComponent, bool>? offMain = null)
+    {
+        var items = 0;
+        var lines = 0;
+        for (var i = start; i < start + count; i++)
+        {
+            lines += Math.Max(1, body[i].LineCount);
+            if (offMain?.Invoke(body[i]) != true) items++;
+        }
+        return Math.Max(0, Math.Min(Items - items, Lines - lines));
+    }
 }
 
 // Index and Total count only pages holding something focusable: a page is chosen
@@ -89,6 +102,9 @@ internal static class PageFrame
         // Resolved from this expansion, as core does: a row source may hand out
         // new instances per call, so session.FocusedComponent need not be one of them.
         var focusableCount = body.Count(c => c.IsFocusable);
+        var added = integration is null ? 0 : integration.Host.RowsAdded(integration.Integration, menu);
+        if (added > 0)
+            budget = budget with { Items = Math.Max(1, Math.Min(budget.Items, integration!.RowSlots - added)) };
         if (budget.Reserve > 0 && body.Count > budget.Items)
             budget = budget with { Items = Math.Max(1, budget.Items - budget.Reserve), Reserve = 0 };
         var focusPosition = -1;
@@ -169,7 +185,7 @@ internal static class PageFrame
         if (integration is { } owner)
         {
             draw = new PageDraw(owner.Host, session, rendererId, components, rendered, context.Frame.Header, index, Math.Max(1, reachable.Count),
-                page.Start, body.Count, owner.Strings, owner.Regions, owner.RowSlots, owner.Icons, owner.View);
+                page.Start, body.Count, owner.Strings, owner.Regions, budget.Room(body, page.Start, page.Count, offMain), owner.Icons, owner.View);
             owner.Host.Draw(owner.Integration, draw);
         }
 

@@ -33,7 +33,7 @@ internal sealed class PageDraw
         int rowCount,
         ILocalizer strings,
         IReadOnlySet<string> regions,
-        int mainSlots,
+        int room,
         IReadOnlyDictionary<string, string> icons,
         string? view = null)
     {
@@ -54,7 +54,7 @@ internal sealed class PageDraw
         FirstRow = firstRow;
         RowCount = rowCount;
         Regions = regions;
-        MainSlots = mainSlots;
+        Room = room;
         View = view;
     }
 
@@ -75,8 +75,10 @@ internal sealed class PageDraw
     // Regions the layout draws (menu_locker's banner, foot ...): a row sent to one takes no main-list slot.
     public IReadOnlySet<string> Regions { get; }
 
-    // What the main list holds; a row added past it is cut.
-    public int MainSlots { get; }
+    // Rows the main list can still take on this page: what is left of core's page limits in a paged
+    // list, of the layout's slots in a scrolling one. A row added past it makes the page longer than
+    // the list's others, or is cut.
+    public int Room { get; }
 
     // The view drawing the page (maps-rows), or null on a layout without views; a provider's `view=` can still override it.
     public string? View { get; }

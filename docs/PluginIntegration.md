@@ -145,7 +145,8 @@ menu id draws as a **view**, a design for that kind of page:
   CustomHUD hides `×` and `<`.
 - Ranks' modules open as tabs under its Statistics but keep ids of their own:
   `weaponstats.weapons` draws as `ranks-weapons`, and the modules' other pages
-  and another player's statistics (`ranks.top.player`) as `ranks-stats`.
+  and another player's statistics (`ranks.top.player`) as `ranks-stats`. The
+  playtime board (`ranks.top.playtime`, Ranks 1.3) draws as `ranks-board`.
 - In the keyboard modes the same Ranks pages draw in the list's `ranks` view,
   which drops the captions of meters only the mouse page draws.
 
@@ -185,7 +186,7 @@ plugin built. Any other custom renderer can read the same API.
 
 | Plugin | Shared interface | Needs | Menus | Draws |
 |--------|------------------|-------|-------|-------|
-| Ranks | `Ranks.Api.v1` | 1.0.5 | `ranks.*` | The rank as a hero card with its road through the ladder, counters as tiles, a podium with the player's row pinned, the settings as a form, and from Ranks 1.2 the Leaderboard's season line as a chip |
+| Ranks | `Ranks.Api.v1` | 1.0.5 | `ranks.*` | The rank as a hero card with its road through the ladder, counters as tiles, a podium with the player's row pinned (the XP board and, from Ranks 1.3, the playtime board), the settings as a form, and from Ranks 1.2 the Leaderboard's season line as a chip |
 | Ranks_WeaponStats | `Ranks.WeaponStats.Api.v1` | any | `weaponstats.*` | Weapon cards with the game's renders and their meters, hit groups as tiles |
 | Ranks_CustomCombos | `Ranks.CustomCombos.Api.v1` | 1.0.2 | `customcombos.*` | Each landed combo as a tile |
 | Ranks_Prestige | `Ranks.Prestige.Api.v1` | 1.0.1 | `prestige.*` | The level and the next-level meter as tiles |
@@ -299,7 +300,7 @@ value runs to the next one. A value that becomes part of a class name (`at=`,
 |-----------|--------|
 | `verb=<word>` | The list's legend word for the entry: `select`, `pick`, `open`, `switch`, `edit`, `change`, `vote` or `apply` |
 | `primary` | The page's main action, for views that draw one |
-| `info` | The entry is a fact, not an action: drawn as text, with no key and nothing to click, even though core lets the cursor stop on it (a `TextComponent` is focusable so a long page can scroll past it) |
+| `info` | The entry is a fact, not an action: drawn as text, with no key and nothing to click, even though core lets the cursor stop on it (a `TextComponent` is focusable so a long page can scroll past it). A plain `TextComponent`, or a subclass that does nothing when activated, gets it without asking |
 | `submenu` | A `›` at the right, in views that draw one. Added for you on a `SubmenuComponent`; a button that opens a page can send it |
 
 **Tones** (defined in `locker.vcss`):
@@ -347,7 +348,10 @@ outside them shows the rank's colour and no icon; another set is a line in
 `RankArt.CustomIconSets`, then a republished addon.
 
 A ladder longer than one page draws as the rank road page by page, its heading
-saying which ranks are shown (`100 ranks · 49–96 shown`).
+saying which ranks are shown (`100 ranks · 48–94 shown`). In the keyboard list a
+Ranks page is no longer than any other list's page (core's `MaxVisibleLines`):
+My rank adds the road only where three ranks of it fit, leaving the rest to
+`Show all ranks`, whose ranks are cards like MapChooser's maps.
 
 ## Richer Rows (Optional, No Dependency)
 

@@ -274,13 +274,37 @@ and falls back to `en` for a missing file or key.
 | `customhud.prefix`, `customhud.nav.*`, `customhud.scale.*` | `!setnav` and `!hudscale` replies |
 | `customhud.hint.<key>` | Footer hints, one per [Hints](#hints) key |
 | `customhud.legend.<verb>` | Words in the list's key legend (`move`, `select`, `pick`, `page`, ...) |
-| `customhud.eyebrow.<plugin>` | Plugin names over a page's title |
+| `customhud.eyebrow.<plugin>` | Plugin names over a page's title; see [Eyebrows](#eyebrows) |
 | `customhud.lead`, `customhud.maps.*`, `customhud.ranks.*`, `customhud.shop.*`, `customhud.vip.*`, `customhud.weaponskins.*`, `customhud.weaponstats.*`, `customhud.prestige.*` | Text on the designed plugin pages |
 
 To add a language, copy `en.jsonc` to `<code>.jsonc`. Chat replies take
 SwiftlyS2 colour tags (`[green]`, `[default]`); hints must not, because
 Panorama would draw the control character. Core's own menu strings, such as an
 input row's "type in chat" prompt, come from SwiftlyS2's translation files.
+
+### Eyebrows
+
+A submenu's eyebrow, the gold line over its title, is its root menu's title. A
+menu that is its own root takes the first of these that exists:
+
+1. `customhud.eyebrow.<plugin>`, where `<plugin>` is the first part of the
+   menu's id: `missions` for `missions.main`. `DetailedLogging` logs each id as
+   `applied … menu=…`.
+2. The eyebrow of a plugin CustomHUD has pages for (`shop`, `maps`, `ranks`,
+   `vip`, `admins`, `mix`).
+3. `customhud.eyebrow.default`, for every other plugin.
+
+Only the second ships, so the server shows no eyebrow over a plugin it has no
+pages for until you add a key. One added to `en.jsonc` alone reaches players
+of every language. An empty value (`""`) shows no line for that plugin, and
+colour tags are dropped. An update replaces the translation files, so copy
+your keys back into the new `en.jsonc`.
+
+```jsonc
+"customhud.eyebrow.default": "Rampage.lt",
+"customhud.eyebrow.missions": "Missions",
+"customhud.eyebrow.k4arenas": ""
+```
 
 ## Theming
 

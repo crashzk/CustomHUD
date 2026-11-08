@@ -85,6 +85,19 @@ internal sealed class IntegrationHost(
         }
     }
 
+    public int RowsAdded(IPageIntegration integration, IMenu menu)
+    {
+        try
+        {
+            return Math.Max(0, integration.RowsAdded(menu));
+        }
+        catch (Exception ex)
+        {
+            Report(integration.Provider, ex);
+            return 0;
+        }
+    }
+
     public void Draw(IPageIntegration integration, PageDraw page)
     {
         try

@@ -90,8 +90,8 @@ The plugin then logs, once at load:
 
 Set both keys to `null` (or delete them) before checking any layout below;
 otherwise every check runs against the classic look. With
-`DetailedLogging: true`, each `applied slot=…` line also names the `layout=`
-the menu was drawn in.
+`DetailedLogging: true`, each `applied slot=…` line also names the `menu=`
+id and the `layout=` the menu was drawn in.
 
 ## 1. Does anything draw at all
 
@@ -135,6 +135,10 @@ Check:
 - [ ] a plugin's root menu with no eyebrow (MapDecals, K4-Arenas) starts at
       its title, with no empty band over it; its submenus show the path above
       the title
+- [ ] with `"customhud.eyebrow.default": "Server"` added to CustomHUD's
+      `en.jsonc`, every such root shows `SERVER` over its title, and one with
+      its own key (`customhud.eyebrow.k4arenas`) shows that instead; `""`
+      hides it again for that plugin
 - [ ] **Footer** sits below as the legend: a keycap or two and a word for
       each thing the focused row answers to, in your nav mode's keys and your
       language (`customhud.legend.*`), never core's key list. A `Hints` entry
@@ -237,7 +241,10 @@ short one. Test with `MaxVisibleLines` at `5`, then at `20`.
 These checks are for the keyboard modes. In mouse mode WeaponSkins draws its
 own locker (§11), the plugins with pages theirs (§8), and a plugin with no
 rule (MapDecals) the mouse list: ten rows show, the rest scroll, and a menu
-past 24 rows pages with `‹` `›`. With `Mouse` set to the tile grid
+past 24 rows pages with `‹` `›`. The row under the pointer looks like the
+keyboard cursor's row (an accent edge at the row's left side, the orange glow,
+a bold name) on a row a click acts on; a plain text line, a meter and a
+heading stay still. With `Mouse` set to the tile grid
 (`config.example.jsonc` shows it), the same menu draws three tiles to a line,
 every line but the last full, and a list longer than its 60 tiles pages with
 `>>`.
@@ -472,15 +479,28 @@ Per plugin:
       under the road.
       `!top` (`ranks-board`): the top three on a podium, the rest a table, and
       you pinned under it when you are not listed. Main statistics
-      (`ranks-stats`): nine tiles, meters only where there is a share.
+      (`ranks-stats`): nine tiles, meters only where there is a share; ten from
+      Ranks 1.3, `Playtime` last, the four rows shorter so all fit under the
+      tabs, in the keyboard list too (a page of the list at a time).
       Settings: the `XP messages` switch and the reset fenced off in red. The
       rank chip beside every title, module pages included
+- [ ] Ranks 1.3's playtime board (`!ttop`, or Leaderboard → Playtime) draws
+      as `!top` does: a podium, the table with each player's rank art and
+      tier, the playtime as the figure (`5d 19h 15m`), and you pinned under it;
+      in Premier the rows keep the tier's colour without a CS Rating, which
+      would be the player's XP
 - [ ] Ranks in `Custom` mode with the wiki's example (`"RankMode": 4`,
       `CustomRankBase` `26283401`, `CustomRankMax` `100`, a 100-rank ladder,
       Workshop `3340561607` in AddonsManager): the chip, the hero card and the
       road show the same numbered badges as the scoreboard. `Show all ranks`
-      pages the road (`100 ranks · 49–96 shown`) with every node's badge, in
-      mouse mode and in the keyboard list
+      pages the road with every node's badge: 47 to a page in mouse mode
+      (`100 ranks · 48–94 shown`, the last of them not cut), and in the
+      keyboard list as many as a page of the list holds
+- [ ] in the keyboard list, Ranks' pages are no longer than other menus' (5
+      lines with core's default `MaxVisibleLines`): My rank shows the hero card,
+      the XP, the progress and `Show all ranks`, and adds the road only where
+      three ranks of it fit; `Show all ranks` lists the ranks as cards like
+      MapChooser's maps, a 3px gap apart, yours marked `You`
 - [ ] with `CustomRankBase` set to a number CustomHUD has no class for, ranks
       keep their colour and show no icon, never an empty frame
 - [ ] in the keyboard list, rank badges sit on the row with no dark tile
@@ -576,8 +596,8 @@ has to be re-applied per joining client.
 - [ ] changing `config.jsonc` while a menu is open applies on the next redraw
 - [ ] a map change does not leave an orphan panel
 
-With `DetailedLogging: true` the apply path logs `applied slot=… vars=N
-classes=N`. A healthy idle menu logs **nothing** — the diff suppresses
+With `DetailedLogging: true` the apply path logs `applied slot=… menu=…
+vars=N classes=N`. A healthy idle menu logs **nothing** — the diff suppresses
 unchanged frames. Continuous logging on a static menu means something is
 invalidating every tick, which is worth finding before it ships.
 

@@ -586,8 +586,8 @@ internal sealed partial class FrameComposer
 
         if (page.EyebrowVar.Length == 0) return;
         var eyebrow = ReferenceEquals(root, context.Menu) ? string.Empty : CleanTitle(MenuTitle(root));
-        if (eyebrow.Length == 0 && page.Eyebrow.Length > 0)
-            eyebrow = EyebrowText(page.Eyebrow, strings?.For(context.Player.PlayerID)) ?? page.Eyebrow;
+        if (eyebrow.Length == 0)
+            eyebrow = RootEyebrow(context.Menu.Id, page.Eyebrow, strings?.For(context.Player.PlayerID));
         vars.Add(new VarWrite(titlePanel, page.EyebrowVar, eyebrow));
         if (eyebrow.Length > 0) classes.Add(new ClassWrite(titlePanel, page.Classes.HasEyebrow, true));
     }
@@ -616,18 +616,25 @@ internal sealed partial class FrameComposer
 
     private const string PathSeparators = ">›»/|:";
 
-    // The built-in profiles' eyebrows in the player's language. Literal keys, so the
-    // translation check sees each one; any other eyebrow is shown as configured.
-    private static string? EyebrowText(string eyebrow, ILocalizer? localizer) => localizer is null ? null : eyebrow switch
+    // A menu that is its own root has no root title to show: an operator's customhud.eyebrow.<plugin>
+    // (the menu id's first part, "missions" for missions.main), then the profile's Eyebrow, then
+    // customhud.eyebrow.default. An empty value draws no line. Only the built-in pages' keys ship, so
+    // one an operator adds to en.jsonc reaches every language.
+    private static string RootEyebrow(string menuId, string profileEyebrow, ILocalizer? localizer)
     {
-        "shop" => HudTranslations.Find(localizer, "customhud.eyebrow.shop"),
-        "maps" => HudTranslations.Find(localizer, "customhud.eyebrow.maps"),
-        "ranks" => HudTranslations.Find(localizer, "customhud.eyebrow.ranks"),
-        "vip" => HudTranslations.Find(localizer, "customhud.eyebrow.vip"),
-        "admins" => HudTranslations.Find(localizer, "customhud.eyebrow.admins"),
-        "mix" => HudTranslations.Find(localizer, "customhud.eyebrow.mix"),
-        _ => null,
-    };
+        var dot = menuId.IndexOf('.');
+        var plugin = (dot > 0 ? menuId[..dot] : menuId).Trim().ToLowerInvariant();
+        return Eyebrow(localizer, plugin)
+            ?? (profileEyebrow.Length > 0 ? Eyebrow(localizer, profileEyebrow) ?? profileEyebrow : null)
+            ?? Eyebrow(localizer, "default")
+            ?? string.Empty;
+    }
+
+    // SwiftlyS2 turns a translation's colour tags into chat control characters, which a label cannot draw.
+    private static string? Eyebrow(ILocalizer? localizer, string name)
+        => localizer is null || name.Length == 0 || HudTranslations.Find(localizer, "customhud.eyebrow." + name) is not { } text
+            ? null
+            : string.Concat(text.Where(c => !char.IsControl(c))).Trim();
 
     // ---- legend ----
 

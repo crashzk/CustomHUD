@@ -1043,6 +1043,12 @@
 	color: chudTextMuted;
 }
 
+/* The ladder's ranks are cards on the row's ground, as MapChooser's maps are, not facts on the panel. */
+.ls.view-ranks .ls-row.grp-road
+{
+	background-color: chudSurfaceRow;
+}
+
 /* ---- below the rows: a ballot's turnout and the rule that passes it ---- */
 
 .ls-foot
@@ -1300,9 +1306,10 @@
 	padding-right: 8px;
 }
 
-.ls-mouse .ls-hit
+/* No key column: the edge keeps the text off it, and stays at the row's left side as the keyboard cursor's does. */
+.ls-mouse .ls-edge
 {
-	padding-left: 9px;
+	margin-right: 9px;
 }
 
 /* Room at the end for the control laid over it (.ls-ctl). */
@@ -1316,21 +1323,55 @@
 	padding-right: 104px;
 }
 
-.ls-mouse .ls-row.section .ls-hit
+.ls-mouse .ls-row.section .ls-edge
 {
-	padding-left: 0px;
+	margin-right: 0px;
 }
 
-/* A wash rather than chudSurfaceHover: over the row's ground it reads the same, and a
-   poll's share stays visible under the pointer. */
-.ls-mouse .ls-hit:hover
+/* The pointer's row is drawn as the keyboard cursor's (.selected), on the rows a click acts on only:
+   a fact, a meter and a heading stay still under it. */
+.ls-mouse .kind-action .ls-hit:hover, .ls-mouse .kind-submenu .ls-hit:hover, .ls-mouse .kind-toggle .ls-hit:hover,
+.ls-mouse .kind-choice .ls-hit:hover, .ls-mouse .kind-selector .ls-hit:hover, .ls-mouse .kind-slider .ls-hit:hover,
+.ls-mouse .kind-input .ls-hit:hover
 {
-	background-color: chudGlassWash;
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudAccentDim ), color-stop( 0.55, chudAccentSoft ), to( chudAccentFade ) );
 }
 
-.ls-mouse .ls-hit:hover .ls-edge
+.ls-mouse .kind-action .ls-hit:hover .ls-edge, .ls-mouse .kind-submenu .ls-hit:hover .ls-edge, .ls-mouse .kind-toggle .ls-hit:hover .ls-edge,
+.ls-mouse .kind-choice .ls-hit:hover .ls-edge, .ls-mouse .kind-selector .ls-hit:hover .ls-edge, .ls-mouse .kind-slider .ls-hit:hover .ls-edge,
+.ls-mouse .kind-input .ls-hit:hover .ls-edge
 {
 	background-color: chudAccentBase;
+}
+
+.ls-mouse .danger.kind-action .ls-hit:hover, .ls-mouse .danger.kind-submenu .ls-hit:hover, .ls-mouse .danger.kind-toggle .ls-hit:hover,
+.ls-mouse .danger.kind-choice .ls-hit:hover, .ls-mouse .danger.kind-selector .ls-hit:hover, .ls-mouse .danger.kind-slider .ls-hit:hover,
+.ls-mouse .danger.kind-input .ls-hit:hover
+{
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudDangerDim ), color-stop( 0.55, chudDangerSoft ), to( chudDangerFade ) );
+}
+
+.ls-mouse .danger.kind-action .ls-hit:hover .ls-edge, .ls-mouse .danger.kind-submenu .ls-hit:hover .ls-edge, .ls-mouse .danger.kind-toggle .ls-hit:hover .ls-edge,
+.ls-mouse .danger.kind-choice .ls-hit:hover .ls-edge, .ls-mouse .danger.kind-selector .ls-hit:hover .ls-edge, .ls-mouse .danger.kind-slider .ls-hit:hover .ls-edge,
+.ls-mouse .danger.kind-input .ls-hit:hover .ls-edge
+{
+	background-color: chudDangerBase;
+}
+
+.ls-mouse .kind-action .ls-hit:hover .lk-name, .ls-mouse .kind-submenu .ls-hit:hover .lk-name, .ls-mouse .kind-toggle .ls-hit:hover .lk-name,
+.ls-mouse .kind-choice .ls-hit:hover .lk-name, .ls-mouse .kind-selector .ls-hit:hover .lk-name, .ls-mouse .kind-slider .ls-hit:hover .lk-name,
+.ls-mouse .kind-input .ls-hit:hover .lk-name
+{
+	font-family: chudFontBody;
+	font-weight: bold;
+}
+
+/* As on the cursor's row, the second line brightens with the name so it reads on the orange. */
+.ls-mouse .kind-action .ls-hit:hover .lk-sub, .ls-mouse .kind-submenu .ls-hit:hover .lk-sub, .ls-mouse .kind-toggle .ls-hit:hover .lk-sub,
+.ls-mouse .kind-choice .ls-hit:hover .lk-sub, .ls-mouse .kind-selector .ls-hit:hover .lk-sub, .ls-mouse .kind-slider .ls-hit:hover .lk-sub,
+.ls-mouse .kind-input .ls-hit:hover .lk-sub
+{
+	color: chudTextMain;
 }
 
 .ls-mouse .kind-submenu .ls-hit:hover .lk-chev
@@ -1338,18 +1379,17 @@
 	color: chudAccentStrong;
 }
 
+.ls-mouse .kind-choice .ls-hit:hover .ls-cycle
+{
+	wash-color: chudAccentStrong;
+}
+
+/* Outranks the locker's hover for plain text, which would give a fact a ground under the pointer. */
 .ls-mouse .kind-text .ls-hit:hover,
 .ls-mouse .kind-progress .ls-hit:hover,
 .ls-mouse .section .ls-hit:hover
 {
 	border-left: 0px solid transparent;
-	background-color: transparent;
-}
-
-.ls-mouse .kind-text .ls-hit:hover .ls-edge,
-.ls-mouse .kind-progress .ls-hit:hover .ls-edge,
-.ls-mouse .section .ls-hit:hover .ls-edge
-{
 	background-color: transparent;
 }
 

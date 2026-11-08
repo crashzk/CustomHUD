@@ -155,6 +155,7 @@ public static class LockerProfiles
         ["ranks.ladder"] = "ranks-rank",
         ["ranks.stats*"] = "ranks-stats",
         ["ranks.top"] = "ranks-board",
+        ["ranks.top.playtime"] = "ranks-board",
         ["ranks.top.player"] = "ranks-stats",
         ["ranks.settings*"] = "ranks-settings",
         ["weaponstats.weapons"] = "ranks-weapons",

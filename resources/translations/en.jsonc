@@ -23,6 +23,10 @@
 
   // Page lockers (menu_locker): the gold line above a plugin's title when its menu
   // has no root title of its own, and the tag on the row holding the most votes.
+  // Any plugin's menus can have that line too: add "customhud.eyebrow.<plugin>", where <plugin>
+  // is the first part of its menu ids ("missions" for missions.main; DetailedLogging names
+  // them), or "customhud.eyebrow.default" for every plugin without one. "" shows no line.
+  // Neither ships, so a key added here reaches players in every language.
   "customhud.eyebrow.shop": "Shop",
   "customhud.eyebrow.maps": "Map vote",
   "customhud.eyebrow.ranks": "Ranks",
@@ -82,6 +86,14 @@
   "customhud.ranks.bombs": "Bombs",
   "customhud.ranks.planted": "planted",
   "customhud.ranks.defused": "{0} defused",
+  "customhud.ranks.playtime": "Playtime",
+  // Beside a playtime: "172 hours", or "52 minutes" within the first hour.
+  "customhud.ranks.hours": "hours",
+  "customhud.ranks.minutes": "minutes",
+  // A playtime as Ranks writes one, largest unit first: days, hours, minutes.
+  "customhud.ranks.duration_days": "{0}d {1}h {2}m",
+  "customhud.ranks.duration_hours": "{0}h {1}m",
+  "customhud.ranks.duration_minutes": "{0}m",
   "customhud.ranks.col_rank": "Rank",
   "customhud.ranks.col_player": "Player",
   "customhud.ranks.col_tier": "Tier",
