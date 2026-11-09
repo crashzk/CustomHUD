@@ -8,21 +8,22 @@ internal sealed partial class AdminsIntegration
     // A ban or a gag or mute the way the pages show it. BCL fields only: see the class comment.
     private sealed record RecordFacts(
         string Kind, long Id, string Name, string Mark, string Sub, string Ident, string Ip, bool ByIp,
-        string Reason, string Admin, long CreatedAt, long Length, long ExpiresAt, bool Global);
+        string Reason, string Admin, long CreatedAt, long Length, long ExpiresAt, bool Global, bool Lifted);
 
     private static RecordFacts FactsOf(PageDraw page, AdminRecordRow row)
     {
         if (row.Ban is { } b)
             return RecordOf(page, "ban", b.Id, b.PlayerName, b.SteamId64, b.PlayerIp, b.BanType == BanType.IP, b.Reason, b.AdminName,
-                b.CreatedAt, b.Length, b.ExpiresAt, b.GlobalBan);
+                b.CreatedAt, b.Length, b.ExpiresAt, b.GlobalBan, b.Status == PunishmentStatus.Lifted);
         var s = row.Sanction!;
         return RecordOf(page, s.SanctionKind == SanctionKind.Gag ? "gag" : "mute", s.Id, s.PlayerName, s.SteamId64, s.PlayerIp,
-            s.SanctionType == SanctionType.IP, s.Reason, s.AdminName, s.CreatedAt, s.Length, s.ExpiresAt, s.GlobalSanction);
+            s.SanctionType == SanctionType.IP, s.Reason, s.AdminName, s.CreatedAt, s.Length, s.ExpiresAt, s.GlobalSanction,
+            s.Status == PunishmentStatus.Lifted);
     }
 
     // The SteamID or IP stands in for a name the record never got.
     private static RecordFacts RecordOf(PageDraw page, string kind, long id, string? name, long steamId, string? ip, bool byIp,
-        string? reason, string? admin, long createdAt, long length, long expiresAt, bool global)
+        string? reason, string? admin, long createdAt, long length, long expiresAt, bool global, bool lifted)
     {
         var ident = steamId > 0 ? steamId.ToString(CultureInfo.InvariantCulture) : ip ?? string.Empty;
         var named = !string.IsNullOrWhiteSpace(name) && name != "Unknown";
@@ -30,7 +31,7 @@ internal sealed partial class AdminsIntegration
             Directive.Clean(named ? name : ident),
             byIp && steamId <= 0 ? "IP" : named ? Initial(name) : "?",
             byIp ? T(page, "by_ip") : named ? ident : T(page, "name_unknown"),
-            ident, Directive.Clean(ip), byIp, Reason(page, reason), Directive.Clean(admin), createdAt, length, expiresAt, global);
+            ident, Directive.Clean(ip), byIp, Reason(page, reason), Directive.Clean(admin), createdAt, length, expiresAt, global, lifted);
     }
 
     private static HistoryLine LineOf(AdminRecordRow row)
@@ -54,6 +55,7 @@ internal sealed partial class AdminsIntegration
         {
             page.AddHeader($"{counts.Active}\t{T(page, "chip.active")}", "chip;glyph=" + glyph);
             page.AddHeader($"{counts.Expired}\t{T(page, "chip.expired")}", "chip;glyph=clock");
+            page.AddHeader($"{counts.Lifted}\t{T(page, list.Comms ? "chip.lifted" : "chip.unbanned")}", "chip;glyph=check");
         }
 
         var focused = FocusedTag(page) as AdminRecordRow;
@@ -107,7 +109,7 @@ internal sealed partial class AdminsIntegration
         }
         else
         {
-            parts.AddRange([$"note={T(page, "ended")}", "notetone=faint", "tone=faint"]);
+            parts.AddRange([$"note={T(page, r.Lifted ? "lifted." + r.Kind : "ended")}", "notetone=faint", "tone=faint"]);
         }
         if (r.Global) parts.Add("glyph=globe");
         if (chosen) parts.Add("chosen");
@@ -126,7 +128,7 @@ internal sealed partial class AdminsIntegration
         Field(page, "field.issued", Date(page, r.CreatedAt));
         Field(page, "field.length", r.Length <= 0 || r.ExpiresAt == 0 ? T(page, "time.permanent") : Long(page, TimeSpan.FromMilliseconds(r.Length)));
         if (r.ExpiresAt == 0) Field(page, "field.expires", T(page, "never"));
-        else Field(page, r.ExpiresAt > NowMs ? "field.expires" : "field.ended", Date(page, r.ExpiresAt));
+        else Field(page, r.ExpiresAt > NowMs ? "field.expires" : r.Lifted ? "field.lifted." + r.Kind : "field.ended", Date(page, r.ExpiresAt));
         if (r.ExpiresAt > NowMs) page.Add($"{T(page, "time_left")}\t{Left(page, r.ExpiresAt)}", $"at=detail;group=left;bar={Share(r)}");
     }
 

@@ -69,7 +69,7 @@ internal sealed partial class AdminsIntegration
         }
 
         if (!self && !facts.Bot && !admins.CanTarget(page.Player, live.SteamID))
-            parts.AddRange([$"sub={T(page, "immune", admins.GetImmunity(live.SteamID))}", "subtone=faint"]);
+            parts.AddRange([$"sub={T(page, "immune", AdminGroup(page, live.SteamID) ?? T(page, "admin"))}", "subtone=faint"]);
         else if (Status(page, live, full: false) is { } status)
             parts.AddRange([$"sub={status}", "subtone=bad"]);
 
@@ -95,8 +95,7 @@ internal sealed partial class AdminsIntegration
         var unknown = T(page, "unknown");
         page.Add($"{T(page, "stat.kd")}\t{(facts is null ? unknown : $"{facts.Kills} / {facts.Deaths}")}", "at=detail;group=stat");
         page.Add($"{T(page, "stat.ping")}\t{(facts is null ? unknown : bot ? T(page, "bot") : T(page, "ms", facts.Ping))}", "at=detail;group=stat");
-        page.Add($"{T(page, "stat.immunity")}\t{(row.SteamId64 == 0 ? unknown : admins.GetImmunity(row.SteamId64).ToString(CultureInfo.InvariantCulture))}",
-            "at=detail;group=stat");
+        page.Add($"{T(page, "stat.group")}\t{AdminGroup(page, row.SteamId64) ?? unknown}", "at=detail;group=stat");
 
         if (!history || row.SteamId64 == 0) return;
         var lines = History(page, row.SteamId64);
@@ -113,10 +112,17 @@ internal sealed partial class AdminsIntegration
         var locker = page.Regions.Contains("detail");
         var id = page.Menu.Id;
         ChipNotices(page, "chip=warn;glyph=info");
-        page.Hint(T(page, id == AdminMenuIds.Player ? "hint.player" : id == AdminMenuIds.PlayerHistory ? "hint.history" : "hint.actions"));
+        page.Hint(T(page, id switch
+        {
+            AdminMenuIds.Player => "hint.player",
+            AdminMenuIds.PlayerHistory => "hint.history",
+            AdminMenuIds.PlayerSessions => "hint.sessions",
+            _ => "hint.actions",
+        }));
 
         var live = Live(page, target);
         int first = -1, records = 0;
+        string? list = null;
         for (var k = 0; k < page.Components.Count; k++)
         {
             var tag = TagOf(page.Components[k]);
@@ -145,6 +151,29 @@ internal sealed partial class AdminsIntegration
                     records++;
                     var line = LineOf(record);
                     page.Draw(k, HistoryText(page, line), HistoryPayload(page, line, locker ? "group=record;" : ""));
+                    break;
+                case AdminPlaytimeRow playtime when locker:
+                    Heading(page, k, ref list, "playtime");
+                    // Month and Total end their lines of the grid locker_admins.vcss sizes.
+                    var cell = playtime.Period switch
+                    {
+                        AdminPlaytimePeriod.Month => "playtime-end",
+                        AdminPlaytimePeriod.Total => "playtime-total",
+                        _ => "playtime",
+                    };
+                    page.Draw(k, $"{T(page, "playtime." + playtime.Period.ToString().ToLowerInvariant())}\t{Hours(page, playtime.Played)}", "group=" + cell);
+                    break;
+                case AdminSessionIpRow ip when locker:
+                    Heading(page, k, ref list, "ips");
+                    page.Draw(k, T(page, ip.Sessions == 1 ? "sessions.one" : "sessions.other", ip.Sessions),
+                        $"group=record;tag={Directive.Clean(ip.Ip)};note={Ago(page, ip.LastSeen.ToUnixTimeMilliseconds())}");
+                    break;
+                case AdminSessionRow session when locker:
+                    Heading(page, k, ref list, "sessions");
+                    page.Draw(k, Hours(page, session.Played), SessionPayload(page, session));
+                    break;
+                case AdminPlaytimeRow or AdminSessionIpRow or AdminSessionRow:
+                    page.Decorate(k, tag is AdminSessionIpRow ? "glyph=globe" : "glyph=clock");
                     break;
                 case AdminActionRow { Action: AdminAction.Retry }:
                     page.Decorate(k, "glyph=refresh");
@@ -182,6 +211,7 @@ internal sealed partial class AdminsIntegration
             AdminPlayerGroup.Punish => ("punish", "ban"),
             AdminPlayerGroup.Control => ("control", "freeze"),
             AdminPlayerGroup.Move => ("move", "goto"),
+            AdminPlayerGroup.Sessions => ("sessions", "stopwatch"),
             _ => ("history", "clock"),
         };
         if (!locker)
@@ -202,30 +232,30 @@ internal sealed partial class AdminsIntegration
         var state = live is null ? default : menus.GetPlayerState(live);
         var muted = live is not null && comms.GetActiveSanction(live, SanctionKind.Mute) is not null;
         var gagged = live is not null && comms.GetActiveSanction(live, SanctionKind.Gag) is not null;
-        var (key, glyph, danger, on) = row.Action switch
+        var (key, glyph, on) = row.Action switch
         {
-            AdminPlayerAction.Kick => ("kick", "kick", true, false),
-            AdminPlayerAction.Ban => ("ban", "ban", true, false),
-            AdminPlayerAction.Mute => muted ? ("unmute", "sounds", false, true) : ("mute", "mute", false, false),
-            AdminPlayerAction.Gag => gagged ? ("ungag", "chat", false, true) : ("gag", "chat", false, false),
-            AdminPlayerAction.Silence => ("silence", "sound-off", false, false),
-            AdminPlayerAction.Slay => ("slay", "kill", true, false),
-            AdminPlayerAction.Freeze => state.Frozen ? ("unfreeze", "freeze", false, true) : ("freeze", "freeze", false, false),
-            AdminPlayerAction.Slap => ("slap", "slap", false, false),
-            AdminPlayerAction.Respawn => ("respawn", "refresh", false, false),
-            AdminPlayerAction.RespawnWhereDied => ("respawn_here", "cycle", false, false),
-            AdminPlayerAction.Team => ("team", "team", false, false),
-            AdminPlayerAction.Swap => ("swap", "swap", false, false),
-            AdminPlayerAction.Beacon => ("beacon", "beacon", false, state.Beacon),
-            AdminPlayerAction.Drug => ("drug", "colors", false, state.Drugged),
-            AdminPlayerAction.God => ("god", "shield", false, state.God),
-            AdminPlayerAction.Noclip => ("noclip", "movement", false, state.Noclip),
-            AdminPlayerAction.Goto => ("goto", "goto", false, false),
-            AdminPlayerAction.Bring => ("bring", "bring", false, false),
-            AdminPlayerAction.Rename => ("rename", "rename", false, false),
-            AdminPlayerAction.Health => ("health", "health", false, false),
-            AdminPlayerAction.Money => ("money", "money", false, false),
-            _ => ("", "info", false, false),
+            AdminPlayerAction.Kick => ("kick", "kick", false),
+            AdminPlayerAction.Ban => ("ban", "ban", false),
+            AdminPlayerAction.Mute => muted ? ("unmute", "sounds", true) : ("mute", "mute", false),
+            AdminPlayerAction.Gag => gagged ? ("ungag", "chat", true) : ("gag", "chat", false),
+            AdminPlayerAction.Silence => ("silence", "sound-off", false),
+            AdminPlayerAction.Slay => ("slay", "kill", false),
+            AdminPlayerAction.Freeze => state.Frozen ? ("unfreeze", "freeze", true) : ("freeze", "freeze", false),
+            AdminPlayerAction.Slap => ("slap", "slap", false),
+            AdminPlayerAction.Respawn => ("respawn", "refresh", false),
+            AdminPlayerAction.RespawnWhereDied => ("respawn_here", "cycle", false),
+            AdminPlayerAction.Team => ("team", "team", false),
+            AdminPlayerAction.Swap => ("swap", "swap", false),
+            AdminPlayerAction.Beacon => ("beacon", "beacon", state.Beacon),
+            AdminPlayerAction.Drug => ("drug", "colors", state.Drugged),
+            AdminPlayerAction.God => ("god", "shield", state.God),
+            AdminPlayerAction.Noclip => ("noclip", "movement", state.Noclip),
+            AdminPlayerAction.Goto => ("goto", "goto", false),
+            AdminPlayerAction.Bring => ("bring", "bring", false),
+            AdminPlayerAction.Rename => ("rename", "rename", false),
+            AdminPlayerAction.Health => ("health", "health", false),
+            AdminPlayerAction.Money => ("money", "money", false),
+            _ => ("", "info", false),
         };
 
         // An action newer than this build keeps Admins' own label.
@@ -234,7 +264,7 @@ internal sealed partial class AdminsIntegration
             page.Decorate(k, (locker ? "group=action;" : "") + "glyph=" + glyph);
             return;
         }
-        page.Draw(k, T(page, "act." + key), $"group=action;glyph={glyph}" + (danger ? ";danger" : "") + (on ? ";chosen" : ""));
+        page.Draw(k, T(page, "act." + key), $"group=action;glyph={glyph}" + (on ? ";chosen" : ""));
     }
 
     private static void TeamTile(PageDraw page, int k, AdminTeamRow row, IPlayer? live, bool locker)
@@ -268,5 +298,39 @@ internal sealed partial class AdminsIntegration
             if (current.Id == AdminMenuIds.Player)
                 return current.GetComponents(MenuRegion.Body).Any(c => TagOf(c) is AdminPlayerGroupRow { Group: AdminPlayerGroup.History });
         return false;
+    }
+
+    // ---- A player's sessions: their playtime as stat tiles, then their addresses and connections as records
+
+    // Heads each of the page's lists where it starts on this page; RowsAdded keeps room for all three.
+    private static void Heading(PageDraw page, int k, ref string? current, string list)
+    {
+        if (current == list) return;
+        current = list;
+        var body = page.Menu.GetComponents(MenuRegion.Body);
+        var title = T(page, "section." + list);
+        page.Add(list switch
+        {
+            "ips" => $"{title}\t{body.Count(c => TagOf(c) is AdminSessionIpRow)}",
+            "sessions" => $"{title}\t{body.Count(c => TagOf(c) is AdminSessionRow)}",
+            _ => title,
+        }, "section", k);
+    }
+
+    private static string SessionPayload(PageDraw page, AdminSessionRow session)
+    {
+        var when = Date(page, session.ConnectedAt.ToUnixTimeMilliseconds());
+        if (session.Server is { } server) when += " · " + (server.Length > 0 ? Directive.Clean(server) : T(page, "another_server"));
+        if (session.Online) when += " · " + T(page, "online");
+        return $"group=record;tag={when};note={Directive.Clean(session.Ip)}";
+    }
+
+    // Playtime in hours however many there are: "52 h", "3 h 5 min", "40 min".
+    private static string Hours(PageDraw page, TimeSpan span)
+    {
+        var hours = (int)span.TotalHours;
+        return hours >= 10 || (hours > 0 && span.Minutes == 0) ? T(page, "time.hours", hours)
+            : hours > 0 ? T(page, "time.hours_minutes", hours, span.Minutes)
+            : T(page, "time.minutes", span.Minutes);
     }
 }
