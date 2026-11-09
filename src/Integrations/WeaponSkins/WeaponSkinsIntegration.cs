@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menu;
@@ -9,11 +10,19 @@ namespace CustomHUD.Integrations.SkinPages;
 // WeaponSkins' locker: each row's render, its caption and an outline on what the player has on,
 // all read from IWeaponSkinAPI. A row says what it stands for through its Tag: a weapon type's
 // definition index (ushort), a finish's paint kit index (int), an agent / music kit / sticker /
-// capsule / charm definition, or a charm collection's name. A page under a weapon (its finishes,
-// its properties, its stickers) gets that weapon from the row it was opened from (Openers).
+// capsule / charm / graffiti / tint / patch / patch pack / pin definition, a charm collection's name
+// or a weapon category's key, a graffiti tournament's event id or a sticker or patch slot (int). A
+// page under a weapon (its finishes, its properties, its stickers) gets that weapon from the row it
+// was opened from (Openers).
 internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegration
 {
     private Dictionary<int, string>? _weaponByIndex;
+
+    // Newer than the members TryCreate requires. An older WeaponSkins.Shared lacks their Tag types
+    // as well, so their pages are drawn only through NoInlining methods, and only when present.
+    private readonly bool _graffiti = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetGraffiti)).Length > 0;
+    private readonly bool _patches = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetAgentPatches)).Length > 0;
+    private readonly bool _pins = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetPin)).Length > 0;
 
     public string Provider => "WeaponSkins";
 
@@ -37,6 +46,10 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
         switch (id)
         {
             case "weaponskins.weapons":
+                DrawCategories(page);
+                // A WeaponSkins older than its categories lists the guns here.
+                DrawTypes(page, id);
+                return;
             case "weaponskins.knifes":
             case "weaponskins.gloves":
                 DrawTypes(page, id);
@@ -67,10 +80,40 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
             case "weaponskins.keychains.collection":
                 DrawCharms(page);
                 return;
+            case "weaponskins.graffiti":
+            case "weaponskins.graffiti.tournament":
+                if (_graffiti) DrawGraffiti(page);
+                return;
+            case "weaponskins.graffiti.tints":
+                if (_graffiti) DrawGraffitiTints(page);
+                return;
+            case "weaponskins.agentproperties":
+                if (_patches) DrawPatchSlots(page);
+                return;
+            case "weaponskins.pins":
+                if (_pins) DrawPins(page);
+                return;
         }
 
         if (id.StartsWith("weaponskins.stickers.slot", StringComparison.Ordinal)) DrawStickers(page);
+        else if (_patches && id.StartsWith("weaponskins.patches.slot", StringComparison.Ordinal)) DrawPatches(page);
+        else if (id.StartsWith("weaponskins.weapons.", StringComparison.Ordinal)) DrawTypes(page, "weaponskins.weapons");
     }
+
+    // Weapon Skins' categories, each shown by one of its guns.
+    private void DrawCategories(PageDraw page)
+    {
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: string category } && CategoryCovers.TryGetValue(category, out var weapon))
+                page.Decorate(k, Payload(BaseImage(weapon), null, false));
+    }
+
+    // Keyed by WeaponSkins' category Tags (WeaponCategory, lower case).
+    private static readonly Dictionary<string, string> CategoryCovers = new(StringComparer.Ordinal)
+    {
+        ["rifles"] = "weapon_ak47", ["pistols"] = "weapon_deagle", ["smgs"] = "weapon_p90", ["shotguns"] = "weapon_xm1014",
+        ["snipers"] = "weapon_awp", ["heavy"] = "weapon_negev", ["other"] = "weapon_taser",
+    };
 
     // Weapon, knife and glove types. A knife or glove the player has on is outlined.
     private void DrawTypes(PageDraw page, string id)
@@ -251,6 +294,89 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
         }
     }
 
+    // Graffiti and tournaments' logos. The chosen graffiti is outlined, washed in its tint.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawGraffiti(PageDraw page)
+    {
+        var chosen = api.TryGetGraffiti(page.Player.SteamID, out var index, out var tint) ? index : (int?)null;
+        var caption = T(page, "graffiti");
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            switch (page.Components[k])
+            {
+                case MenuComponentBase { Tag: int eventId }:
+                    page.Decorate(k, Payload(api.GetImageKey("graffititournament", eventId.ToString(CultureInfo.InvariantCulture)), null, false));
+                    break;
+                case MenuComponentBase { Tag: GraffitiDefinition graffiti }:
+                    var payload = Payload(api.GetImageKey("graffiti", graffiti.Name), caption, chosen == graffiti.Index);
+                    page.Decorate(k, chosen == graffiti.Index && tint > 0 ? payload + ";tint=spray-" + tint : payload);
+                    break;
+            }
+        }
+    }
+
+    // One graffiti in each of its colours, captioned with the graffiti.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawGraffitiTints(PageDraw page)
+    {
+        if (!page.TryOpener<GraffitiDefinition>(out var graffiti)) return;
+
+        var image = api.GetImageKey("graffiti", graffiti.Name);
+        var caption = LocalName(page, graffiti.LocalizedNames, graffiti.Name);
+        var chosen = api.TryGetGraffiti(page.Player.SteamID, out var index, out var tint) && index == graffiti.Index ? tint : (int?)null;
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: GraffitiTintDefinition color })
+                page.Decorate(k, Payload(image, caption, chosen == color.Index) + ";tint=spray-" + color.Index);
+    }
+
+    // A slot shows the patch on it.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawPatchSlots(PageDraw page)
+    {
+        var (steamId, team) = Who(page);
+        if (!api.TryGetAgentPatches(steamId, team, out var patches)) return;
+
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: int slot } && slot >= 0 && slot < patches.Count
+                && Patch(patches[slot]) is { } patch && api.GetImageKey("patch", patch.Name) is { } image)
+                page.Decorate(k, "image=" + image);
+    }
+
+    // A slot's patch packs, and a pack's patches. The patch on the slot is outlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawPatches(PageDraw page)
+    {
+        var (steamId, team) = Who(page);
+        var current = page.TryOpener<int>(out var slot) && api.TryGetAgentPatches(steamId, team, out var patches)
+                      && slot >= 0 && slot < patches.Count
+            ? patches[slot]
+            : 0;
+        var caption = T(page, "patch");
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            switch (page.Components[k])
+            {
+                case MenuComponentBase { Tag: PatchCollectionDefinition pack }:
+                    page.Decorate(k, Payload(api.GetImageKey("patchcapsule", pack.Name), null, false));
+                    break;
+                case MenuComponentBase { Tag: PatchDefinition patch }:
+                    page.Decorate(k, Payload(api.GetImageKey("patch", patch.Name), caption, current != 0 && current == patch.Index));
+                    break;
+            }
+        }
+    }
+
+    // The pin the player wears on the scoreboard is outlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawPins(PageDraw page)
+    {
+        var current = api.TryGetPin(page.Player.SteamID, out var index) ? index : (int?)null;
+        var caption = T(page, "pin");
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: PinDefinition pin })
+                page.Decorate(k, Payload(api.GetImageKey("pin", pin.Name), caption, current == pin.Index));
+    }
+
     private static string Payload(string? image, string? caption, bool chosen)
     {
         var parts = new List<string>(3);
@@ -278,15 +404,16 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
     private StickerDefinition? Sticker(int index) =>
         api.StickerCollections.Values.SelectMany(c => c.Stickers).FirstOrDefault(s => s.Index == index);
 
-    private string ItemName(PageDraw page, string weapon)
-    {
-        if (!api.Items.TryGetValue(weapon, out var item)) return string.Empty;
-        var names = item.LocalizedNames;
-        var name = names.TryGetValue(page.Player.PlayerLanguage.Value, out var local) ? local
+    private PatchDefinition? Patch(int index) =>
+        index == 0 ? null : api.Patches.Values.FirstOrDefault(p => p.Index == index);
+
+    private string ItemName(PageDraw page, string weapon) =>
+        api.Items.TryGetValue(weapon, out var item) ? LocalName(page, item.LocalizedNames, item.Name) : string.Empty;
+
+    private static string LocalName(PageDraw page, IReadOnlyDictionary<string, string> names, string fallback) =>
+        Directive.Clean(names.TryGetValue(page.Player.PlayerLanguage.Value, out var local) ? local
             : names.TryGetValue("english", out var english) ? english
-            : item.Name;
-        return Directive.Clean(name);
-    }
+            : fallback);
 
     private static (ulong SteamId, SwiftlyS2.Shared.Players.Team Team) Who(PageDraw page) =>
         (page.Player.SteamID, page.Player.Controller.Team);

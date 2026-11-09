@@ -25,8 +25,9 @@
 
     Families: weapon paintkits (the _light render, closest to Factory New),
     base weapons, agents, music kits, charms, patches, cases and capsules
-    (weapon_cases, plus tournaments for major capsules), and collection icons
-    (set_icons) go to econ_thumbs.vcss.
+    (weapon_cases, plus tournaments for major capsules), collection icons
+    (set_icons) and collectible pins (status_icons/collectible_pin_*) go to
+    econ_thumbs.vcss.
     Stickers go to econ_stickers.vcss: they are roughly 80% of the classes, so
     a layout that shows none leaves that file out. Alternate renders (_large,
     _small, _square, the sticker _1355_37) are skipped.
@@ -99,6 +100,8 @@ function Get-Target([string] $Key) {
         '^tournaments/'                    { return 'thumbs' }
         '^set_icons/.+_small$'             { return $null }
         '^set_icons/'                      { return 'thumbs' }
+        '^status_icons/.+_small$'          { return $null }
+        '^status_icons/collectible_pin_'   { return 'thumbs' }
         '^stickers/.+_1355_37$'            { return $null }
         '^stickers/'                       { return 'stickers' }
     }

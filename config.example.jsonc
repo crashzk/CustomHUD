@@ -98,8 +98,8 @@
     //     // token Icons maps its component id (else its label) to, and an entry
     //     // missing from Icons keeps the layout's default. Tokens are the
     //     // ico-* classes in customhud_icons.vcss: weapons, knives, gloves,
-    //     // agents, music-kits, stickers, weapon-props, knife-props,
-    //     // glove-props, shop, inventory, credits, gift, crown, star, key,
+    //     // agents, music-kits, graffiti, pins, stickers, weapon-props, knife-props,
+    //     // glove-props, agent-props, shop, inventory, credits, gift, crown, star, key,
     //     // colors, sounds, movement, healing, guns, vote, add, map-vote, maps,
     //     // refresh, clock, ticket, timer, rank, stats, trophy, player,
     //     // add-player, ban, mute, chat, server, staff, shield, tiles, settings,
@@ -115,9 +115,16 @@
     //                  "Icons": { "weaponskins.weapons": "weapons", "weaponskins.knifes": "knives",
     //                             "weaponskins.gloves": "gloves", "weaponskins.agents": "agents",
     //                             "weaponskins.musickits": "music-kits",
+    //                             "weaponskins.graffiti": "graffiti", "weaponskins.pins": "pins",
     //                             "weaponskins.weaponproperties": "weapon-props",
     //                             "weaponskins.knifeproperties": "knife-props",
-    //                             "weaponskins.gloveproperties": "glove-props" } },
+    //                             "weaponskins.gloveproperties": "glove-props",
+    //                             "weaponskins.agentproperties": "agent-props" } },
+    //     // Weapon Skins' categories as a strip over the grid (Mouse only). Only
+    //     // the pages Hosts names are tab hosts: the knife and glove pages are
+    //     // plain submenus too. AutoOpen 0 opens the first tab in place of the
+    //     // host's page.
+    //     "Tabs": { "Hosts": [ "weaponskins.weapons" ], "AutoOpen": 0, "Slots": 8 },
     //     // A page whose first row carries `hero` draws as an inspect card in
     //     // place of the grid: one field per row, an `inline` row joining the
     //     // field above it. {} keeps the ids menu_skins_mouse declares.

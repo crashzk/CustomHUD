@@ -16,6 +16,10 @@ internal interface IPageIntegration
     // leaves it out of the main list's count where the layout has that region.
     string? RegionOf(IMenu menu, IMenuComponent component);
 
+    // Rows Draw adds to the main list of every page of this menu (a heading), kept free when the
+    // menu is paged so they are never cut. Rows added only where they fit check PageDraw.Room instead.
+    int RowsAdded(IMenu menu) => 0;
+
     void Draw(PageDraw page);
 }
 

@@ -82,7 +82,7 @@ public static class ListProfiles
         ["customcombos.*"] = Ranks(),
         ["prestige.*"] = Ranks(),
         ["vipcore.*"] = Keys("vip"),
-        ["admins.*"] = Keys("admins"),
+        ["admins.*"] = Admins(),
         ["mixscrims.*"] = Mix(),
         ["weaponskins.*"] = Skins(),
     };
@@ -128,6 +128,18 @@ public static class ListProfiles
         list.AutoLead = mix.AutoLead;
         foreach (var id in new[] { "mixscrims.timeout-vote", "mixscrims.surrender-vote", "mixscrims.vote-kick" })
             list.Views[id] = "ballot";
+        return profile;
+    }
+
+    // Admins' vote ballot reads like Mix's; a map vote's answers are maps.
+    public static MenuLayoutProfile Admins()
+    {
+        var profile = Keys("admins");
+        var list = profile.Page!;
+        var ballot = LockerProfiles.AdminsBallot().Page!;
+        list.ImageFromLabel = ballot.ImageFromLabel;
+        list.ImageLabels = [.. ballot.ImageLabels];
+        list.Views["admins.vote"] = "ballot";
         return profile;
     }
 

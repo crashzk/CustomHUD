@@ -16,9 +16,9 @@
 
 - 🎨 **Drop-in** - one line in `menus.jsonc` redraws every `Core.Menu` menu as
   a Panorama HUD instead of center-screen HTML. Plugins need no code changes.
-- 🖱️ **Designed pages** for WeaponSkins, ShopCore, MapChooser, Ranks, VIPCore
-  and MixScrims, with prices, live vote tallies, rank ladders and item art read
-  straight from those plugins.
+- 🖱️ **Designed pages** for WeaponSkins, ShopCore, MapChooser, Ranks, VIPCore,
+  Admins and MixScrims, with prices, live vote tallies, rank ladders and item art
+  read straight from those plugins.
 - 🕹️ **Four navigation modes** - each player picks `buttons`, `wasd`, `numbers`
   or `mouse` for themselves.
 - 📋 **Every other plugin** gets a clean list with switches, sliders and a key
@@ -29,8 +29,9 @@
 
 ### [WeaponSkins](https://github.com/samyycX/WeaponSkins)
 
-A skin locker: a category sidebar, a card per finish with its in-game art and
-rarity glow, and an inspect card for name tag, wear, seed and StatTrak™.
+A skin locker: a category sidebar, a tab for each kind of gun, a card per finish
+with its in-game art and rarity glow, and an inspect card for name tag, wear,
+seed and StatTrak™.
 
 ![WeaponSkins in CustomHUD](docs/media/weaponskins.webp)
 
@@ -61,6 +62,12 @@ Your membership over its perk cards, a gun loadout picker, and admin pages to
 manage and grant VIP.
 
 ![VIPCore in CustomHUD](docs/media/vipcore.webp)
+
+### [Admins](https://github.com/SwiftlyS2-Plugins/Admins)
+
+The players as a roster beside each one's sheet, a player's actions as tiles, a
+punishment step by step with the message the player will read, the bans and
+comms tables, and vote ballots. Needs Admins 2.0.0.
 
 ### [MixScrims](https://github.com/shmitzas/MixScrims)
 

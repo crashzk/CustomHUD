@@ -21,13 +21,14 @@ for exercises the list (`menu_list`, and `menu_list_mouse` in mouse mode).
 | MapChooser | the fork, `feat/migrate_to_new_menu_api` | `!maps`, `!mapsvote`, `!nominate`, `!revote` | the map menu as a sidebar, the live tally, disabled rows with a reason, map art |
 | VIPCore | the fork, `feat/migrate_to_new_menu_api` | `!vip` | disabled rows |
 | MixScrims | `MixScrims-SwiftlyS2` | its match flow, `!captain` | menus with no exit, Yes/No ballots, the `mix-*` pages, centre-HTML |
-| Admins | the fork | `!admin`, `!csay` | a `Core.MenusAPI` plugin; centre text |
+| Admins | the fork, `feat/complete_refactor` | `!admin`, `!vote`, `!votekick`, `!votemap`, `!csay` | the `admins-*` pages drawn from its API, the ballot, centre text |
 
 The forks are the ones under `SwiftlyS2 Forks - Core Plugins`. Only `Core.Menu`
-reaches a renderer: Admins, and the default branches of the MapChooser and
-VIPCore forks, still use the deprecated `Core.MenusAPI`, which keeps drawing
-core's centre-HTML whatever `menus.jsonc` says. `!mapdecal`, `!mapsvote`,
-`!admin` and `!csay` are admin commands; grant yourself their permissions.
+reaches a renderer: the default branches of the MapChooser and VIPCore forks
+still use the deprecated `Core.MenusAPI`, which keeps drawing core's
+centre-HTML whatever `menus.jsonc` says. `!mapdecal`, `!mapsvote`, `!admin`,
+`!vote`, `!votekick`, `!votemap` and `!csay` are admin commands; grant yourself
+their permissions.
 
 ### Turn on detailed logging
 
@@ -90,8 +91,8 @@ The plugin then logs, once at load:
 
 Set both keys to `null` (or delete them) before checking any layout below;
 otherwise every check runs against the classic look. With
-`DetailedLogging: true`, each `applied slot=…` line also names the `layout=`
-the menu was drawn in.
+`DetailedLogging: true`, each `applied slot=…` line also names the `menu=`
+id and the `layout=` the menu was drawn in.
 
 ## 1. Does anything draw at all
 
@@ -135,6 +136,10 @@ Check:
 - [ ] a plugin's root menu with no eyebrow (MapDecals, K4-Arenas) starts at
       its title, with no empty band over it; its submenus show the path above
       the title
+- [ ] with `"customhud.eyebrow.default": "Server"` added to CustomHUD's
+      `en.jsonc`, every such root shows `SERVER` over its title, and one with
+      its own key (`customhud.eyebrow.k4arenas`) shows that instead; `""`
+      hides it again for that plugin
 - [ ] **Footer** sits below as the legend: a keycap or two and a word for
       each thing the focused row answers to, in your nav mode's keys and your
       language (`customhud.legend.*`), never core's key list. A `Hints` entry
@@ -237,7 +242,10 @@ short one. Test with `MaxVisibleLines` at `5`, then at `20`.
 These checks are for the keyboard modes. In mouse mode WeaponSkins draws its
 own locker (§11), the plugins with pages theirs (§8), and a plugin with no
 rule (MapDecals) the mouse list: ten rows show, the rest scroll, and a menu
-past 24 rows pages with `‹` `›`. With `Mouse` set to the tile grid
+past 24 rows pages with `‹` `›`. The row under the pointer looks like the
+keyboard cursor's row (an accent edge at the row's left side, the orange glow,
+a bold name) on a row a click acts on; a plain text line, a meter and a
+heading stay still. With `Mouse` set to the tile grid
 (`config.example.jsonc` shows it), the same menu draws three tiles to a line,
 every line but the last full, and a list longer than its 60 tiles pages with
 `>>`.
@@ -416,20 +424,20 @@ An override loses to a mouse rule, so check the shop in a keyboard mode.
 !rank
 !vip
 !mapsvote
+!admin
 ```
 
 The built-in rules send `shopcore.*`, `mapchooser.*`, `ranks.*` (with Ranks'
-modules `weaponstats.*`, `customcombos.*` and `prestige.*`), `vipcore.*` and
-`mixscrims.*` to `menu_locker`, each id in the view
+modules `weaponstats.*`, `customcombos.*` and `prestige.*`), `vipcore.*`,
+`admins.*` and `mixscrims.*` to `menu_locker`, each id in the view
 `LockerProfiles` maps it to; `PageViews` in `config.jsonc` picks another
 (`maps-rows`, `shop-list`). Ranks and its modules, ShopCore, MapChooser,
-WeaponSkins and VIPCore pages are drawn from those plugins' APIs
+WeaponSkins, VIPCore and Admins pages are drawn from those plugins' APIs
 ([Provider Integrations](PluginIntegration.md#provider-integrations)); the server log names each integration CustomHUD bound
 at startup, and a missing one leaves that plugin's plain rows. MixScrims sends
 plain rows today, so a page shows its labels, values and states in its view's
-frame. `admins.*` has a rule too, which Admins cannot
-reach until it moves to `Core.Menu`. MixScrims' pages are checked with its
-match flow (§11).
+frame. MixScrims' pages are checked with its match flow and Admins' with its
+own pass (§11).
 
 On every page:
 
@@ -472,19 +480,35 @@ Per plugin:
       under the road.
       `!top` (`ranks-board`): the top three on a podium, the rest a table, and
       you pinned under it when you are not listed. Main statistics
-      (`ranks-stats`): nine tiles, meters only where there is a share.
+      (`ranks-stats`): nine tiles, meters only where there is a share; ten from
+      Ranks 1.3, `Playtime` last, the four rows shorter so all fit under the
+      tabs, in the keyboard list too (a page of the list at a time).
       Settings: the `XP messages` switch and the reset fenced off in red. The
       rank chip beside every title, module pages included
+- [ ] Ranks 1.3's playtime board (`!ttop`, or Leaderboard → Playtime) draws
+      as `!top` does: a podium, the table with each player's rank art and
+      tier, the playtime as the figure (`5d 19h 15m`), and you pinned under it;
+      in Premier the rows keep the tier's colour without a CS Rating, which
+      would be the player's XP
 - [ ] Ranks in `Custom` mode with the wiki's example (`"RankMode": 4`,
       `CustomRankBase` `26283401`, `CustomRankMax` `100`, a 100-rank ladder,
       Workshop `3340561607` in AddonsManager): the chip, the hero card and the
       road show the same numbered badges as the scoreboard. `Show all ranks`
-      pages the road (`100 ranks · 49–96 shown`) with every node's badge, in
-      mouse mode and in the keyboard list
+      pages the road with every node's badge: 47 to a page in mouse mode
+      (`100 ranks · 48–94 shown`, the last of them not cut), and in the
+      keyboard list as many as a page of the list holds
+- [ ] in the keyboard list, Ranks' pages are no longer than other menus' (5
+      lines with core's default `MaxVisibleLines`): My rank shows the hero card,
+      the XP, the progress and `Show all ranks`, and adds the road only where
+      three ranks of it fit; `Show all ranks` lists the ranks as cards like
+      MapChooser's maps, a 3px gap apart, yours marked `You`
 - [ ] with `CustomRankBase` set to a number CustomHUD has no class for, ranks
       keep their colour and show no icon, never an empty frame
 - [ ] in the keyboard list, rank badges sit on the row with no dark tile
       behind them, and the chip's badge fits inside the chip
+- [ ] rank badges are as sharp as the text around them at every size: the My
+      rank hero card, the road, the podium, the board's rows and the chips, in
+      Competitive and with a custom set
 - [ ] Ranks' sidebar ends in `Help`, and `Admin commands` for an admin; each
       lists its commands in chat and closes the menu
 - [ ] each Ranks page's footer says what it is for (`Your progress to the next
@@ -573,8 +597,8 @@ has to be re-applied per joining client.
 - [ ] changing `config.jsonc` while a menu is open applies on the next redraw
 - [ ] a map change does not leave an orphan panel
 
-With `DetailedLogging: true` the apply path logs `applied slot=… vars=N
-classes=N`. A healthy idle menu logs **nothing** — the diff suppresses
+With `DetailedLogging: true` the apply path logs `applied slot=… menu=…
+vars=N classes=N`. A healthy idle menu logs **nothing** — the diff suppresses
 unchanged frames. Continuous logging on a static menu means something is
 invalidating every tick, which is worth finding before it ships.
 
@@ -588,8 +612,8 @@ A plugin still on the deprecated `Core.MenusAPI` will **not** be affected: that
 is a separate pipeline that never reaches a renderer, and it keeps drawing its
 own centre-HTML.
 
-- [ ] `!admin` draws core's centre-HTML whatever `menus.jsonc` says, and
-      closes as it always has
+- [ ] on VIPCore's default branch, `!vip` draws core's centre-HTML whatever
+      `menus.jsonc` says, and closes as it always has
 
 The WeaponSkins fork (`SwiftlyS2 Forks - Core Plugins\WeaponSkins`) is ported
 to `Core.Menu` and makes a good full pass: `!ws` covers submenus, back
@@ -616,20 +640,35 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       next page, never a one-row slide
 - [ ] buttons/WASD/numbers: the `!ws` root shows no rule row between Music
       Kits and Weapon Properties, and numbers mode skips no key there
+- [ ] buttons/WASD/numbers: Weapon Skins lists Rifles, Pistols, SMGs,
+      Shotguns, Snipers, Heavy and Other, pictured by an AK-47, a Desert Eagle,
+      a P90, an XM1014, an AWP, a Negev and a Zeus; the weapon in hand's
+      category is focused, and each category lists only its guns
 - [ ] with `"Renderer": "centerhtml"` (core's default), the `!ws` root has no
       line of `─` between Music Kits and Weapon Properties, and every
       WeaponSkins page lists five entries even with `MaxVisibleLines 20`
 - [ ] `!setnav mouse`: every `weaponskins.*` menu uses the wide locker. `!ws`
-      opens straight on the weapon grid; the sidebar reads Weapon Skins,
-      Knifes, Gloves, Agents, Music Kits, a rule, Weapon / Knife / Glove
-      Properties, and Weapon Skins is active
+      opens straight on Weapon Skins' Rifles tab; the sidebar reads Weapon Skins,
+      Knifes, Gloves, Agents, Music Kits, Graffiti, Pins, then Weapon / Knife /
+      Glove / Agent Properties, and Weapon Skins is active
 - [ ] each sidebar entry has its icon: a pistol, a knife, gloves, an agent, a
-      music note, then the pistol, knife and gloves again, each with a small
-      gear at its lower right. Icons are grey at rest, white on hover and
-      orange on the active entry, and the rule has none. A blank space where
-      an icon should be means the client's `customhud_icons.vcss_c` is stale
+      music note, a spray can, a rosette, then the pistol, knife,
+      gloves and agent again, each with a small gear at its lower right. Icons
+      are grey at rest, white on hover and orange on the active entry. A blank
+      space where an icon should be means the client's `customhud_icons.vcss_c`
+      is stale
 - [ ] the active entry follows you down: inside AK-47 finishes, Weapon Skins
       stays active
+- [ ] Weapon Skins has a tab strip over the grid: Rifles, Pistols, SMGs,
+      Shotguns, Snipers, Heavy, Other. The open tab is filled orange in an
+      orange edge with an orange label, and the heading names it; Pistols holds
+      the ten pistols, CZ75-Auto to USP-S, in one grid of two rows
+- [ ] a tab opens its category in place; hovering one gives it an orange edge.
+      Knifes, Gloves and Weapon Properties show no strip, and the locker keeps
+      its size moving between them and Weapon Skins
+- [ ] a gun's finishes drop the strip and the grid takes back its full three
+      rows; `<` returns to that gun's category, with its tab open and the gun
+      focused
 - [ ] the active entry is a dim orange fill under a bright orange edge, its
       white label easy to read; hovering `<` or `×` deepens their tint and never
       turns a button solid orange or red
@@ -642,8 +681,8 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       it
 - [ ] the footer holds `<` at the left and `×` at the right, both the height
       of a nav item; there is no `<<` / `>>` or page counter
-- [ ] `<` is hidden on a top-level page (the weapon grid) and returns one level
-      below it (AK-47 finishes → weapon grid)
+- [ ] `<` is hidden on a top-level page (a Weapon Skins category, the knife
+      grid) and returns one level below it (AK-47 finishes → Rifles)
 - [ ] `×` closes the whole menu from any depth and releases the cursor; the
       menu's close key on a top-level page also closes it rather than
       reopening the same page
@@ -693,6 +732,21 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       2025 Highlight and Budapest 2025 Highlight; each collection opens its
       charms with their pictures, rarest first. Budapest 2025 is a plain card:
       the game ships no picture for it
+- [ ] Graffiti lists Reset, the tournaments with their logos, then every
+      graffiti with its picture; a colourable one opens its colours, each card
+      showing the graffiti in that colour. A pick is named in chat, and the
+      picked graffiti is outlined in orange, in the colour picked
+- [ ] `!spray` aimed at a wall or the floor close by paints the picked
+      graffiti in its colour; with a graffiti equipped in your Steam inventory,
+      the game's own graffiti key paints the one picked in `!ws` instead
+- [ ] Agent Properties lists Reset and Patch 1 to 5; a slot opens the patch
+      packs with their pictures, then the patches no pack holds. A picked patch
+      shows on its slot card, is outlined on that slot's lists, and is on your
+      agent at once and after a respawn; Stickers lists no patch pack
+- [ ] Pins (WeaponSkins 0.9.0) lists Reset, then every pin with its picture
+      and rarity glow; the picked pin is outlined in orange and shows beside
+      your name on the scoreboard at once, and Reset clears both. A plain card
+      with a `Pin` label means the client's `econ_thumbs.vcss_c` is stale
 - [ ] unavailable categories are not exposed as active sidebar shortcuts;
       without the `Stickers` / `Keychains` permission a weapon's Stickers /
       Charms card is shown disabled
@@ -701,7 +755,7 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       the item you have on
 - [ ] the rarity bar under each image is a thin, crisp line with no halo
       around it
-- [ ] paintkit, knife, glove, agent, music kit, charm, sticker, capsule and
+- [ ] paintkit, knife, glove, agent, music kit, charm, sticker, capsule, pin and
       charm collection cards show the game's thumbnail; the weapon and knife
       lists show the base weapon, the glove list each type's first finish; a
       card with no image ("Default", Reset) shows none, and switching menus
@@ -717,7 +771,7 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
 - [ ] browsing several large sticker capsules in one sitting keeps working:
       after about ten full pages the menu redraws once as its HUD entity is
       replaced, at the moment a new list opens
-- [ ] entering a weapon after scrolling the weapon list opens its finishes at
+- [ ] entering a knife after scrolling the knife list opens its finishes at
       the top
 - [ ] a sticker capsule longer than 128 (an autograph capsule) ends its first
       page in a `»` card and opens the next with `«`; shorter lists show none
@@ -833,6 +887,65 @@ ShopCore's API (ShopCore 1.1.9). Open `!shop`, then Buy and a category.
       have on, and the time a timed item has left over a draining meter
 - [ ] on a server without CustomHUD the same rows read `name [price]`,
       `Buy [price]` and `Sell [+refund]`, as before
+
+CustomHUD draws Admins' menus from its API (Admins 2.0.0). Join with a bot or
+a second client so there is someone to act on, open `!admin` in mouse mode,
+then repeat the first three in wasd.
+
+- [ ] Players: a roster of avatars with each player's team, `You` on your
+      own row, K/D, ping in the colour of its bars (`BOT` for a bot), and in
+      red under the name what is on them (`Muted · 2 d`, `Frozen`); a player
+      above your immunity reads `Immune (80)` in grey. Two chips beside the
+      title count the players and give your immunity; the team filter sits
+      in the foot
+- [ ] the pane beside it reads `No player selected`; back out of a player's
+      page and it shows that player's sheet: avatar, name, SteamID, team,
+      the K/D, ping and immunity band, and their last four records with the
+      kind and length in red while active
+- [ ] a player's page: Punish, Control, Move and edit and History as cards
+      with what each holds, History counting the records; a group opens its
+      actions as tiles three to a line, Kick, Ban and Slay in red, and a
+      switched-on one (frozen, noclip, beacon) outlined. Unmute appears in
+      place of Mute while they are muted
+- [ ] Ban: the steps across the top, finished ones ticked with their pick,
+      the current one numbered in orange; kinds as chips with their glyph,
+      reasons two to a line, lengths four to a line with Permanent across the
+      row in red, and `Other reason` and `Other length` as chips with a chat
+      glyph that go on to the next step. The rail on the right builds the ban
+      as you pick, the step being made in gold and a part left for chat as
+      `In chat`, with a dimmed `Confirm ban` (or `Print the command in chat`
+      once a part is left for chat) until the last step
+- [ ] with `Other reason`, `Other length` or `Someone else` picked, the last
+      step offers `Print the command in chat` as an orange button and no
+      summary. It closes the
+      menu and prints the command filled in with every pick (the player's
+      SteamID64, the length as one token such as `30h`, the reason), with
+      `<reason>`, `<time>`, `<steamid64>` or `<ip>` only for what was left;
+      `Someone else` prints a SteamID and an IP form
+- [ ] from the length step on, a quote shows the message the player will
+      read, for the length picked or, before one is, the first on offer
+- [ ] Bans and Comms: a table of `#id`, player, reason and time left over a
+      meter (red under a fifth left, `Permanent` in red, `Ended` dimmed), a
+      globe on a global record, chips with the active and ended counts, and
+      `Give`, the filters and `Retry` in the foot; the pane shows the
+      selected record's fields with the IP masked
+- [ ] a record's page lists its actions with glyphs, Unban or Remove in red,
+      beside the same fields
+- [ ] My tools: ESP, Hidden, Noclip and God mode with their state, an `On`
+      one outlined; Server: the restart delays, the maps with the current
+      one outlined and `Current`
+- [ ] `!votekick <name>` with a second client: both see Yes and No as two big
+      tiles, a chip counting down, who called it, the target's card with
+      their K/D and team, and under them a pip per voter, yes in green and no
+      in red, with the rule; `!votemap de_dust2 de_inferno` shows the maps as
+      cards with their screenshots and shares; `!vote Lunch? Pizza Sushi
+      Tacos Burgers` a numbered list with each option's share, and a poll of
+      three or fewer options numbered tiles
+- [ ] in wasd every page keeps its rows and glyphs in the list, and the
+      ballot's title is the question, not `Vote`
+- [ ] with Admins removed, CustomHUD still loads and logs that it skipped
+      Admins; with an Admins build before 2.0.0 the integration is skipped
+      the same way and its menus draw as plain rows
 
 MixScrims (`MixScrims-SwiftlyS2`) has built-in rules: in a keyboard mode its
 menus draw in the list under a `MIX` eyebrow, and in mouse mode each opens in

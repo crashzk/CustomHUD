@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Ranks.Contract;
@@ -32,6 +33,9 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
     public string? RegionOf(IMenu menu, IMenuComponent component) =>
         menu.Id == "ranks.top" && CollectionItems.Of(component) is RanksLeaderboardEntry { Position: <= Podium } ? "banner" : null;
 
+    // The road's heading opens every page of the ladder.
+    public int RowsAdded(IMenu menu) => menu.Id == "ranks.ladder" ? 1 : 0;
+
     public void Draw(PageDraw page)
     {
         switch (page.Menu.Id)
@@ -55,7 +59,13 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
                 page.Hint(T(page, "hint.top"));
                 DrawTop(page);
                 break;
+            case "ranks.top.playtime":
+                AddChip(page);
+                page.Hint(T(page, "hint.top"));
+                DrawTop(page, playtime: true);
+                break;
             case "ranks.top.sections":
+            case "ranks.top.playtime.sections":
                 ChipSeasonLine(page);
                 break;
             case "ranks.top.player":
@@ -169,13 +179,16 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
 
     private void AddRoad(PageDraw page, IReadOnlyList<RanksTier> tiers, int points, bool windowed, int? before)
     {
+        // The heading and as many nodes as the page has room for, so a paged list's page is no longer
+        // than its others; fewer than three say no more than the hero card, and Show all ranks remains.
+        var shown = Math.Min(windowed && tiers.Count > RoadSpan ? 7 : tiers.Count, page.Room - 1);
+        if (shown < Math.Min(3, tiers.Count)) return;
+
         var index = IndexFor(tiers, points);
-        var window = windowed && tiers.Count > RoadSpan;
-        var first = window ? Math.Clamp(index - 3, 0, tiers.Count - 7) : 0;
-        var shown = window ? 7 : tiers.Count;
+        var first = Math.Clamp(index - (shown - 1) / 2, 0, tiers.Count - shown);
 
         var count = T(page, "road_count", tiers.Count);
-        if (window) count += " · " + T(page, "road_shown", first + 1, first + shown);
+        if (shown < tiers.Count) count += " · " + T(page, "road_shown", first + 1, first + shown);
         page.Add($"{T(page, "road")}\t{count}", "section", before);
 
         for (var i = first; i < first + shown; i++)
@@ -196,11 +209,12 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
             page.Draw(k, Directive.Clean(tiers[page.FirstRow + k].Name), RoadNode(page, tiers, page.FirstRow + k, index));
     }
 
-    // Reached, current or still locked; with no standing (-1) nothing is marked.
+    // Reached, current or still locked; with no standing (-1) nothing is marked. `road` makes the
+    // list draw each as a card, like MapChooser's maps.
     private string RoadNode(PageDraw page, IReadOnlyList<RanksTier> tiers, int i, int current)
     {
         var icon = api.GetRankIcon(tiers[i].Points);
-        var payload = "info;" + RankArt.For(icon, i, tiers.Count).Payload;
+        var payload = "info;group=road;" + RankArt.For(icon, i, tiers.Count).Payload;
 
         // A CS Rating badge shows the threshold itself.
         if (!Rated(icon)) payload += ";sub=" + Directive.Number(tiers[i].Points);
@@ -210,14 +224,15 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
         return payload;
     }
 
-    // Ranks prints nine counter lines; each becomes a tile, its figure and caption from the
-    // snapshot. Only a page of exactly those lines is drawn so: a loading or empty notice stays.
+    // Ranks prints a line per counter, ten since playtime joined them in 1.3; each becomes a tile, its
+    // figure and caption from the snapshot. Only a body of exactly those lines is drawn so (a loading or
+    // empty notice stays), and a page of a paged list maps onto them by position.
     private void DrawStats(PageDraw page, RanksPlayerSnapshot s)
     {
         var tiles = Tiles(page, s);
-        if (page.Components.Count != tiles.Count) return;
-        for (var k = 0; k < tiles.Count; k++)
-            page.Draw(k, tiles[k].Value, tiles[k].Payload);
+        if (page.RowCount != tiles.Count || page.FirstRow + page.Components.Count > tiles.Count) return;
+        for (var k = 0; k < page.Components.Count; k++)
+            page.Draw(k, tiles[page.FirstRow + k].Value, tiles[page.FirstRow + k].Payload);
     }
 
     private List<(string Value, string Payload)> Tiles(PageDraw page, RanksPlayerSnapshot s)
@@ -231,7 +246,7 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
         var rounds = s.RoundWins + s.RoundLosses;
         var matches = s.MatchWins + s.MatchLosses;
 
-        return
+        List<(string Value, string Payload)> tiles =
         [
             Tile(page, Directive.Number(s.Kills), "kills", "kill"),
             Tile(page, Directive.Number(s.Deaths), "deaths", "health"),
@@ -248,6 +263,8 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
             Tile(page, Directive.Number(s.BombsPlanted), "bombs", "bomb", unit: T(page, "planted"),
                 sub: T(page, "defused", Directive.Number(s.BombsDefused))),
         ];
+        if (PlaytimeOf(s) is { } seconds) tiles.Add(PlaytimeTile(page, seconds));
+        return tiles;
 
         // A record that never played a round has no share to state.
         string Lost(long lost, long won, long total) => total > 0
@@ -271,70 +288,89 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
     }
 
     // The first three stand on the podium, the rest form a table under column heads, and a viewer
-    // outside the list is pinned under it once their position has loaded.
-    private void DrawTop(PageDraw page)
+    // outside the list is pinned under it once their position has loaded. The playtime board is the
+    // same page with time in place of points.
+    private void DrawTop(PageDraw page, bool playtime = false)
     {
         var tiers = api.GetLadder();
         if (tiers.Count == 0) return;
 
         var viewer = page.Player.SteamID;
         var rated = Rated(api.GetRankIcon(0));
-        var banner = page.Regions.Contains("banner");
 
-        page.Add(rated
-            ? $"#\t{T(page, "cs_rating")}\t{T(page, "col_player")}\t{T(page, "col_tier")}"
-            : $"#\t{T(page, "col_rank")}\t{T(page, "col_player")}\t\t{T(page, "xp")}", "head", 0);
+        page.Add(playtime
+            ? $"#\t{(rated ? "" : T(page, "col_rank"))}\t{T(page, "col_player")}\t\t{T(page, "playtime")}"
+            : rated
+                ? $"#\t{T(page, "cs_rating")}\t{T(page, "col_player")}\t{T(page, "col_tier")}"
+                : $"#\t{T(page, "col_rank")}\t{T(page, "col_player")}\t\t{T(page, "xp")}", "head", 0);
 
-        int mainRows = 0, lastPosition = 0;
+        var lastPosition = 0;
         bool listed = false, any = false;
         for (var k = 0; k < page.Components.Count; k++)
         {
-            if (page.ItemOf(k) is not RanksLeaderboardEntry entry)
-            {
-                mainRows++;
-                continue;
-            }
+            if (page.ItemOf(k) is not RanksLeaderboardEntry entry) continue;
             any = true;
             var mine = entry.SteamId == viewer;
             listed |= mine;
             lastPosition = Math.Max(lastPosition, entry.Position);
             var podium = entry.Position <= Podium;
-            if (!(podium && banner)) mainRows++;
 
             // As GetTopAsync resolves the tier: a resident record may hold points not yet saved.
-            var points = api.IsLoaded(entry.SteamId) ? api.GetPoints(entry.SteamId) : (int)entry.Value;
-            var (text, payload) = TopRow(page, tiers, entry.Name, entry.Position, points, podium, mine, rated);
+            var (text, payload) = playtime
+                ? PlaytimeRow(page, tiers, entry.Name, entry.Position, TierOf(tiers, entry.RankName), entry.Value, podium, mine, rated)
+                : PointsRow(page, tiers, entry.Name, entry.Position,
+                    api.IsLoaded(entry.SteamId) ? api.GetPoints(entry.SteamId) : (int)entry.Value, podium, mine, rated);
             page.Draw(k, text, payload);
         }
 
         if (!any || listed || !page.LastPage || api.GetSnapshot(viewer) is not { } me) return;
-        if (!page.TryLoad("position", () => api.GetPositionAsync(viewer), out var position) || position <= lastPosition) return;
+        var stat = playtime ? PlaytimeStat : "points";
+        if (!page.TryLoad("position." + stat, () => api.GetPositionAsync(viewer, stat), out var position) || position <= lastPosition) return;
 
-        var room = page.MainSlots - mainRows;
-        if (room >= 2) page.Add("· · ·", "info;group=gap");
-        if (room >= 1)
+        if (page.Room >= 2) page.Add("· · ·", "info;group=gap");
+        if (page.Room >= 1)
         {
-            var (text, payload) = TopRow(page, tiers, me.Name, position, me.Points, podium: false, mine: true, rated);
+            var (text, payload) = playtime
+                ? PlaytimeRow(page, tiers, me.Name, position, IndexFor(tiers, me.Points), PlaytimeOf(me) ?? 0, podium: false, mine: true, rated)
+                : PointsRow(page, tiers, me.Name, position, me.Points, podium: false, mine: true, rated);
             page.Add(text, payload);
         }
     }
 
-    private (string Text, string Payload) TopRow(PageDraw page, IReadOnlyList<RanksTier> tiers, string player,
+    private (string Text, string Payload) PointsRow(PageDraw page, IReadOnlyList<RanksTier> tiers, string player,
         int position, int points, bool podium, bool mine, bool rated)
     {
         var index = IndexFor(tiers, points);
-        var payload = new StringBuilder(podium ? "at=banner;" : "")
-            .Append(RankArt.For(api.GetRankIcon(points), index, tiers.Count).Payload)
-            .Append(";tag=#").Append(position)
-            .Append(";sub=").Append(Directive.Clean(tiers[index].Name));
-        if (mine) payload.Append(";chosen");
 
         // A CS Rating badge is the points; an emblem leaves them to the value column.
+        var value = rated ? null : podium ? $"{Directive.Number(points)} {T(page, "xp")}" : Directive.Number(points);
+        return TopRow(player, position, tiers[index].Name, RankArt.For(api.GetRankIcon(points), index, tiers.Count).Payload, value, podium, mine);
+    }
+
+    // The badge of the tier the entry names. A CS Rating would be the player's points, which this
+    // board does not carry, so Premier keeps only the tier's colour.
+    private (string Text, string Payload) PlaytimeRow(PageDraw page, IReadOnlyList<RanksTier> tiers, string player,
+        int position, int index, long seconds, bool podium, bool mine, bool rated)
+    {
+        var art = "";
+        if (index >= 0)
+        {
+            var icon = RankArt.For(api.GetRankIcon(tiers[index].Points), index, tiers.Count);
+            art = (rated ? icon with { Directive = "" } : icon).Payload;
+        }
+        return TopRow(player, position, index < 0 ? "" : tiers[index].Name, art, Duration(page, seconds), podium, mine);
+    }
+
+    private static (string Text, string Payload) TopRow(string player, int position, string tier, string art, string? value,
+        bool podium, bool mine)
+    {
+        var payload = new StringBuilder(podium ? "at=banner;" : "").Append(art)
+            .Append(";tag=#").Append(position)
+            .Append(";sub=").Append(Directive.Clean(tier));
+        if (mine) payload.Append(";chosen");
+
         var name = Directive.Clean(player);
-        var text = rated ? name
-            : podium ? $"{name}\t{Directive.Number(points)} {T(page, "xp")}"
-            : $"{name}\t{Directive.Number(points)}";
-        return (text, payload.ToString());
+        return (value is null ? name : $"{name}\t{value}", payload.ToString());
     }
 
     // Opened from a leaderboard row, whose entry says whose counters these are.
@@ -373,6 +409,43 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
     }
 
     private static bool Rated(RanksRankIcon icon) => icon.Mode == RanksDisplayModes.Premier;
+
+    // Ranks' stat key for playtime, which its playtime board ranks by.
+    private const string PlaytimeStat = "core.playtime";
+
+    // Ranks 1.3's playtime, read by name: the contract this build compiles against predates it, and an
+    // older Ranks has none, so its page keeps nine lines.
+    private static readonly PropertyInfo? PlaytimeProperty = typeof(RanksPlayerSnapshot).GetProperty("Playtime");
+
+    private static long? PlaytimeOf(RanksPlayerSnapshot snapshot) => PlaytimeProperty?.GetValue(snapshot) as long?;
+
+    // Whole hours large with the exact time under them, or the minutes before the first hour.
+    private static (string, string) PlaytimeTile(PageDraw page, long seconds)
+    {
+        var minutes = Math.Max(0, seconds) / 60;
+        return minutes < 60
+            ? Tile(page, Directive.Number(minutes), "playtime", "clock", unit: T(page, "minutes"))
+            : Tile(page, Directive.Number(minutes / 60), "playtime", "clock", unit: T(page, "hours"), sub: Duration(page, seconds));
+    }
+
+    // As Ranks writes a playtime: 4d 5h 30m, 5h 30m or 30m.
+    private static string Duration(PageDraw page, long seconds)
+    {
+        var total = Math.Max(0, seconds);
+        var (days, hours, minutes) = (total / 86_400, total % 86_400 / 3_600, total % 3_600 / 60);
+        return days > 0 ? T(page, "duration_days", days, hours, minutes)
+            : hours > 0 ? T(page, "duration_hours", hours, minutes)
+            : T(page, "duration_minutes", minutes);
+    }
+
+    // The tier a leaderboard entry names, as GetTopAsync resolved it from the player's points.
+    private static int TierOf(IReadOnlyList<RanksTier> tiers, string name)
+    {
+        for (var i = tiers.Count - 1; i >= 0; i--)
+            if (string.Equals(tiers[i].Name, name, StringComparison.Ordinal))
+                return i;
+        return -1;
+    }
 
     // Ranks' own rule: the highest threshold the points meet.
     private static int IndexFor(IReadOnlyList<RanksTier> tiers, int points)

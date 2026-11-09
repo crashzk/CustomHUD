@@ -166,6 +166,7 @@ them.
 | `Variables.PageFormat` | string | `"{0} / {1}"` | Counter text: `{0}` = page, `{1}` = page count |
 | `Classes.ScaleSteps` | int[] | `[80, 90, 100, 110, 125, 150]` | Scale steps the layout styles. `!hudscale` offers those of `Default`, or of the built-in list |
 | `Sidebar` | object | `null` | Root-menu sidebar, see below |
+| `Tabs` | object | `null` | A row layout's second level as tabs, see below. A `Page` profile has its own |
 | `Card` | object | `null` | Inspect card for `hero` pages (`Slots` = `8`), see [Card Pages](PluginIntegration.md#card-pages) |
 | `Page` | object | `null` | Locker parts: eyebrow, crumb, chips, tabs, column heads, regions and views |
 | `ColorIcons` | object | `{}` | Text colour → icon token, e.g. rarity colours to `lvl-N` |
@@ -185,6 +186,19 @@ title.
 | `Sidebar.CountVar`, `CountClass` | string | `""`, `"has-count"` | Splits a trailing count (`Knives (12)`) into a badge. An empty `CountVar` keeps the label whole |
 | `Sidebar.DividerClass` | string | `"divider"` | Class on the slot of a root `DividerComponent` |
 | `Sidebar.RootButton`, `ButtonPrefix`, `LabelVar`, `IconPanel`, `IconClass` | string | `nav_root`, `category_`, `category`, `category_{0}_icon`, `ico-{0}` | Layout addressing |
+
+**Tabs** - in Mouse mode, the plain submenus of a sidebar entry's page drawn as
+a strip over the list while the player is on one of them, the open one marked.
+Only the pages `Hosts` names are hosts, so a page of item types (WeaponSkins'
+knives) stays a grid. The built-in WeaponSkins locker tabs `weaponskins.weapons`.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `Tabs.Hosts` | array | `[]` | Menu ids of the pages whose submenus are tabs; a trailing `*` matches an id prefix |
+| `Tabs.AutoOpen` | int | `0` | Tab a host opens in place of its own page; Back is hidden on its tabs. `-1` shows the page |
+| `Tabs.Slots` | int | `8` | Tabs the layout declares |
+| `Tabs.Panel`, `Prefix`, `LabelVar`, `CountVar` | string | `tabs`, `tab_`, `tab`, `tab_count` | Layout addressing; a trailing count (`Knives (12)`) goes to `CountVar` |
+| `Tabs.HasTabsClass`, `HasCountClass` | string | `has-tabs`, `has-count` | On the shell while the strip shows, and on a tab with a count |
 
 Every field, with a comment on each, is in
 [`src/Config/CustomHudConfig.cs`](../src/Config/CustomHudConfig.cs).
@@ -274,13 +288,37 @@ and falls back to `en` for a missing file or key.
 | `customhud.prefix`, `customhud.nav.*`, `customhud.scale.*` | `!setnav` and `!hudscale` replies |
 | `customhud.hint.<key>` | Footer hints, one per [Hints](#hints) key |
 | `customhud.legend.<verb>` | Words in the list's key legend (`move`, `select`, `pick`, `page`, ...) |
-| `customhud.eyebrow.<plugin>` | Plugin names over a page's title |
+| `customhud.eyebrow.<plugin>` | Plugin names over a page's title; see [Eyebrows](#eyebrows) |
 | `customhud.lead`, `customhud.maps.*`, `customhud.ranks.*`, `customhud.shop.*`, `customhud.vip.*`, `customhud.weaponskins.*`, `customhud.weaponstats.*`, `customhud.prestige.*` | Text on the designed plugin pages |
 
 To add a language, copy `en.jsonc` to `<code>.jsonc`. Chat replies take
 SwiftlyS2 colour tags (`[green]`, `[default]`); hints must not, because
 Panorama would draw the control character. Core's own menu strings, such as an
 input row's "type in chat" prompt, come from SwiftlyS2's translation files.
+
+### Eyebrows
+
+A submenu's eyebrow, the gold line over its title, is its root menu's title. A
+menu that is its own root takes the first of these that exists:
+
+1. `customhud.eyebrow.<plugin>`, where `<plugin>` is the first part of the
+   menu's id: `missions` for `missions.main`. `DetailedLogging` logs each id as
+   `applied … menu=…`.
+2. The eyebrow of a plugin CustomHUD has pages for (`shop`, `maps`, `ranks`,
+   `vip`, `admins`, `mix`).
+3. `customhud.eyebrow.default`, for every other plugin.
+
+Only the second ships, so the server shows no eyebrow over a plugin it has no
+pages for until you add a key. One added to `en.jsonc` alone reaches players
+of every language. An empty value (`""`) shows no line for that plugin, and
+colour tags are dropped. An update replaces the translation files, so copy
+your keys back into the new `en.jsonc`.
+
+```jsonc
+"customhud.eyebrow.default": "Rampage.lt",
+"customhud.eyebrow.missions": "Missions",
+"customhud.eyebrow.k4arenas": ""
+```
 
 ## Theming
 

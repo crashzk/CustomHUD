@@ -279,8 +279,8 @@ internal sealed class PanoramaMenuRenderer(
 
             if (config.Current.DetailedLogging)
                 logger.LogInformation(
-                    "[CustomHUD] applied slot={Slot} vars={Vars} classes={Classes} layout={Layout}",
-                    slot, delta.Vars.Length, delta.Classes.Length, pending.LayoutPath);
+                    "[CustomHUD] applied slot={Slot} menu={Menu} vars={Vars} classes={Classes} layout={Layout}",
+                    slot, pending.Rows.Session?.Menu.Id, delta.Vars.Length, delta.Classes.Length, pending.LayoutPath);
         }
         catch (Exception ex)
         {

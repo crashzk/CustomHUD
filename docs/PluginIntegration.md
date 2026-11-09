@@ -126,7 +126,7 @@ menu id draws as a **view**, a design for that kind of page:
 | MapChooser | `mapchooser.*` | `maps-board` (vote cards), `maps-rows` (poll rows), `maps-pool`, `maps-rtv` |
 | Ranks and its modules | `ranks.*`, `weaponstats.*`, `customcombos.*`, `prestige.*` | `ranks-rank`, `ranks-stats`, `ranks-weapons`, `ranks-board`, `ranks-settings` |
 | VIPCore | `vipcore.*` | `vip-perks`, `vip-options`, `vip-guns`, `vip-users`, `vip-grant`, `vip-tiers` (no VIPCore menu opens it yet) |
-| Admins | `admins.*` | `admins-players`, `admins-ban`, `admins-bans`, `admins-votes`, `admins-staff` |
+| Admins | `admins.*` | `admins-players`, `admins-player` (one player's actions), `admins-ban` (a punishment's steps), `admins-bans` (bans and comms), `admins-record`, `admins-votes`, `admins-staff`; the ballot (`admins.vote`) as `mix-ballot`, MapChooser's `maps-board` for a map vote, or the list |
 | MixScrims | `mixscrims.*` | `mix-captains`, `mix-draft` (the team pick), `mix-sides` (the knife round's side), `mix-ballot` (timeout, surrender and kick votes, docked at the side), `mix-control` |
 
 - An id no rule names gets `list`, the plain list. `PageViews` picks another by
@@ -137,15 +137,15 @@ menu id draws as a **view**, a design for that kind of page:
   "PageViews": { "mapchooser.eof-vote*": "maps-rows", "shopcore.buy.items": "shop-list" }
   ```
 
-- Admins' views are ready, but the current Admins fork still builds its menus
-  with `Core.MenusAPI`, so they reach CustomHUD only once it moves to
-  `Core.Menu`.
+- Admins' ballot opens with no root, so it has no sidebar; the integration
+  picks its view from the vote (see Provider Integrations).
 - MixScrims' menus are all their own root, so none has a sidebar; its map vote
   is MapChooser's `maps-board`. Its team pick and side choice unbind Close, so
   CustomHUD hides `×` and `<`.
 - Ranks' modules open as tabs under its Statistics but keep ids of their own:
   `weaponstats.weapons` draws as `ranks-weapons`, and the modules' other pages
-  and another player's statistics (`ranks.top.player`) as `ranks-stats`.
+  and another player's statistics (`ranks.top.player`) as `ranks-stats`. The
+  playtime board (`ranks.top.playtime`, Ranks 1.3) draws as `ranks-board`.
 - In the keyboard modes the same Ranks pages draw in the list's `ranks` view,
   which drops the captions of meters only the mouse page draws.
 
@@ -160,16 +160,29 @@ scrolling grid of cards. WeaponSkins keeps using ordinary `Core.Menu`.
   glow from its `MenuTextStyle.Color`. An item the game ships no art for is a
   plain card.
 - The item the player has on (a finish, a knife or glove type, an agent, a music
-  kit) gets a 2px orange outline, read from WeaponSkins' API.
+  kit, a graffiti, a patch, a pin) gets a 2px orange outline, read from
+  WeaponSkins' API.
+- Graffiti show in their colour: the chosen one in the colour picked, and each
+  card on a graffiti's colour page in that colour. Agent Properties shows the
+  patch on each slot. Both need a WeaponSkins build with graffiti and patches in
+  its API; with an older one those pages stay plain and the rest is unchanged.
+  Pins, from WeaponSkins 0.9.0, follow the same rule.
 - With `Sidebar.AutoOpen`, opening the menu lands on its first entry (Weapon
   Skins) and backing out of that level closes it. The root's buttons, such as
   Ranks' `Help`, join the sidebar.
+- From WeaponSkins 0.9.0, Weapon Skins' categories (Rifles, Pistols, SMGs,
+  Shotguns, Snipers, Heavy, Other) are a tab strip over the grid, opening on
+  Rifles. A weapon's finishes, a level below its category, drop the strip.
+  Only `weaponskins.weapons` is a tab host (`Tabs.Hosts`): the knife and glove
+  pages are plain submenus too and stay cards. An older WeaponSkins keeps one
+  grid of every gun.
 - The weapon, knife and glove properties pages draw as an inspect card: the
   item's picture, rarity and name, then one field per entry (name tag, wear,
   seed, StatTrak™, Souvenir, Stickers, Charms; gloves take only the wear). A
   click on the wear bar sets wear in 0.02 steps. Keyboard modes keep their list.
 - In the keyboard modes WeaponSkins' menus draw in `menu_list_skins`: the list
-  with the same art, sticker art included.
+  with the same art, sticker art included. Weapon Skins' categories are rows
+  there, each pictured by one of its guns.
 
 ## Provider Integrations
 
@@ -181,7 +194,7 @@ plugin built. Any other custom renderer can read the same API.
 
 | Plugin | Shared interface | Needs | Menus | Draws |
 |--------|------------------|-------|-------|-------|
-| Ranks | `Ranks.Api.v1` | 1.0.5 | `ranks.*` | The rank as a hero card with its road through the ladder, counters as tiles, a podium with the player's row pinned, the settings as a form, and from Ranks 1.2 the Leaderboard's season line as a chip |
+| Ranks | `Ranks.Api.v1` | 1.0.5 | `ranks.*` | The rank as a hero card with its road through the ladder, counters as tiles, a podium with the player's row pinned (the XP board and, from Ranks 1.3, the playtime board), the settings as a form, and from Ranks 1.2 the Leaderboard's season line as a chip |
 | Ranks_WeaponStats | `Ranks.WeaponStats.Api.v1` | any | `weaponstats.*` | Weapon cards with the game's renders and their meters, hit groups as tiles |
 | Ranks_CustomCombos | `Ranks.CustomCombos.Api.v1` | 1.0.2 | `customcombos.*` | Each landed combo as a tile |
 | Ranks_Prestige | `Ranks.Prestige.Api.v1` | 1.0.1 | `prestige.*` | The level and the next-level meter as tiles |
@@ -189,6 +202,7 @@ plugin built. Any other custom renderer can read the same API.
 | ShopCore | `ShopCore.API.v2` | 1.1.9 | `shopcore.*` | Prices in a value column, item art, and owned, equipped or unaffordable state |
 | MapChooser | `MapChooser.Api.v1` | 1.5.0 (contract 1.1.0) | `mapchooser.*` | The vote as cards or poll rows with each option's share, the vote's clock and turnout, the map menu as the sidebar, and the pool with player limits, nominations and why a map can't be nominated |
 | VIPCore | `VIPCore.Api.v1` | 1.2.0 (contract 1.1.0) | `vipcore.*` | The membership over its perk cards, choices as cards, admin pages as a table beside the selected player's grants |
+| Admins | `Admins.Menu.V2`, with `Admins.Admins.V2`, `Admins.Bans.V2`, `Admins.Comms.V2` | 2.0.0 | `admins.*` | The players as a roster beside the selected player's sheet, a player's actions as cards and tiles, a punishment's steps over chips with the punishment as it stands and the message the player will read, bans and comms as a table beside the selected record, and the vote ballot |
 
 - **MapChooser:** the ballot gets each option's share as `text=\t45;vunit=%` and
   `bar=`, its votes as `note=`, and `chosen` with a `Your vote` tag on the
@@ -210,6 +224,14 @@ plugin built. Any other custom renderer can read the same API.
   `Neon Tracer [500]` and a long name never truncates its price. An item's
   picture is its `ShopItemDefinition.ImageKey`; any other item shows its
   category's icon from `Sidebar.Icons`.
+- **Admins:** every row's `Tag` is an `Admins.Contract` record (a player, a
+  record, an action, a step's choice) and each page's `IMenu.Tag` its subject:
+  the player, the record, the record list, the punishment draft, or the
+  running `IAdminVote`. What changes while a page is open (a player's team,
+  K/D and ping, what is on them, the tools' state, the vote's tally) is read
+  live from the API; a player's history is read once and kept for 15 seconds.
+  A poll of up to three options draws as `mix-ballot`, a longer one as the
+  list with each option's share, and a map vote as `maps-board`.
 
 What a page needs in order to be recognised is renderer-agnostic:
 
@@ -295,7 +317,7 @@ value runs to the next one. A value that becomes part of a class name (`at=`,
 |-----------|--------|
 | `verb=<word>` | The list's legend word for the entry: `select`, `pick`, `open`, `switch`, `edit`, `change`, `vote` or `apply` |
 | `primary` | The page's main action, for views that draw one |
-| `info` | The entry is a fact, not an action: drawn as text, with no key and nothing to click, even though core lets the cursor stop on it (a `TextComponent` is focusable so a long page can scroll past it) |
+| `info` | The entry is a fact, not an action: drawn as text, with no key and nothing to click, even though core lets the cursor stop on it (a `TextComponent` is focusable so a long page can scroll past it). A plain `TextComponent`, or a subclass that does nothing when activated, gets it without asking |
 | `submenu` | A `›` at the right, in views that draw one. Added for you on a `SubmenuComponent`; a button that opens a page can send it |
 
 **Tones** (defined in `locker.vcss`):
@@ -327,8 +349,10 @@ mark square.
 | Wingman | `image=rank/wingmanN` (0-18) | `r1`-`r7` |
 | Custom ladder | `image=rank/levelN` (1-10) | `l1`, `l2`, `l4`, `l8`, `l10` for levels 1, 2-3, 4-7, 8-9 and 10 |
 
-Send the tier tone with the image: besides the colour, it tells the side list
-to draw the emblem on the row rather than on the dark tile a render sits on.
+Send the tier tone with the image. It is how a chip and the side list know the
+picture is an emblem: they draw it on the row rather than on the dark tile a
+render sits on, and rasterize it at the size shown rather than at the 32×13 its
+file declares.
 
 Ranks' own `Custom` mode writes an icon number from `Scoreboard.CustomRank*`, and
 the scoreboard loads `skillgroup<number>` from the player's icon addon. CustomHUD
@@ -341,7 +365,10 @@ outside them shows the rank's colour and no icon; another set is a line in
 `RankArt.CustomIconSets`, then a republished addon.
 
 A ladder longer than one page draws as the rank road page by page, its heading
-saying which ranks are shown (`100 ranks · 49–96 shown`).
+saying which ranks are shown (`100 ranks · 48–94 shown`). In the keyboard list a
+Ranks page is no longer than any other list's page (core's `MaxVisibleLines`):
+My rank adds the road only where three ranks of it fit, leaving the rest to
+`Show all ranks`, whose ranks are cards like MapChooser's maps.
 
 ## Richer Rows (Optional, No Dependency)
 
@@ -357,6 +384,7 @@ new MenuRawNode("customhud.panorama", "icon=7;danger")
 | `text=` | Text only CustomHUD shows, at the raw node's place in the row. A component drawing `de_mirage` that appends `text=\t7` gets `7` in the value column here, while every other renderer still shows `de_mirage` |
 | `icon=N` | A rarity dot or tile tint, `lvl-N` |
 | `image=<key>` | A CS2 econ image, see below |
+| `tint=<token>` | With `image=`: adds `tint-<token>` to the image's panel, for art the game colours at runtime. The WeaponSkins layouts wash `spray-1` to `spray-19` in the graffiti tints |
 | `type=<label>` | A short category label (`type=Rifle`) written to the profile's `Row.TypeVar`, adding `has-type`; layouts without a `TypeVar` ignore it |
 | `bar=N` | A share, 0-100: the list fills the row behind its text, the classic lists and the mouse grid draw a thin meter, the WeaponSkins locker none |
 | `chosen` | The player's own pick, such as their vote, in the accent. The mouse layouts also outline a chosen tile or card in a 2px accent edge |

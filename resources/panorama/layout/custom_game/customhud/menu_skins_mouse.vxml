@@ -30,6 +30,16 @@
 					<Button id="category_10" class="ws-category hidden"><Panel id="category_10_icon" class="chud-ico" hittest="false"><Panel class="chud-ico__badge" hittest="false" /></Panel><Label text="{s:category}" hittest="false" /></Button>
 					<Button id="category_11" class="ws-category hidden"><Panel id="category_11_icon" class="chud-ico" hittest="false"><Panel class="chud-ico__badge" hittest="false" /></Panel><Label text="{s:category}" hittest="false" /></Button>
 				</Panel>
+				<Panel id="tabs" class="ws-tabs hidden">
+					<Button id="tab_0" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_1" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_2" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_3" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_4" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_5" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_6" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+					<Button id="tab_7" class="ws-tab hidden"><Label class="ws-tab__label" text="{s:tab}" hittest="false" /><Label class="ws-tab__count" text="{s:tab_count}" hittest="false" /></Button>
+				</Panel>
 				<Panel id="options" class="ws-grid chud-scroll">
 					<Panel class="ws-grid__items">
 						<Panel class="ws-line">

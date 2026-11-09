@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Menu.Components;
 
 namespace CustomHUD.Rendering;
 
-// Teaches our renderer eight things the node tree alone cannot carry.
+// Teaches our renderer nine things the node tree alone cannot carry.
 //
 // 1. DISABLED STATE. A composed MenuNode says nothing about whether its
 //    component is enabled -- components signal it by colouring their own text,
@@ -48,11 +48,15 @@ namespace CustomHUD.Rendering;
 //    value slot and a `bar=` meter (`kind=progress`), instead of a run of block
 //    characters; GetProgress is public, so the plugin changes nothing.
 //
+// 9. FACTS. A focusable component whose activation does nothing (a plain
+//    TextComponent) is tagged `info`, so a page layout draws it with no key,
+//    no click target and no hover, like an integration's own facts.
+//
 // Registered against MenuComponentBase so every built-in component is covered
 // by one registration. If a future core release stops matching derived types,
 // components simply render as core fits them: no disabled class, no marquee,
 // text cut at MaxWidth, dividers back as rows of rule glyphs, "Accepted" back
-// in place of a new value. Degradation, not breakage.
+// in place of a new value, plain text keyed like an action. Degradation, not breakage.
 //
 // Also the one place core's translator is visible, so it is kept for rows
 // PageFrame renders past core's window and for synthesized activations, and a
@@ -86,21 +90,23 @@ internal sealed class PanoramaComponentRenderer(
         var input = component as InputComponent;
         // A page layout draws a row that opens another page with a chevron; others ignore it.
         var submenu = component is SubmenuComponent;
+        var fact = component.IsFocusable && IsFact(component.GetType());
         var fitted = text is { MaxWidth: >= 1f } && text.Overflow != MenuTextOverflow.None;
         var marquee = text is not null && MenuTextLayout.IsScrolling(text.Overflow);
         var disabled = !context.IsEnabled;
         var separator = ValueSeparator(component);
-        if (!fitted && !marquee && !disabled && separator is null && input is null && !submenu) return false;
+        if (!fitted && !marquee && !disabled && separator is null && input is null && !submenu && !fact) return false;
 
         var body = fitted ? RenderUnfitted(text!, context) : component.Render(context);
         if (input is not null) body = ShowAcceptedValue(body, input, context);
         if (separator is not null) body = SplitValue(body, separator);
         if (separator is not null && ChoiceItem(component) is { } item) body = PlainItem(body, item(component, context.Session));
-        var markers = new List<string>(3);
+        var markers = new List<string>(4);
         if (marquee) markers.Add("marquee");
         if (disabled) markers.Add("disabled");
         if (separator is not null) markers.Add(Kind(component, context.Session));
         if (submenu) markers.Add("submenu");
+        if (fact) markers.Add("info");
 
         node = markers.Count == 0
             ? body
@@ -170,6 +176,13 @@ internal sealed class PanoramaComponentRenderer(
     }
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo?> SeparatorProperties = new();
+
+    private static readonly ConcurrentDictionary<Type, bool> Facts = new();
+
+    // A type that keeps MenuComponentBase's no-op action handler (a TextComponent, and a subclass
+    // that only changes its text) does nothing when activated. A collection's item rows override it.
+    private static bool IsFact(Type type) => Facts.GetOrAdd(type, static t =>
+        t.GetMethod(nameof(MenuComponentBase.HandleActionAsync), [typeof(MenuActionContext)])?.DeclaringType == typeof(MenuComponentBase));
 
     // Separator lives on the generic MenuValueComponent<TValue>, so it is found by reflection once per type.
     private static string? ValueSeparator(IMenuComponent component)

@@ -100,6 +100,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         };
         if (mode == NavMode.Mouse && profile.Sidebar is { } sidebar)
             rows = ComposeSidebar(context, profile, sidebar, rows, vars, classes);
+        if (mode == NavMode.Mouse && profile.Tabs is { } tabs)
+            rows = ComposeTabs(context, profile, TabStrip.Of(tabs), rows, vars, classes);
 
         // Without a Close button, Back stays visible on a root menu too: core's
         // Close() exits there, and it is a mouse player's only way out because
@@ -157,13 +159,15 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             p.Variables.PagePanel, p.Variables.PageVar,
             p.Row.PanelId, p.Row.LabelVar, p.Row.ValueVar, p.Row.KeyVar, p.Row.IconPanel, p.Row.ThumbPanel, p.Row.TypeVar,
             p.Classes.Hidden, p.Classes.Selected, p.Classes.Disabled,
-            p.Classes.Danger, p.Classes.Marquee, p.Classes.Thumb, p.Classes.HasThumb, p.Classes.HasType, p.Classes.PageTile,
+            p.Classes.Danger, p.Classes.Marquee, p.Classes.Thumb, p.Classes.Tint, p.Classes.HasThumb, p.Classes.HasType, p.Classes.PageTile,
             p.Classes.HasBar, p.Classes.Bar, p.Classes.Chosen,
             p.Classes.RowCount, p.Classes.Scale, p.Classes.Icon,
             string.Join(',', p.Classes.IconTokens),
             string.Join(',', p.Classes.ScaleSteps),
             string.Join(',', p.BlankOnOpen),
             p.Sidebar?.CountVar, p.Sidebar?.CountClass, p.Sidebar?.LiveClass,
+            p.Tabs?.Slots, p.Tabs?.Panel, p.Tabs?.Prefix, p.Tabs?.LabelVar, p.Tabs?.CountVar,
+            p.Tabs?.HasTabsClass, p.Tabs?.HasCountClass,
             RowFingerprint(p.Row),
             p.Page is { } page ? PageFingerprint(page) : "");
 
@@ -343,10 +347,12 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             : -1;
     }
 
-    // A skipped root is no destination: Back from its children would only reopen
-    // the entry the root skips to.
+    // A skipped root or tab host is no destination: Back from its children would only
+    // reopen the entry or tab it skips to.
     private static bool HasBackTarget(IMenu menu, RowMap rows)
-        => menu.Parent is { } parent && !(rows.SkipsRoot && ReferenceEquals(parent, rows.RootMenu));
+        => menu.Parent is { } parent
+           && !(rows.SkipsRoot && ReferenceEquals(parent, rows.RootMenu))
+           && !(rows.SkipsTabHost && ReferenceEquals(parent, rows.TabHost));
 
     private int ComposeRows(
         MenuFrame frame,
@@ -469,7 +475,7 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             }
             if (entry.Chosen && cls.Chosen.Length > 0) classes.Add(new ClassWrite(panel, cls.Chosen, true));
             ApplyIcon(profile, classes, i, iconToken);
-            ApplyThumb(profile, classes, i, entry.Image);
+            ApplyThumb(profile, classes, i, entry.Image, entry.Tint);
         }
 
         rows = new RowMap(focusable.ToImmutable(), focusedRow, focusedIndex, row.PanelPrefix)
@@ -507,7 +513,7 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         if (profile.Classes.PageTile.Length > 0)
             classes.Add(new ClassWrite(panel, profile.Classes.PageTile, true));
         ApplyIcon(profile, classes, index, string.Empty);
-        ApplyThumb(profile, classes, index, null);
+        ApplyThumb(profile, classes, index, null, null);
     }
 
     private static readonly HashSet<string> ControlKinds = new(StringComparer.Ordinal) { "input", "toggle", "slider", "choice", "selector", "progress" };
@@ -641,7 +647,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         MenuLayoutProfile profile,
         ImmutableArray<ClassWrite>.Builder classes,
         int index,
-        string? imageKey)
+        string? imageKey,
+        string? tint)
     {
         if (profile.Row.Thumb(index) is not { } thumbPanel) return;
 
@@ -650,6 +657,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         {
             classes.Add(new ClassWrite(thumbPanel, Format(profile.Classes.Thumb, token), true));
             classes.Add(new ClassWrite(profile.Row.Panel(index), profile.Classes.HasThumb, true));
+            if (tint is not null && profile.Classes.Tint.Length > 0)
+                classes.Add(new ClassWrite(thumbPanel, Format(profile.Classes.Tint, tint), true));
         }
         classes.Add(new ClassWrite(thumbPanel, profile.Classes.Hidden, token is null));
     }
@@ -865,6 +874,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             // Becomes part of a class name, so only a plain token is accepted.
             else if (token.StartsWith("track=", StringComparison.OrdinalIgnoreCase) && PresetToken().IsMatch(token[6..]))
                 content.Track = token[6..];
+            else if (token.StartsWith("tint=", StringComparison.OrdinalIgnoreCase) && PresetToken().IsMatch(token[5..]))
+                content.Tint = token[5..];
             else
                 ApplyPageDirective(token, ref content);
         }
@@ -887,6 +898,7 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         public bool Marquee;
         public string? Icon;
         public string? Image;
+        public string? Tint;
         public string? Type;
         public string? Color;
         public bool Hero;

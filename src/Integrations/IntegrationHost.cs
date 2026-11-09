@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using CustomHUD.Config;
+using CustomHUD.Integrations.AdminPages;
 using CustomHUD.Integrations.MapPages;
 using CustomHUD.Integrations.RankPages;
 using CustomHUD.Integrations.ShopPages;
@@ -53,6 +54,7 @@ internal sealed class IntegrationHost(
                 Create("ShopCore", "ShopCore.API.v2", interfaces, ShopIntegration.TryCreate),
                 Create("MapChooser", "MapChooser.Api.v1", interfaces, i => MapChooserIntegration.TryCreate(i, core, this)),
                 Create("VIPCore", "VIPCore.Api.v1", interfaces, VipIntegration.TryCreate),
+                Create("Admins", "Admins.Menu.V2", interfaces, i => AdminsIntegration.TryCreate(i, core)),
             ];
             Replace([.. next.OfType<IPageIntegration>()]);
         }
@@ -82,6 +84,19 @@ internal sealed class IntegrationHost(
         {
             Report(integration.Provider, ex);
             return null;
+        }
+    }
+
+    public int RowsAdded(IPageIntegration integration, IMenu menu)
+    {
+        try
+        {
+            return Math.Max(0, integration.RowsAdded(menu));
+        }
+        catch (Exception ex)
+        {
+            Report(integration.Provider, ex);
+            return 0;
         }
     }
 

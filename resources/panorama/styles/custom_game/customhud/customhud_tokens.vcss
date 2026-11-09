@@ -218,3 +218,24 @@
 @define chudSwatchCyan: #3fd0d4;
 @define chudSwatchWhite: #eef2f6;
 @define chudSwatchBlack: #1a1d22;
+
+/* Graffiti tints, numbered as items_game numbers them: what `tint=spray-N` washes untinted spray art in. */
+@define chudSprayTint01: #874444;
+@define chudSprayTint02: #b14d4d;
+@define chudSprayTint03: #b87148;
+@define chudSprayTint04: #8f7d5d;
+@define chudSprayTint05: #ae833d;
+@define chudSprayTint06: #d4c95b;
+@define chudSprayTint07: #789d53;
+@define chudSprayTint08: #417a4a;
+@define chudSprayTint09: #488f80;
+@define chudSprayTint10: #a6c4a5;
+@define chudSprayTint11: #6ba5b2;
+@define chudSprayTint12: #4e7fa9;
+@define chudSprayTint13: #4c5b98;
+@define chudSprayTint14: #af92df;
+@define chudSprayTint15: #6e4f9f;
+@define chudSprayTint16: #ba68b2;
+@define chudSprayTint17: #9d567a;
+@define chudSprayTint18: #e4ccd5;
+@define chudSprayTint19: #c1c1c1;

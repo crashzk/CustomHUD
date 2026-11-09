@@ -215,7 +215,7 @@ internal sealed partial class FrameComposer
         if (mode == NavMode.Mouse && profile.Sidebar is { } sidebar)
             rows = ComposeSidebar(context, profile, sidebar, rows, vars, classes, live);
         if (rows.SidebarItems.IsEmpty) classes.Add(new ClassWrite(shell, pc.NoSidebar, true));
-        rows = ComposeTabs(context, profile, page, rows, vars, classes);
+        rows = ComposeTabs(context, profile, TabStrip.Of(page), rows, vars, classes);
         ComposeTitleLine(context, profile, page, vars, classes);
         classes.Add(new ClassWrite(shell, Format(pc.Mode, NavModeResolver.Name(mode)), true));
 
@@ -223,7 +223,7 @@ internal sealed partial class FrameComposer
         var closable = Closable(context.Menu);
         if (rows.BackButton.Length > 0)
             classes.Add(new ClassWrite(rows.BackButton, cls.Hidden,
-                mode != NavMode.Mouse || !closable || (rows.CloseButton.Length > 0 && !HasPageBackTarget(context.Menu, rows))));
+                mode != NavMode.Mouse || !closable || (rows.CloseButton.Length > 0 && !HasBackTarget(context.Menu, rows))));
         if (rows.CloseButton.Length > 0)
             classes.Add(new ClassWrite(rows.CloseButton, cls.Hidden, mode != NavMode.Mouse || !closable));
         var paged = paging is not null
@@ -236,7 +236,7 @@ internal sealed partial class FrameComposer
         if (page.Legend is { } legend)
         {
             ComposePageDots(profile, legend, paging, classes);
-            ComposeLegend(context, legend, cls.Hidden, mode, entries, keys, paged, closable && HasPageBackTarget(context.Menu, rows),
+            ComposeLegend(context, legend, cls.Hidden, mode, entries, keys, paged, closable && HasBackTarget(context.Menu, rows),
                 closable, vars, classes);
         }
 
@@ -473,6 +473,8 @@ internal sealed partial class FrameComposer
         {
             if (picture is null) continue;
             if (token is not null) classes.Add(new ClassWrite(picture, Format(cls.Thumb, token), true));
+            if (token is not null && entry.Tint is { } tint && cls.Tint.Length > 0)
+                classes.Add(new ClassWrite(picture, Format(cls.Tint, tint), true));
             classes.Add(new ClassWrite(picture, cls.Hidden, token is null));
         }
 
@@ -584,8 +586,8 @@ internal sealed partial class FrameComposer
 
         if (page.EyebrowVar.Length == 0) return;
         var eyebrow = ReferenceEquals(root, context.Menu) ? string.Empty : CleanTitle(MenuTitle(root));
-        if (eyebrow.Length == 0 && page.Eyebrow.Length > 0)
-            eyebrow = EyebrowText(page.Eyebrow, strings?.For(context.Player.PlayerID)) ?? page.Eyebrow;
+        if (eyebrow.Length == 0)
+            eyebrow = RootEyebrow(context.Menu.Id, page.Eyebrow, strings?.For(context.Player.PlayerID));
         vars.Add(new VarWrite(titlePanel, page.EyebrowVar, eyebrow));
         if (eyebrow.Length > 0) classes.Add(new ClassWrite(titlePanel, page.Classes.HasEyebrow, true));
     }
@@ -614,18 +616,25 @@ internal sealed partial class FrameComposer
 
     private const string PathSeparators = ">›»/|:";
 
-    // The built-in profiles' eyebrows in the player's language. Literal keys, so the
-    // translation check sees each one; any other eyebrow is shown as configured.
-    private static string? EyebrowText(string eyebrow, ILocalizer? localizer) => localizer is null ? null : eyebrow switch
+    // A menu that is its own root has no root title to show: an operator's customhud.eyebrow.<plugin>
+    // (the menu id's first part, "missions" for missions.main), then the profile's Eyebrow, then
+    // customhud.eyebrow.default. An empty value draws no line. Only the built-in pages' keys ship, so
+    // one an operator adds to en.jsonc reaches every language.
+    private static string RootEyebrow(string menuId, string profileEyebrow, ILocalizer? localizer)
     {
-        "shop" => HudTranslations.Find(localizer, "customhud.eyebrow.shop"),
-        "maps" => HudTranslations.Find(localizer, "customhud.eyebrow.maps"),
-        "ranks" => HudTranslations.Find(localizer, "customhud.eyebrow.ranks"),
-        "vip" => HudTranslations.Find(localizer, "customhud.eyebrow.vip"),
-        "admins" => HudTranslations.Find(localizer, "customhud.eyebrow.admins"),
-        "mix" => HudTranslations.Find(localizer, "customhud.eyebrow.mix"),
-        _ => null,
-    };
+        var dot = menuId.IndexOf('.');
+        var plugin = (dot > 0 ? menuId[..dot] : menuId).Trim().ToLowerInvariant();
+        return Eyebrow(localizer, plugin)
+            ?? (profileEyebrow.Length > 0 ? Eyebrow(localizer, profileEyebrow) ?? profileEyebrow : null)
+            ?? Eyebrow(localizer, "default")
+            ?? string.Empty;
+    }
+
+    // SwiftlyS2 turns a translation's colour tags into chat control characters, which a label cannot draw.
+    private static string? Eyebrow(ILocalizer? localizer, string name)
+        => localizer is null || name.Length == 0 || HudTranslations.Find(localizer, "customhud.eyebrow." + name) is not { } text
+            ? null
+            : string.Concat(text.Where(c => !char.IsControl(c))).Trim();
 
     // ---- legend ----
 
@@ -756,21 +765,33 @@ internal sealed partial class FrameComposer
     internal static string MenuTitle(IMenu menu)
         => menu.GetComponents(MenuRegion.Header).OfType<TitleComponent>().FirstOrDefault()?.Text ?? string.Empty;
 
-    private static bool HasPageBackTarget(IMenu menu, RowMap rows)
-        => menu.Parent is { } parent
-           && !(rows.SkipsRoot && ReferenceEquals(parent, rows.RootMenu))
-           && !(rows.SkipsTabHost && ReferenceEquals(parent, rows.TabHost));
-
     // ---- tabs ----
 
+    // A page layout's strip (MenuPageProfile) takes any sidebar entry's page that qualifies,
+    // a row layout's (MenuTabsProfile) only the hosts it names.
+    private readonly record struct TabStrip(
+        int Slots, string Panel, string Prefix, string LabelVar, string CountVar, int AutoOpen,
+        string HasTabsClass, string HasCountClass, IReadOnlyList<string>? Hosts)
+    {
+        public static TabStrip Of(MenuPageProfile page) => new(page.TabSlots, page.TabsPanel, page.TabPrefix,
+            page.TabLabelVar, page.TabCountVar, page.TabAutoOpen, page.Classes.HasTabs, page.Classes.HasCount, null);
+
+        public static TabStrip Of(MenuTabsProfile tabs) => new(tabs.Slots, tabs.Panel, tabs.Prefix,
+            tabs.LabelVar, tabs.CountVar, tabs.AutoOpen, tabs.HasTabsClass, tabs.HasCountClass, tabs.Hosts);
+
+        public bool IsHost(IMenu menu) => Hosts is null || Hosts.Any(pattern => pattern.EndsWith('*')
+            ? menu.Id.StartsWith(pattern[..^1], StringComparison.OrdinalIgnoreCase)
+            : string.Equals(pattern, menu.Id, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static RowMap ComposeTabs(
-        IMenuRenderContext context, MenuLayoutProfile profile, MenuPageProfile page,
+        IMenuRenderContext context, MenuLayoutProfile profile, TabStrip strip,
         RowMap rows, ImmutableArray<VarWrite>.Builder vars, ImmutableArray<ClassWrite>.Builder classes)
     {
         var cls = profile.Classes;
-        var slots = Math.Clamp(page.TabSlots, 0, MaxTabSlots);
+        var slots = Math.Clamp(strip.Slots, 0, MaxTabSlots);
         var host = slots == 0 ? null : TabHostOf(context.Menu, SidebarRoot(context.Menu));
-        var items = host is null ? [] : TabEntries(host, slots);
+        var items = host is null || !strip.IsHost(host) ? [] : TabEntries(host, slots);
         var onHost = items.Length > 0 && ReferenceEquals(host, context.Menu);
         // The host's own frame is about to open a tab in its place; drawing its tabs would only flash.
         // A page below a tab (a product, a player) is a detail of that tab, and drops the strip.
@@ -779,25 +800,25 @@ internal sealed partial class FrameComposer
 
         for (var j = 0; j < slots; j++)
         {
-            var panel = page.TabPrefix + j;
+            var panel = strip.Prefix + j;
             var item = shown && j < items.Length ? items[j] : null;
             var (label, count) = SplitCount(item?.Text ?? string.Empty);
-            vars.Add(new VarWrite(panel, page.TabLabelVar, label));
-            vars.Add(new VarWrite(panel, page.TabCountVar, count));
+            vars.Add(new VarWrite(panel, strip.LabelVar, label));
+            vars.Add(new VarWrite(panel, strip.CountVar, count));
             classes.Add(new ClassWrite(panel, cls.Hidden, item is null));
             if (item is null) continue;
-            if (count.Length > 0) classes.Add(new ClassWrite(panel, page.Classes.HasCount, true));
+            if (count.Length > 0) classes.Add(new ClassWrite(panel, strip.HasCountClass, true));
             if (!item.Enabled) classes.Add(new ClassWrite(panel, cls.Disabled, true));
             if (j == active) classes.Add(new ClassWrite(panel, cls.Selected, true));
         }
-        if (page.TabsPanel.Length > 0) classes.Add(new ClassWrite(page.TabsPanel, cls.Hidden, !shown));
-        if (shown) classes.Add(new ClassWrite(profile.Panels.Shell, page.Classes.HasTabs, true));
+        if (strip.Panel.Length > 0) classes.Add(new ClassWrite(strip.Panel, cls.Hidden, !shown));
+        if (shown) classes.Add(new ClassWrite(profile.Panels.Shell, strip.HasTabsClass, true));
 
-        var auto = page.TabAutoOpen;
+        var auto = strip.AutoOpen;
         return rows with
         {
             TabHost = items.Length > 0 ? host : null,
-            TabPrefix = page.TabPrefix,
+            TabPrefix = strip.Prefix,
             TabItems = shown ? [.. items] : [],
             SkipsTabHost = items.Length > 0 && auto >= 0,
             TabAutoOpenItem = onHost && auto >= 0 && auto < items.Length ? items[auto] : null,

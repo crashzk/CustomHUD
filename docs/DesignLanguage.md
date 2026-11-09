@@ -168,6 +168,7 @@ family's own colour at a lower alpha.
 | Wear | `chudWearFnBase #3fdc5a`, `chudWearMwBase #a6dfa6`, `chudWearFtBase #f2d43a`, `chudWearWwBase #f5973a`, `chudWearBsBase #ff7a72`, each with a `Dim` at alpha `59` for the unfilled part of the bar |
 | Ranks | `chudRating0Base`…`chudRating6Base` for CS Rating's bands and `chudLevel1Base`, `2`, `4`, `8`, `10` for the level bands, each with a `Glow` at alpha `5c` |
 | Swatches | `chudSwatchRed`, `Blue`, `Green`, `Yellow`, `Purple`, `Orange`, `Pink`, `Cyan`, `White`, `Black`: the colours `swatch=<colour>` names |
+| Graffiti | `chudSprayTint01`…`chudSprayTint19`: the game's graffiti tints by id, which `tint=spray-N` washes spray art in. Game data, not part of the palette |
 
 The rarity ladder follows the `lvl-N` icon classes: grey, light blue, blue,
 purple, pink, red, gold, orange, yellow, green.
@@ -185,7 +186,7 @@ lives in `menu_mouse.vcss`, which every mouse layout includes; the rest are in
 | Tile | a card in a grid: the tile gradient in a hairline. Hover lifts it with an accent edge and a soft glow; a chosen tile keeps a 2px accent edge. A static tile lists its `:hover` with its rest state, so it does not react | `menu_mouse.vcss` |
 | Eyebrow | the gold uppercase caption over a title: the grid's heading, a hero's name, a form's title | `menu_mouse.vcss` |
 | Locker chrome | the sidebar, its entries and dividers, the footer bar, the nav buttons and the red close button, in both lockers and the mouse list | `menu_mouse.vcss` |
-| Chosen | the player's own pick in a list, and the open tab: a flat `Soft` accent fill in a 1px accent edge | `locker.vcss` |
+| Chosen | the player's own pick in a list, and the open tab: a flat `Soft` accent fill in a 1px accent edge | `locker.vcss`; the WeaponSkins locker's tabs in `menu_skins_mouse.vcss`, labelled in the accent |
 | Bare | text with no surface; a banner's, a foot's and a bar's text are bare by default | `locker.vcss` |
 | Control | a button on `chudSurfaceRow` in a hairline, accent-edged on hover; a foot's and a bar's actions are controls by default | `locker.vcss` |
 | Inset control | a control on a row or card, a step darker than its ground | `locker.vcss` |
@@ -312,11 +313,23 @@ leave a gap. The 576px
 content height leaves room for every root category without shifting the
 navigation as short submenus open. Labels and values are real menu data.
 
+Over the grid, a strip of eight `tab_N` buttons holds the second level of the
+pages `Tabs.Hosts` names, WeaponSkins' categories, while the player is on one:
+30px buttons sized to their uppercase labels, the open one in the Chosen look
+with its label in the accent. The content area places its panels by alignment
+rather than flow, so the strip takes the top of the grid's column: with it the
+shell carries `has-tabs` and the grid shrinks to a fixed 534px, leaving the
+locker the same size on every page. A page below a tab (a weapon's finishes)
+drops the strip.
+
 ```text
+#tabs.ws-tabs                           shown on a tab's own page · #shell gets has-tabs
+└─ Button#tab_N.ws-tab                  {s:tab}, {s:tab_count} · selected · has-count · disabled
+
 Button#option_N.chud-tile.ws-card       has-thumb · has-type · page-tile · chosen · inside #options > .ws-grid__items > .ws-line
 ├─ #icon_N.chud-tile__rarity            lvl-1…10 → glow rising from the foot
 │  └─ .ws-card__bar                     rarity bar under the image (has-thumb only)
-├─ #thumb_N.ws-card__thumb              econ-<token> class, 152×104
+├─ #thumb_N.ws-card__thumb              econ-<token> class, 152×104 · tint-spray-1…19 washes a graffiti in its colour
 ├─ .ws-card__type                       {s:option_N_type}
 ├─ .ws-card__name                       {s:option_N}
 └─ .ws-card__value                      {s:option_N_right}
@@ -492,9 +505,12 @@ whatever is left, then the right side. WeaponSkins' keyboard list is
 Rows are sized by what they hold: 36px, 52px with art or a second line, 62px
 with a badge and a sub (three lines), 44px with a meter or as a ballot's
 answer, 24px a heading. On the cursor's row the second line brightens with the
-name, so it reads on the orange. A fact (a row the cursor
-skips, or one marked `info` that it only passes through) and a meter sit on
-the panel with no ground and no key. The right side
+name, so it reads on the orange. In Mouse mode the row under the pointer is
+drawn as the cursor's row, on a row a click acts on. A fact (a row the cursor
+skips, or one marked `info` that it only passes through, as a plain
+`TextComponent` is) and a meter sit on the panel with no ground, no key and no
+hover; a rank on Ranks' ladder (`grp-road`) is
+the exception, a card on the row's ground like a MapChooser map. The right side
 is the component's control: `kind-toggle` a switch, `kind-selector` `‹ value ›`,
 `kind-choice` the value and a cycle mark, `kind-slider` the track (`bar-N`
 sizes it, `track-wear` bands it), `kind-input` a field with a pen,
@@ -534,7 +550,7 @@ child sets `hittest="false"` so the Button receives the click.
 
 An empty slot receives `hidden` and nothing else; the diff drops every class
 its last occupant had (`selected`, `disabled`, `danger`, `marquee`, `has-*`,
-`lvl-*`, `econ-*`, `bar-*`, `chosen`).
+`lvl-*`, `econ-*`, `tint-*`, `bar-*`, `chosen`).
 
 ## Nav modes
 
@@ -555,6 +571,7 @@ A plugin can target CustomHUD directly through
 |---|---|
 | `icon=N` | rarity dot or tile tint `lvl-N` |
 | `image=key` | econ thumbnail on `thumb_N` in `menu_skins_mouse`; ignored elsewhere |
+| `tint=token` | `tint-<token>` beside the thumbnail; `menu_skins_mouse` and the list wash `spray-1`…`19` in `chudSprayTint01`…`19` |
 | `type=label` | caption above the name plus `has-type` in `menu_skins_mouse`; ignored elsewhere |
 | `danger` | red bar and label, or red tile name |
 | `disabled` | 40% opacity |
@@ -611,9 +628,10 @@ These come from the data a frame carries. Styling cannot close them:
   slider or choice lands in the value slot, but a plain line reading
   `"Label: value"` stays in the label slot unless it carries a tab.
 - **No eyebrow data.** The WeaponSkins locker's `WEAPONSKINS` eyebrow is static
-  and untranslated; the generic grid has none. `menu_locker` shows the root
-  menu's title, or the plugin's translated name (`customhud.eyebrow.*`) when
-  the plugin opens without a root.
+  and untranslated; the generic grid has none. `menu_locker` and the lists show
+  the root menu's title, or, when the plugin opens without a root, its
+  `customhud.eyebrow.<plugin>`, a built-in page's name, or
+  `customhud.eyebrow.default`, in that order.
 - **Captured native text can contain `#localization` tokens**, which are
   rendered verbatim.
 - **Multi-line native stacks flatten to one line.** `MaxVisibleLines` defaults

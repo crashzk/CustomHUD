@@ -196,6 +196,14 @@ Put images in `resources/panorama/images/custom_game/customhud/`.
   `background-repeat: repeat`, and draws over the panel's `background-color`,
   which can stay a gradient.
 
+  An SVG is rasterized once, at the `width` / `height` it declares, and that
+  bitmap is stretched to the panel. The game's rank emblems declare 32×13, so
+  the 270px hero card drew one magnified eight times. A panel that draws an SVG
+  larger than it declares sets `background-texture-size` to the size drawn, in
+  the image's own proportions, as Valve's Dota 2 and Deadlock sheets do (`px`
+  scales like any other length; raster images ignore it). A browser preview
+  redraws vectors at any size, so it never shows this blur.
+
 #### Game econ thumbnails
 
 Item artwork is never copied into the addon. Two generated stylesheets hold one
@@ -205,7 +213,7 @@ already has:
 
 | Sheet | Families |
 |---|---|
-| `econ_thumbs.vcss` | weapon paintkits, base weapons, agents, music kits, charms, patches, cases and capsules (`weapon_cases`, `tournaments`), collection icons (`set_icons`) |
+| `econ_thumbs.vcss` | weapon paintkits, base weapons, agents, music kits, charms, patches, cases and capsules (`weapon_cases`, `tournaments`), collection icons (`set_icons`), collectible pins (`status_icons/collectible_pin_*`) |
 | `econ_stickers.vcss` | stickers: about 80% of all classes, so a layout that draws none leaves it out |
 
 Regenerate both after a CS2 update:

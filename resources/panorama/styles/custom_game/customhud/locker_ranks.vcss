@@ -36,6 +36,8 @@
 	width: 270px;
 	height: 184px;
 	margin-left: 45px;
+	/* An SVG rasterizes at its declared size, 32x13 for an emblem: these views draw only emblems, so each gives the size drawn. */
+	background-texture-size: 270px 110px;
 }
 
 .lk.view-ranks-rank .lk-banner .lk-slot .lk-text
@@ -234,6 +236,7 @@
 	horizontal-align: center;
 	vertical-align: top;
 	margin: 22px 0px 0px 0px;
+	background-texture-size: 96px 39px;
 }
 
 .lk.view-ranks-rank .lk-list .lk-slot .lk-text
@@ -439,6 +442,57 @@
 	border-right: 2px solid chudTileDeep;
 	border-radius: 0px;
 	background-color: chudSuccessBase;
+}
+
+/* Ten to twelve tiles take four rows, which fit under the tabs only this much shorter (Ranks 1.3's ten counters). */
+.lk.view-ranks-stats .hk-rows-10 .lk-slot.has-type,
+.lk.view-ranks-stats .hk-rows-11 .lk-slot.has-type,
+.lk.view-ranks-stats .hk-rows-12 .lk-slot.has-type
+{
+	height: 122px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .lk-glyph,
+.lk.view-ranks-stats .hk-rows-11 .lk-glyph,
+.lk.view-ranks-stats .hk-rows-12 .lk-glyph
+{
+	margin-top: 14px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .lk-slot.has-type .lk-text,
+.lk.view-ranks-stats .hk-rows-11 .lk-slot.has-type .lk-text,
+.lk.view-ranks-stats .hk-rows-12 .lk-slot.has-type .lk-text
+{
+	margin-top: 12px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .has-type .lk-name,
+.lk.view-ranks-stats .hk-rows-11 .has-type .lk-name,
+.lk.view-ranks-stats .hk-rows-12 .has-type .lk-name
+{
+	margin-top: 2px;
+	font-size: 38px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .lk-unit,
+.lk.view-ranks-stats .hk-rows-11 .lk-unit,
+.lk.view-ranks-stats .hk-rows-12 .lk-unit
+{
+	margin-top: 22px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .lk-sub,
+.lk.view-ranks-stats .hk-rows-11 .lk-sub,
+.lk.view-ranks-stats .hk-rows-12 .lk-sub
+{
+	margin-top: 2px;
+}
+
+.lk.view-ranks-stats .hk-rows-10 .lk-meter,
+.lk.view-ranks-stats .hk-rows-11 .lk-meter,
+.lk.view-ranks-stats .hk-rows-12 .lk-meter
+{
+	margin-bottom: 12px;
 }
 
 /* ---- ranks-weapons: the weapons played most, 4 x (212 + 6) = 872 of 882 ---- */
@@ -663,6 +717,7 @@
 	horizontal-align: center;
 	vertical-align: top;
 	margin: 50px 0px 0px 0px;
+	background-texture-size: 104px 42px;
 }
 
 .lk.view-ranks-board .lk-banner .lk-slot .lk-text
@@ -764,6 +819,7 @@
 	width: 52px;
 	height: 21px;
 	margin-left: 80px;
+	background-texture-size: 52px 21px;
 }
 
 .lk.view-ranks-board .lk-list .lk-slot .lk-text
