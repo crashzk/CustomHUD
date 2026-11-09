@@ -1504,14 +1504,6 @@
 .lk .lk-foot .lk-hit:hover,
 .lk .lk-detail__bar .kind-text .lk-hit,
 .lk .lk-detail__bar .kind-text .lk-hit:hover,
-.lk.view-admins-players .lk-detail .lk-hit,
-.lk.view-admins-players .lk-detail .lk-hit:hover,
-.lk.view-admins-bans .lk-detail .lk-hit,
-.lk.view-admins-bans .lk-detail .lk-hit:hover,
-.lk.view-admins-ban .lk-detail .lk-hit,
-.lk.view-admins-ban .lk-detail .lk-hit:hover,
-.lk.view-admins-votes .grp-hint.has-glyph .lk-hit,
-.lk.view-admins-votes .grp-hint.has-glyph .lk-hit:hover,
 .lk.view-vip-users .lk-detail .lk-hit,
 .lk.view-vip-users .lk-detail .lk-hit:hover,
 .lk.view-ranks-board .grp-gap .lk-hit,
@@ -1530,6 +1522,24 @@
 	background-color: transparent;
 }
 
+/* Bare, continued: past about 30 selectors a list stops the whole sheet loading (PanoramaAuthoring.md). */
+.lk.view-admins-players .lk-detail .lk-hit,
+.lk.view-admins-players .lk-detail .lk-hit:hover,
+.lk.view-admins-player .lk-detail .lk-hit,
+.lk.view-admins-player .lk-detail .lk-hit:hover,
+.lk.view-admins-bans .lk-detail .lk-hit,
+.lk.view-admins-bans .lk-detail .lk-hit:hover,
+.lk.view-admins-record .lk-detail .lk-hit,
+.lk.view-admins-record .lk-detail .lk-hit:hover,
+.lk.view-admins-ban .lk-detail .lk-hit,
+.lk.view-admins-ban .lk-detail .lk-hit:hover,
+.lk.view-admins-votes .grp-hint.has-glyph .lk-hit,
+.lk.view-admins-votes .grp-hint.has-glyph .lk-hit:hover
+{
+	border: 0px solid transparent;
+	background-color: transparent;
+}
+
 /* Control: a button, quiet until hovered, and a static box on the same ground.
    A foot's and a bar's actions are controls by default. */
 .lk .lk-detail__bar .lk-hit,
@@ -1539,6 +1549,7 @@
 .lk.view-maps-rows .lk-list .lk-hit,
 .lk.view-maps-rtv .grp-more .lk-hit,
 .lk.view-admins-players .lk-detail .grp-action.kind-action .lk-hit,
+.lk.view-admins-player .lk-list .lk-hit,
 .lk.view-admins-ban .lk-list .lk-hit,
 .lk.view-admins-votes .lk-list .lk-hit,
 .lk.view-mix-ballot .lk-list .lk-hit,
@@ -1555,6 +1566,7 @@
 .lk.view-maps-rows .lk-list .lk-hit:hover,
 .lk.view-maps-rtv .grp-more .lk-hit:hover,
 .lk.view-admins-players .lk-detail .grp-action.kind-action .lk-hit:hover,
+.lk.view-admins-player .lk-list .lk-hit:hover,
 .lk.view-admins-ban .lk-list .lk-hit:hover,
 .lk.view-admins-votes .lk-list .lk-hit:hover,
 .lk.view-vip-users .grp-step .lk-hit:hover,
@@ -1643,6 +1655,7 @@
 .lk .lk-detail__bar .danger .lk-hit,
 .lk .lk-foot .danger.kind-action .lk-hit,
 .lk.view-admins-players .lk-detail .grp-action.kind-action.danger .lk-hit,
+.lk.view-admins-player .lk-list .grp-action.danger .lk-hit,
 .lk.view-mix-control .lk-detail .danger .lk-hit,
 .inline-danger .lk-inline
 {
@@ -1653,6 +1666,7 @@
 .lk .lk-detail__bar .danger .lk-hit:hover,
 .lk .lk-foot .danger.kind-action .lk-hit:hover,
 .lk.view-admins-players .lk-detail .grp-action.kind-action.danger .lk-hit:hover,
+.lk.view-admins-player .lk-list .grp-action.danger .lk-hit:hover,
 .lk.view-mix-control .lk-detail .danger .lk-hit:hover,
 .inline-danger .lk-inline:hover
 {
@@ -1663,6 +1677,7 @@
 .lk .lk-detail__bar .danger .lk-name,
 .lk .lk-foot .danger.kind-action .lk-name,
 .lk.view-admins-players .grp-action.kind-action.danger .lk-name,
+.lk.view-admins-player .lk-list .grp-action.danger .lk-name,
 .lk.view-mix-control .lk-detail .danger .lk-name
 {
 	color: chudDangerStrong;
@@ -1712,7 +1727,9 @@
 .lk.view-vip-guns .lk-foot,
 .lk.view-vip-users .lk-detail,
 .lk.view-admins-players .lk-detail,
+.lk.view-admins-player .lk-detail,
 .lk.view-admins-bans .lk-detail,
+.lk.view-admins-record .lk-detail,
 .lk.view-admins-ban .lk-detail,
 .lk.view-admins-ban .lk-banner,
 .lk.view-maps-rtv .lk-detail__body,
@@ -1812,7 +1829,6 @@
 }
 
 /* Well: where typed text goes. */
-.lk.view-admins-ban .grp-input .lk-end,
 .lk.view-vip-grant .grp-search .lk-hit,
 .lk.view-vip-grant .grp-search .lk-hit:hover
 {
@@ -1858,6 +1874,7 @@
 /* Plain value: a word or count read as text, not as a gold figure. */
 .lk.view-admins-players .lk-list .lk-value,
 .lk.view-admins-bans .grp-field .lk-value,
+.lk.view-admins-record .grp-field .lk-value,
 .lk.view-admins-staff .lk-list .lk-value,
 .lk.view-vip-perks .lk-list .kind-submenu .lk-value
 {
@@ -1869,7 +1886,9 @@
 
 /* Id line: the SteamID under a player's name. */
 .lk.view-admins-players .grp-head .lk-sub,
+.lk.view-admins-player .grp-head .lk-sub,
 .lk.view-admins-bans .grp-head .lk-sub,
+.lk.view-admins-record .grp-head .lk-sub,
 .lk.view-admins-ban .grp-target .lk-sub,
 .lk.view-vip-users .grp-head .lk-sub,
 .lk.view-vip-grant .lk-list .lk-sub
@@ -1881,7 +1900,6 @@
 }
 
 /* Small caption: a quiet uppercase label beside a control or a state. */
-.lk.view-admins-ban .grp-input .lk-name,
 .lk.view-maps-rows .lk-foot .lk-name,
 .lk.view-shop-inventory .lk-slot.kind-toggle .lk-value
 {

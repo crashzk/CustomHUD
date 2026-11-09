@@ -626,8 +626,8 @@ deserve custom treatment, and generic nodes otherwise. Three lines, no
 dependency, degrades cleanly on every other renderer. ShopCore, MapChooser,
 Ranks, VIPCore and Admins have page views in Mouse mode;
 [What a Page Sends](PluginIntegration.md#what-a-page-sends) lists the directives those views read. A plugin with a
-public API needs neither: CustomHUD draws Ranks, ShopCore, MapChooser and
-WeaponSkins from their APIs and leaves their menus plain
+public API needs neither: CustomHUD draws Ranks, ShopCore, MapChooser,
+WeaponSkins, VIPCore and Admins from their APIs and leaves their menus plain
 ([Provider Integrations](PluginIntegration.md#provider-integrations)).
 
 ## 11. Deliberately not ported

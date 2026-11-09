@@ -101,6 +101,7 @@ public sealed class CustomHudConfig
             ["prestige.*"] = LockerProfiles.Ranks(),
             ["vipcore.*"] = LockerProfiles.Vip(),
             ["admins.*"] = LockerProfiles.Admins(),
+            ["admins.vote"] = LockerProfiles.AdminsBallot(),
             ["mixscrims.*"] = LockerProfiles.Mix(),
         };
 

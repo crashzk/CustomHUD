@@ -21,13 +21,14 @@ for exercises the list (`menu_list`, and `menu_list_mouse` in mouse mode).
 | MapChooser | the fork, `feat/migrate_to_new_menu_api` | `!maps`, `!mapsvote`, `!nominate`, `!revote` | the map menu as a sidebar, the live tally, disabled rows with a reason, map art |
 | VIPCore | the fork, `feat/migrate_to_new_menu_api` | `!vip` | disabled rows |
 | MixScrims | `MixScrims-SwiftlyS2` | its match flow, `!captain` | menus with no exit, Yes/No ballots, the `mix-*` pages, centre-HTML |
-| Admins | the fork | `!admin`, `!csay` | a `Core.MenusAPI` plugin; centre text |
+| Admins | the fork, `feat/complete_refactor` | `!admin`, `!vote`, `!votekick`, `!votemap`, `!csay` | the `admins-*` pages drawn from its API, the ballot, centre text |
 
 The forks are the ones under `SwiftlyS2 Forks - Core Plugins`. Only `Core.Menu`
-reaches a renderer: Admins, and the default branches of the MapChooser and
-VIPCore forks, still use the deprecated `Core.MenusAPI`, which keeps drawing
-core's centre-HTML whatever `menus.jsonc` says. `!mapdecal`, `!mapsvote`,
-`!admin` and `!csay` are admin commands; grant yourself their permissions.
+reaches a renderer: the default branches of the MapChooser and VIPCore forks
+still use the deprecated `Core.MenusAPI`, which keeps drawing core's
+centre-HTML whatever `menus.jsonc` says. `!mapdecal`, `!mapsvote`, `!admin`,
+`!vote`, `!votekick`, `!votemap` and `!csay` are admin commands; grant yourself
+their permissions.
 
 ### Turn on detailed logging
 
@@ -423,20 +424,20 @@ An override loses to a mouse rule, so check the shop in a keyboard mode.
 !rank
 !vip
 !mapsvote
+!admin
 ```
 
 The built-in rules send `shopcore.*`, `mapchooser.*`, `ranks.*` (with Ranks'
-modules `weaponstats.*`, `customcombos.*` and `prestige.*`), `vipcore.*` and
-`mixscrims.*` to `menu_locker`, each id in the view
+modules `weaponstats.*`, `customcombos.*` and `prestige.*`), `vipcore.*`,
+`admins.*` and `mixscrims.*` to `menu_locker`, each id in the view
 `LockerProfiles` maps it to; `PageViews` in `config.jsonc` picks another
 (`maps-rows`, `shop-list`). Ranks and its modules, ShopCore, MapChooser,
-WeaponSkins and VIPCore pages are drawn from those plugins' APIs
+WeaponSkins, VIPCore and Admins pages are drawn from those plugins' APIs
 ([Provider Integrations](PluginIntegration.md#provider-integrations)); the server log names each integration CustomHUD bound
 at startup, and a missing one leaves that plugin's plain rows. MixScrims sends
 plain rows today, so a page shows its labels, values and states in its view's
-frame. `admins.*` has a rule too, which Admins cannot
-reach until it moves to `Core.Menu`. MixScrims' pages are checked with its
-match flow (§11).
+frame. MixScrims' pages are checked with its match flow and Admins' with its
+own pass (§11).
 
 On every page:
 
@@ -611,8 +612,8 @@ A plugin still on the deprecated `Core.MenusAPI` will **not** be affected: that
 is a separate pipeline that never reaches a renderer, and it keeps drawing its
 own centre-HTML.
 
-- [ ] `!admin` draws core's centre-HTML whatever `menus.jsonc` says, and
-      closes as it always has
+- [ ] on VIPCore's default branch, `!vip` draws core's centre-HTML whatever
+      `menus.jsonc` says, and closes as it always has
 
 The WeaponSkins fork (`SwiftlyS2 Forks - Core Plugins\WeaponSkins`) is ported
 to `Core.Menu` and makes a good full pass: `!ws` covers submenus, back
@@ -868,6 +869,64 @@ ShopCore's API (ShopCore 1.1.9). Open `!shop`, then Buy and a category.
       have on, and the time a timed item has left over a draining meter
 - [ ] on a server without CustomHUD the same rows read `name [price]`,
       `Buy [price]` and `Sell [+refund]`, as before
+
+CustomHUD draws Admins' menus from its API (Admins 2.0.0). Join with a bot or
+a second client so there is someone to act on, open `!admin` in mouse mode,
+then repeat the first three in wasd.
+
+- [ ] Players: a roster of avatars with each player's team, `You` on your
+      own row, K/D, ping in the colour of its bars (`BOT` for a bot), and in
+      red under the name what is on them (`Muted · 2 d`, `Frozen`); a player
+      above your immunity reads `Immune (80)` in grey. Two chips beside the
+      title count the players and give your immunity; the team filter sits
+      in the foot
+- [ ] the pane beside it reads `No player selected`; back out of a player's
+      page and it shows that player's sheet: avatar, name, SteamID, team,
+      the K/D, ping and immunity band, and their last four records with the
+      kind and length in red while active
+- [ ] a player's page: Punish, Control, Move and edit and History as cards
+      with what each holds, History counting the records; a group opens its
+      actions as tiles three to a line, Kick, Ban and Slay in red, and a
+      switched-on one (frozen, noclip, beacon) outlined. Unmute appears in
+      place of Mute while they are muted
+- [ ] Ban: the steps across the top, finished ones ticked with their pick,
+      the current one numbered in orange; kinds as chips with their glyph,
+      reasons two to a line, lengths four to a line with Permanent across the
+      row in red, and `Other reason` and `Other length` as chips with a chat
+      glyph that go on to the next step. The rail on the right builds the ban
+      as you pick, the step being made in gold and a part left for chat as
+      `In chat`, with a dimmed `Confirm ban` (or `Print the command in chat`
+      once a part is left for chat) until the last step
+- [ ] with `Other reason`, `Other length` or `Someone else` picked, the last
+      step offers `Print the command in chat` and no summary. It closes the
+      menu and prints the command filled in with every pick (the player's
+      SteamID64, the length as one token such as `30h`, the reason), with
+      `<reason>`, `<time>`, `<steamid64>` or `<ip>` only for what was left;
+      `Someone else` prints a SteamID and an IP form
+- [ ] from the length step on, a quote shows the message the player will
+      read, for the length picked or, before one is, the first on offer
+- [ ] Bans and Comms: a table of `#id`, player, reason and time left over a
+      meter (red under a fifth left, `Permanent` in red, `Ended` dimmed), a
+      globe on a global record, chips with the active and ended counts, and
+      `Give`, the filters and `Retry` in the foot; the pane shows the
+      selected record's fields with the IP masked
+- [ ] a record's page lists its actions with glyphs, Unban or Remove in red,
+      beside the same fields
+- [ ] My tools: ESP, Hidden, Noclip and God mode with their state, an `On`
+      one outlined; Server: the restart delays, the maps with the current
+      one outlined and `Current`
+- [ ] `!votekick <name>` with a second client: both see Yes and No as two big
+      tiles, a chip counting down, who called it, the target's card with
+      their K/D and team, and under them a pip per voter, yes in green and no
+      in red, with the rule; `!votemap de_dust2 de_inferno` shows the maps as
+      cards with their screenshots and shares; `!vote Lunch? Pizza Sushi
+      Tacos Burgers` a numbered list with each option's share, and a poll of
+      three or fewer options numbered tiles
+- [ ] in wasd every page keeps its rows and glyphs in the list, and the
+      ballot's title is the question, not `Vote`
+- [ ] with Admins removed, CustomHUD still loads and logs that it skipped
+      Admins; with an Admins build before 2.0.0 the integration is skipped
+      the same way and its menus draw as plain rows
 
 MixScrims (`MixScrims-SwiftlyS2`) has built-in rules: in a keyboard mode its
 menus draw in the list under a `MIX` eyebrow, and in mouse mode each opens in

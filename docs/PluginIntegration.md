@@ -126,7 +126,7 @@ menu id draws as a **view**, a design for that kind of page:
 | MapChooser | `mapchooser.*` | `maps-board` (vote cards), `maps-rows` (poll rows), `maps-pool`, `maps-rtv` |
 | Ranks and its modules | `ranks.*`, `weaponstats.*`, `customcombos.*`, `prestige.*` | `ranks-rank`, `ranks-stats`, `ranks-weapons`, `ranks-board`, `ranks-settings` |
 | VIPCore | `vipcore.*` | `vip-perks`, `vip-options`, `vip-guns`, `vip-users`, `vip-grant`, `vip-tiers` (no VIPCore menu opens it yet) |
-| Admins | `admins.*` | `admins-players`, `admins-ban`, `admins-bans`, `admins-votes`, `admins-staff` |
+| Admins | `admins.*` | `admins-players`, `admins-player` (one player's actions), `admins-ban` (a punishment's steps), `admins-bans` (bans and comms), `admins-record`, `admins-votes`, `admins-staff`; the ballot (`admins.vote`) as `mix-ballot`, MapChooser's `maps-board` for a map vote, or the list |
 | MixScrims | `mixscrims.*` | `mix-captains`, `mix-draft` (the team pick), `mix-sides` (the knife round's side), `mix-ballot` (timeout, surrender and kick votes, docked at the side), `mix-control` |
 
 - An id no rule names gets `list`, the plain list. `PageViews` picks another by
@@ -137,9 +137,8 @@ menu id draws as a **view**, a design for that kind of page:
   "PageViews": { "mapchooser.eof-vote*": "maps-rows", "shopcore.buy.items": "shop-list" }
   ```
 
-- Admins' views are ready, but the current Admins fork still builds its menus
-  with `Core.MenusAPI`, so they reach CustomHUD only once it moves to
-  `Core.Menu`.
+- Admins' ballot opens with no root, so it has no sidebar; the integration
+  picks its view from the vote (see Provider Integrations).
 - MixScrims' menus are all their own root, so none has a sidebar; its map vote
   is MapChooser's `maps-board`. Its team pick and side choice unbind Close, so
   CustomHUD hides `×` and `<`.
@@ -194,6 +193,7 @@ plugin built. Any other custom renderer can read the same API.
 | ShopCore | `ShopCore.API.v2` | 1.1.9 | `shopcore.*` | Prices in a value column, item art, and owned, equipped or unaffordable state |
 | MapChooser | `MapChooser.Api.v1` | 1.5.0 (contract 1.1.0) | `mapchooser.*` | The vote as cards or poll rows with each option's share, the vote's clock and turnout, the map menu as the sidebar, and the pool with player limits, nominations and why a map can't be nominated |
 | VIPCore | `VIPCore.Api.v1` | 1.2.0 (contract 1.1.0) | `vipcore.*` | The membership over its perk cards, choices as cards, admin pages as a table beside the selected player's grants |
+| Admins | `Admins.Menu.V2`, with `Admins.Admins.V2`, `Admins.Bans.V2`, `Admins.Comms.V2` | 2.0.0 | `admins.*` | The players as a roster beside the selected player's sheet, a player's actions as cards and tiles, a punishment's steps over chips with the punishment as it stands and the message the player will read, bans and comms as a table beside the selected record, and the vote ballot |
 
 - **MapChooser:** the ballot gets each option's share as `text=\t45;vunit=%` and
   `bar=`, its votes as `note=`, and `chosen` with a `Your vote` tag on the
@@ -215,6 +215,14 @@ plugin built. Any other custom renderer can read the same API.
   `Neon Tracer [500]` and a long name never truncates its price. An item's
   picture is its `ShopItemDefinition.ImageKey`; any other item shows its
   category's icon from `Sidebar.Icons`.
+- **Admins:** every row's `Tag` is an `Admins.Contract` record (a player, a
+  record, an action, a step's choice) and each page's `IMenu.Tag` its subject:
+  the player, the record, the record list, the punishment draft, or the
+  running `IAdminVote`. What changes while a page is open (a player's team,
+  K/D and ping, what is on them, the tools' state, the vote's tally) is read
+  live from the API; a player's history is read once and kept for 15 seconds.
+  A poll of up to three options draws as `mix-ballot`, a longer one as the
+  list with each option's share, and a map vote as `maps-board`.
 
 What a page needs in order to be recognised is renderer-agnostic:
 

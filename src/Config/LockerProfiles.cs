@@ -193,22 +193,42 @@ public static class LockerProfiles
         ["vip.rainbowmodel"] = "colors", ["vip.smokecolor"] = "colors", ["vip.round_end_abilities"] = "star",
     });
 
+    // Admins. Its ballot (admins.vote) is not here: AdminsBallot is registered for it on its own.
     public static MenuLayoutProfile Admins() => With(Generic(), "admins", new()
     {
         ["admins.players*"] = "admins-players",
+        ["admins.players.*"] = "admins-player",
         ["admins.bans.give*"] = "admins-ban",
         ["admins.comms.give*"] = "admins-ban",
+        ["admins.kick.*"] = "admins-ban",
         ["admins.bans*"] = "admins-bans",
         ["admins.comms*"] = "admins-bans",
+        ["admins.bans.record"] = "admins-record",
+        ["admins.comms.record"] = "admins-record",
         ["admins.votes*"] = "admins-votes",
         ["admins.staff*"] = "admins-staff",
     }, new()
     {
         ["admins.players"] = "player", ["admins.bans"] = "ban", ["admins.comms"] = "mute", ["admins.votes"] = "vote",
-        ["admins.server"] = "server", ["admins.staff"] = "staff",
-        ["Players"] = "player", ["Bans"] = "ban", ["Comms"] = "mute", ["Votes"] = "vote", ["Server"] = "server",
-        ["Staff"] = "staff",
+        ["admins.tools"] = "sliders", ["admins.server"] = "server", ["admins.staff"] = "staff",
+        ["Players"] = "player", ["Bans"] = "ban", ["Comms"] = "mute", ["Votes"] = "vote", ["My tools"] = "sliders",
+        ["Server"] = "server", ["Staff"] = "staff",
     });
+
+    // Admins' vote ballot, which everyone gets: a small panel docked at the side like Mix's, with
+    // no sidebar (an admin interrupted mid-menu would otherwise get theirs around it). Its view is
+    // the provider integration's pick by vote; a map vote reads its answers as maps.
+    public static MenuLayoutProfile AdminsBallot()
+    {
+        var profile = With(Generic(), "admins", new() { ["admins.vote"] = "mix-ballot" }, new());
+        profile.Sidebar = null;
+        var page = profile.Page!;
+        page.ImageFromLabel = "map/{0}";
+        page.ImageLabels = [.. StockMaps];
+        page.AutoLead = true;
+        page.LeadGlyph = "trophy";
+        return profile;
+    }
 
     // MixScrims. Every menu is its own root: the control page's submenus are tiles, so there
     // is no sidebar to mirror them (it would auto-open the first). The ballots everyone gets

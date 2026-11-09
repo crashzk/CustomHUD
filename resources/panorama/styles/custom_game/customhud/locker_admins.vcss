@@ -6,7 +6,8 @@
 
 /* ---- admins-players: everyone on the server, the selected player's sheet beside ---- */
 
-.lk.view-admins-players .lk-detail
+.lk.view-admins-players .lk-detail,
+.lk.view-admins-player .lk-detail
 {
 	width: 416px;
 }
@@ -83,27 +84,35 @@
 /* The sheet: the whole pane is one card, its buttons inside at the foot; its items
    wrap so stats and actions share lines. */
 .lk.view-admins-players .lk-detail,
+.lk.view-admins-player .lk-detail,
 .lk.view-admins-bans .lk-detail,
+.lk.view-admins-record .lk-detail,
 .lk.view-admins-ban .lk-detail
 {
 	padding: 16px;
 }
 
 .lk.view-admins-players .lk-detail__items,
-.lk.view-admins-bans .lk-detail__items
+.lk.view-admins-player .lk-detail__items,
+.lk.view-admins-bans .lk-detail__items,
+.lk.view-admins-record .lk-detail__items
 {
 	flow-children: right-wrap;
 }
 
 /* The head: a large avatar, the name, its team in the corner, the state as a red badge. */
 .lk.view-admins-players .grp-head,
-.lk.view-admins-bans .grp-head
+.lk.view-admins-player .grp-head,
+.lk.view-admins-bans .grp-head,
+.lk.view-admins-record .grp-head
 {
 	height: 72px;
 }
 
 .lk.view-admins-players .grp-head .lk-mark,
-.lk.view-admins-bans .grp-head .lk-mark
+.lk.view-admins-player .grp-head .lk-mark,
+.lk.view-admins-bans .grp-head .lk-mark,
+.lk.view-admins-record .grp-head .lk-mark
 {
 	width: 64px;
 	height: 64px;
@@ -113,13 +122,17 @@
 }
 
 .lk.view-admins-players .grp-head .lk-mark__text,
-.lk.view-admins-bans .grp-head .lk-mark__text
+.lk.view-admins-player .grp-head .lk-mark__text,
+.lk.view-admins-bans .grp-head .lk-mark__text,
+.lk.view-admins-record .grp-head .lk-mark__text
 {
 	font-size: 30px;
 }
 
 .lk.view-admins-players .grp-head .lk-text,
-.lk.view-admins-bans .grp-head .lk-text
+.lk.view-admins-player .grp-head .lk-text,
+.lk.view-admins-bans .grp-head .lk-text,
+.lk.view-admins-record .grp-head .lk-text
 {
 	width: 290px;
 	vertical-align: top;
@@ -127,7 +140,9 @@
 }
 
 .lk.view-admins-players .grp-head .lk-name,
-.lk.view-admins-bans .grp-head .lk-name
+.lk.view-admins-player .grp-head .lk-name,
+.lk.view-admins-bans .grp-head .lk-name,
+.lk.view-admins-record .grp-head .lk-name
 {
 	font-family: chudFontBody;
 	font-size: 20px;
@@ -135,13 +150,15 @@
 	letter-spacing: 1px;
 }
 
-.lk.view-admins-players .grp-head .lk-tags
+.lk.view-admins-players .grp-head .lk-tags,
+.lk.view-admins-player .grp-head .lk-tags
 {
 	vertical-align: top;
 	margin: 6px 0px 0px 0px;
 }
 
-.lk.view-admins-players .grp-head .lk-tag
+.lk.view-admins-players .grp-head .lk-tag,
+.lk.view-admins-player .grp-head .lk-tag
 {
 	padding: 2px 6px;
 	font-family: chudFontBody;
@@ -149,7 +166,8 @@
 	font-weight: bold;
 }
 
-.lk.view-admins-players .grp-head .lk-note
+.lk.view-admins-players .grp-head .lk-note,
+.lk.view-admins-player .grp-head .lk-note
 {
 	horizontal-align: left;
 	vertical-align: top;
@@ -161,13 +179,15 @@
 	letter-spacing: 1px;
 }
 
-.lk.view-admins-players .grp-head .note-bad .lk-note
+.lk.view-admins-players .grp-head .note-bad .lk-note,
+.lk.view-admins-player .grp-head .note-bad .lk-note
 {
 	color: chudDangerStrong;
 }
 
 /* Three facts in a ruled band, 3 x 122 = 366 of the pane's 382. */
-.lk.view-admins-players .grp-stat
+.lk.view-admins-players .grp-stat,
+.lk.view-admins-player .grp-stat
 {
 	width: 122px;
 	height: 52px;
@@ -175,7 +195,9 @@
 }
 
 .lk.view-admins-players .grp-stat .lk-hit,
-.lk.view-admins-players .grp-stat .lk-hit:hover
+.lk.view-admins-players .grp-stat .lk-hit:hover,
+.lk.view-admins-player .grp-stat .lk-hit,
+.lk.view-admins-player .grp-stat .lk-hit:hover
 {
 	border-top: 1px solid chudSurfaceEdge;
 	border-right: 0px solid chudSurfaceEdge;
@@ -184,14 +206,17 @@
 	border-radius: 0px;
 }
 
-.lk.view-admins-players .grp-stat .lk-text
+.lk.view-admins-players .grp-stat .lk-text,
+.lk.view-admins-player .grp-stat .lk-text
 {
 	vertical-align: top;
 	margin: 10px 0px 0px 0px;
 }
 
 .lk.view-admins-players .grp-stat .lk-name,
-.lk.view-admins-bans .grp-field .lk-name
+.lk.view-admins-player .grp-stat .lk-name,
+.lk.view-admins-bans .grp-field .lk-name,
+.lk.view-admins-record .grp-field .lk-name
 {
 	font-family: chudFontMedium;
 	font-size: 9px;
@@ -201,14 +226,17 @@
 }
 
 .lk.view-admins-players .grp-stat .lk-end,
-.lk.view-admins-bans .grp-field .lk-end
+.lk.view-admins-player .grp-stat .lk-end,
+.lk.view-admins-bans .grp-field .lk-end,
+.lk.view-admins-record .grp-field .lk-end
 {
 	horizontal-align: left;
 	vertical-align: top;
 	margin: 24px 0px 0px 0px;
 }
 
-.lk.view-admins-players .grp-stat .lk-value
+.lk.view-admins-players .grp-stat .lk-value,
+.lk.view-admins-player .grp-stat .lk-value
 {
 	font-family: chudFontBody;
 	font-size: 16px;
@@ -217,18 +245,22 @@
 }
 
 .lk.view-admins-players .lk-detail .lk-slot.section,
-.lk.view-admins-bans .lk-detail .lk-slot.section
+.lk.view-admins-player .lk-detail .lk-slot.section,
+.lk.view-admins-bans .lk-detail .lk-slot.section,
+.lk.view-admins-record .lk-detail .lk-slot.section
 {
 	height: 22px;
 	margin: 12px 0px 6px 0px;
 }
 
-.lk.view-admins-players .lk-detail .lk-slot.section .lk-hit
+.lk.view-admins-players .lk-detail .lk-slot.section .lk-hit,
+.lk.view-admins-player .lk-detail .lk-slot.section .lk-hit
 {
 	border-bottom: 0px solid transparent;
 }
 
-.lk.view-admins-players .lk-detail .lk-slot.section .lk-name
+.lk.view-admins-players .lk-detail .lk-slot.section .lk-name,
+.lk.view-admins-player .lk-detail .lk-slot.section .lk-name
 {
 	font-size: 10px;
 }
@@ -276,25 +308,29 @@
 }
 
 /* History: what, why, by whom and when. */
-.lk.view-admins-players .grp-history.has-tag
+.lk.view-admins-players .grp-history.has-tag,
+.lk.view-admins-player .grp-history.has-tag
 {
 	height: 30px;
 	margin: 0px 0px 4px 0px;
 }
 
-.lk.view-admins-players .lk-detail .grp-history.has-tag .lk-hit
+.lk.view-admins-players .lk-detail .grp-history.has-tag .lk-hit,
+.lk.view-admins-player .lk-detail .grp-history.has-tag .lk-hit
 {
 	border-radius: 3px;
 	background-color: chudSurfaceRow;
 }
 
-.lk.view-admins-players .grp-history.has-tag .lk-text
+.lk.view-admins-players .grp-history.has-tag .lk-text,
+.lk.view-admins-player .grp-history.has-tag .lk-text
 {
-	width: 70px;
+	width: 86px;
 	margin-left: 10px;
 }
 
-.lk.view-admins-players .grp-history.has-tag .lk-name
+.lk.view-admins-players .grp-history.has-tag .lk-name,
+.lk.view-admins-player .grp-history.has-tag .lk-name
 {
 	font-family: chudFontBody;
 	font-size: 10px;
@@ -303,16 +339,20 @@
 	letter-spacing: 1.5px;
 }
 
-.lk.view-admins-players .grp-history.has-tag.tone-bad .lk-name { color: chudDangerStrong; }
-.lk.view-admins-players .grp-history.has-tag.tone-faint .lk-name { color: chudTextMuted; }
+.lk.view-admins-players .grp-history.has-tag.tone-bad .lk-name,
+.lk.view-admins-player .grp-history.has-tag.tone-bad .lk-name { color: chudDangerStrong; }
+.lk.view-admins-players .grp-history.has-tag.tone-faint .lk-name,
+.lk.view-admins-player .grp-history.has-tag.tone-faint .lk-name { color: chudTextMuted; }
 
-.lk.view-admins-players .grp-history.has-tag .lk-tags
+.lk.view-admins-players .grp-history.has-tag .lk-tags,
+.lk.view-admins-player .grp-history.has-tag .lk-tags
 {
 	horizontal-align: left;
-	margin: 0px 0px 0px 80px;
+	margin: 0px 0px 0px 96px;
 }
 
-.lk.view-admins-players .grp-history.has-tag .lk-tag
+.lk.view-admins-players .grp-history.has-tag .lk-tag,
+.lk.view-admins-player .grp-history.has-tag .lk-tag
 {
 	margin: 0px;
 	padding: 0px;
@@ -325,9 +365,213 @@
 	letter-spacing: 0px;
 }
 
-.lk.view-admins-players .grp-history.has-tag .lk-note
+.lk.view-admins-players .grp-history.has-tag .lk-note,
+.lk.view-admins-player .grp-history.has-tag .lk-note
 {
 	margin-right: 10px;
+	letter-spacing: 1px;
+}
+
+/* A record on every server: a globe at the row's end, its note moved clear of it. */
+.lk.view-admins-players .grp-history.has-glyph .lk-glyph,
+.lk.view-admins-player .grp-history.has-glyph .lk-glyph,
+.lk.view-admins-player .grp-record.has-glyph .lk-glyph
+{
+	width: 12px;
+	height: 12px;
+	horizontal-align: right;
+	margin: 0px 10px 0px 0px;
+	wash-color: chudInfoBase;
+}
+
+.lk.view-admins-players .grp-history.has-glyph .lk-note,
+.lk.view-admins-player .grp-history.has-glyph .lk-note,
+.lk.view-admins-player .grp-record.has-glyph .lk-note
+{
+	margin-right: 30px;
+}
+
+/* Before a row is picked: what the pane will show once one is. */
+.lk.view-admins-players .lk-detail .grp-empty,
+.lk.view-admins-bans .lk-detail .grp-empty
+{
+	height: 120px;
+	margin-top: 150px;
+}
+
+.lk.view-admins-players .lk-detail .grp-empty .lk-glyph,
+.lk.view-admins-bans .lk-detail .grp-empty .lk-glyph
+{
+	width: 28px;
+	height: 28px;
+	horizontal-align: center;
+	vertical-align: top;
+	margin: 10px 0px 0px 0px;
+	wash-color: chudTextFaint;
+}
+
+.lk.view-admins-players .lk-detail .grp-empty .lk-text,
+.lk.view-admins-bans .lk-detail .grp-empty .lk-text
+{
+	width: 100%;
+	vertical-align: top;
+	margin: 52px 0px 0px 0px;
+}
+
+.lk.view-admins-players .lk-detail .grp-empty .lk-name,
+.lk.view-admins-bans .lk-detail .grp-empty .lk-name
+{
+	font-size: 13px;
+	text-align: center;
+	color: chudTextMuted;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+}
+
+.lk.view-admins-players .lk-detail .grp-empty .lk-sub,
+.lk.view-admins-bans .lk-detail .grp-empty .lk-sub
+{
+	margin-top: 6px;
+	font-family: chudFontBody;
+	font-size: 12px;
+	text-align: center;
+	color: chudTextFaint;
+	text-transform: none;
+	letter-spacing: 0px;
+	white-space: normal;
+}
+
+/* ---- admins-player: one player's pages, what can be done in the list, the sheet beside ---- */
+
+/* A group of actions on their own page: a card naming what is inside. */
+.lk.view-admins-player .lk-list .grp-group
+{
+	height: 62px;
+	margin-bottom: 6px;
+}
+
+.lk.view-admins-player .lk-list .grp-group .lk-glyph
+{
+	width: 22px;
+	height: 22px;
+	margin-left: 18px;
+	wash-color: chudAccentStrong;
+}
+
+.lk.view-admins-player .lk-list .grp-group .lk-text
+{
+	width: 320px;
+	margin-left: 58px;
+}
+
+.lk.view-admins-player .lk-list .grp-group .lk-name
+{
+	font-family: chudFontBody;
+	font-size: 15px;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+}
+
+.lk.view-admins-player .lk-list .grp-group .lk-sub
+{
+	margin-top: 4px;
+	font-family: chudFontBody;
+	font-size: 12px;
+	text-transform: none;
+	letter-spacing: 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-group .lk-chev
+{
+	visibility: visible;
+}
+
+/* Actions: three tiles to a line, 3 x (133 + 6) = 417 of the list's 420 (434 less its gutter). */
+.lk.view-admins-player .lk-list .grp-action
+{
+	width: 133px;
+	height: 72px;
+	margin: 0px 6px 6px 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-action .lk-glyph
+{
+	width: 22px;
+	height: 22px;
+	horizontal-align: center;
+	vertical-align: top;
+	margin: 14px 0px 0px 0px;
+	wash-color: chudTextMain;
+}
+
+.lk.view-admins-player .lk-list .grp-action.danger .lk-glyph { wash-color: chudDangerStrong; }
+.lk.view-admins-player .lk-list .grp-action.chosen .lk-glyph { wash-color: chudAccentStrong; }
+
+.lk.view-admins-player .lk-list .grp-action .lk-text
+{
+	width: 100%;
+	vertical-align: bottom;
+	margin: 0px 0px 12px 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-action .lk-name
+{
+	font-family: chudFontBody;
+	font-size: 10px;
+	font-weight: bold;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+/* Their record, newest first: what and how long, the reason, by whom and when. */
+.lk.view-admins-player .lk-list .grp-record
+{
+	height: 40px;
+	margin-bottom: 4px;
+}
+
+.lk.view-admins-player .lk-list .grp-record .lk-text
+{
+	width: 112px;
+	margin-left: 12px;
+}
+
+.lk.view-admins-player .lk-list .grp-record .lk-name
+{
+	font-family: chudFontBody;
+	font-size: 11px;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+}
+
+.lk.view-admins-player .lk-list .grp-record.tone-bad .lk-name { color: chudDangerStrong; }
+.lk.view-admins-player .lk-list .grp-record.tone-faint .lk-name { color: chudTextMuted; }
+
+.lk.view-admins-player .lk-list .grp-record .lk-tags
+{
+	horizontal-align: left;
+	margin: 0px 0px 0px 128px;
+}
+
+.lk.view-admins-player .lk-list .grp-record .lk-tag
+{
+	margin: 0px;
+	padding: 0px;
+	border: 0px solid transparent;
+	background-color: transparent;
+	font-family: chudFontBody;
+	font-size: 12px;
+	color: chudTextMain;
+	text-transform: none;
+	letter-spacing: 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-record .lk-note
+{
+	margin-right: 12px;
 	letter-spacing: 1px;
 }
 
@@ -380,7 +624,9 @@
 	margin: 0px;
 }
 
-.lk.view-admins-ban #banner_4
+/* The last step is narrower and runs on to nothing; a flow can have fewer than five. */
+.lk.view-admins-ban #banner_4,
+.lk.view-admins-ban .lk-banner .grp-step-last
 {
 	width: 110px;
 }
@@ -487,27 +733,67 @@
 	background-color: chudSuccessHalf;
 }
 
-.lk.view-admins-ban #banner_4 .lk-shade
+.lk.view-admins-ban #banner_4 .lk-shade,
+.lk.view-admins-ban .lk-banner .grp-step-last .lk-shade
 {
 	visibility: collapse;
 }
 
-/* Lengths: four to a line, 4 x (126 + 6) = 528 of 548. */
-.lk.view-admins-ban .grp-length
+/* Lengths and kinds: four to a line, 4 x (126 + 6) = 528 of 548. Reasons and scopes, which
+   run longer, two: 2 x (260 + 6) = 532. */
+.lk.view-admins-ban .grp-length,
+.lk.view-admins-ban .grp-pick
 {
 	width: 126px;
 	height: 46px;
 	margin: 0px 6px 6px 0px;
 }
 
+.lk.view-admins-ban .grp-pick2
+{
+	width: 260px;
+	height: 46px;
+	margin: 0px 6px 6px 0px;
+}
+
 .lk.view-admins-ban .grp-length .lk-text,
+.lk.view-admins-ban .grp-pick .lk-text,
+.lk.view-admins-ban .grp-pick2 .lk-text,
 .lk.view-admins-ban .grp-wide .lk-text
 {
 	width: 100%;
 	margin: 0px;
 }
 
+/* A chip with a glyph (a kind, a scope) reads from the glyph, left-aligned beside it. */
+.lk.view-admins-ban .grp-pick.has-glyph .lk-text
+{
+	width: 80px;
+	margin-left: 38px;
+}
+
+.lk.view-admins-ban .grp-pick2.has-glyph .lk-text
+{
+	width: 206px;
+	margin-left: 40px;
+}
+
+.lk.view-admins-ban .grp-pick2 .lk-name
+{
+	text-overflow: ellipsis;
+}
+
+.lk.view-admins-ban .grp-pick .lk-glyph,
+.lk.view-admins-ban .grp-pick2 .lk-glyph
+{
+	width: 16px;
+	height: 16px;
+	margin-left: 14px;
+}
+
 .lk.view-admins-ban .grp-length .lk-name,
+.lk.view-admins-ban .grp-pick .lk-name,
+.lk.view-admins-ban .grp-pick2 .lk-name,
 .lk.view-admins-ban .grp-wide .lk-name
 {
 	font-family: chudFontBody;
@@ -516,6 +802,12 @@
 	text-align: center;
 	text-transform: uppercase;
 	letter-spacing: 1.5px;
+}
+
+.lk.view-admins-ban .grp-pick.has-glyph .lk-name,
+.lk.view-admins-ban .grp-pick2.has-glyph .lk-name
+{
+	text-align: left;
 }
 
 /* Permanent: the whole line, in red. */
@@ -545,54 +837,6 @@
 	horizontal-align: center;
 	margin: 0px 110px 0px 0px;
 	wash-color: chudDangerStrong;
-}
-
-/* Custom: a label, the entry field, its button. */
-.lk.view-admins-ban .grp-input
-{
-	width: 526px;
-	height: 50px;
-	margin: 6px 0px 0px 0px;
-}
-
-.lk.view-admins-ban .lk-list .grp-input .lk-hit,
-.lk.view-admins-ban .lk-list .grp-input .lk-hit:hover
-{
-	border: 1px solid chudSurfaceEdge;
-	background-color: transparent;
-	box-shadow: none;
-}
-
-.lk.view-admins-ban .grp-input .lk-text
-{
-	width: 84px;
-}
-
-.lk.view-admins-ban .grp-input .lk-end
-{
-	width: 350px;
-	height: 34px;
-	horizontal-align: left;
-	margin: 0px 0px 0px 98px;
-	padding: 0px 12px;
-}
-
-.lk.view-admins-ban .grp-input .lk-value
-{
-	font-family: chudFontBody;
-	font-size: 13px;
-	color: chudTextFaint;
-}
-
-.lk.view-admins-ban .grp-input .lk-note
-{
-	margin-right: 8px;
-	padding: 9px 14px;
-	border: 1px solid chudSurfaceEdge;
-	border-radius: 3px;
-	background-color: chudSurfaceRow;
-	font-size: 12px;
-	letter-spacing: 1.5px;
 }
 
 /* What the player will read, as a quote. */
@@ -778,6 +1022,12 @@
 	margin: 4px 0px 0px 0px;
 }
 
+/* A record that has ended stays listed, a step back from the live ones. */
+.lk.view-admins-bans .lk-list .lk-slot.tone-faint
+{
+	opacity: 0.6;
+}
+
 .lk.view-admins-bans .lk-list .lk-tags
 {
 	horizontal-align: left;
@@ -884,6 +1134,7 @@
 }
 
 .lk.view-admins-bans .chud-meter__fill,
+.lk.view-admins-record .chud-meter__fill,
 .lk.view-admins-staff .chud-meter__fill
 {
 	border-radius: 2px;
@@ -904,8 +1155,9 @@
 	margin-left: 94px;
 }
 
-/* The pane: fields two to a line, 2 x 140 = 280 of 300. */
-.lk.view-admins-bans .grp-head .lk-note
+/* The pane: fields two to a line, 2 x 140 = 280 of 300. A record's own page shows the same. */
+.lk.view-admins-bans .grp-head .lk-note,
+.lk.view-admins-record .grp-head .lk-note
 {
 	horizontal-align: left;
 	vertical-align: top;
@@ -916,7 +1168,8 @@
 	letter-spacing: 0px;
 }
 
-.lk.view-admins-bans .grp-head .lk-sub
+.lk.view-admins-bans .grp-head .lk-sub,
+.lk.view-admins-record .grp-head .lk-sub
 {
 	font-family: chudFontMedium;
 	color: chudTextMuted;
@@ -924,25 +1177,29 @@
 	letter-spacing: 1px;
 }
 
-.lk.view-admins-bans .grp-field
+.lk.view-admins-bans .grp-field,
+.lk.view-admins-record .grp-field
 {
 	width: 140px;
 	height: 42px;
 	margin: 6px 0px 0px 0px;
 }
 
-.lk.view-admins-bans .grp-field .lk-text
+.lk.view-admins-bans .grp-field .lk-text,
+.lk.view-admins-record .grp-field .lk-text
 {
 	vertical-align: top;
 	margin: 0px;
 }
 
-.lk.view-admins-bans .grp-field .lk-end
+.lk.view-admins-bans .grp-field .lk-end,
+.lk.view-admins-record .grp-field .lk-end
 {
 	margin-top: 16px;
 }
 
-.lk.view-admins-bans .grp-field .lk-glyph
+.lk.view-admins-bans .grp-field .lk-glyph,
+.lk.view-admins-record .grp-field .lk-glyph
 {
 	width: 12px;
 	height: 12px;
@@ -951,25 +1208,29 @@
 	wash-color: chudInfoBase;
 }
 
-.lk.view-admins-bans .grp-field.has-glyph .lk-end
+.lk.view-admins-bans .grp-field.has-glyph .lk-end,
+.lk.view-admins-record .grp-field.has-glyph .lk-end
 {
 	margin-left: 17px;
 }
 
-.lk.view-admins-bans .grp-left
+.lk.view-admins-bans .grp-left,
+.lk.view-admins-record .grp-left
 {
 	width: 290px;
 	height: 34px;
 	margin: 16px 0px 0px 0px;
 }
 
-.lk.view-admins-bans .grp-left .lk-text
+.lk.view-admins-bans .grp-left .lk-text,
+.lk.view-admins-record .grp-left .lk-text
 {
 	vertical-align: top;
 	margin: 0px;
 }
 
-.lk.view-admins-bans .grp-left .lk-name
+.lk.view-admins-bans .grp-left .lk-name,
+.lk.view-admins-record .grp-left .lk-name
 {
 	font-family: chudFontMedium;
 	font-size: 11px;
@@ -978,13 +1239,15 @@
 	letter-spacing: 1px;
 }
 
-.lk.view-admins-bans .grp-left .lk-end
+.lk.view-admins-bans .grp-left .lk-end,
+.lk.view-admins-record .grp-left .lk-end
 {
 	vertical-align: top;
 	margin: 0px;
 }
 
-.lk.view-admins-bans .grp-left .lk-value
+.lk.view-admins-bans .grp-left .lk-value,
+.lk.view-admins-record .grp-left .lk-value
 {
 	font-family: chudFontBody;
 	font-size: 11px;
@@ -993,7 +1256,8 @@
 	text-transform: uppercase;
 }
 
-.lk.view-admins-bans .grp-left .lk-meter
+.lk.view-admins-bans .grp-left .lk-meter,
+.lk.view-admins-record .grp-left .lk-meter
 {
 	width: 100%;
 	height: 6px;
