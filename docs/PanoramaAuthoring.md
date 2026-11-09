@@ -213,7 +213,7 @@ already has:
 
 | Sheet | Families |
 |---|---|
-| `econ_thumbs.vcss` | weapon paintkits, base weapons, agents, music kits, charms, patches, cases and capsules (`weapon_cases`, `tournaments`), collection icons (`set_icons`) |
+| `econ_thumbs.vcss` | weapon paintkits, base weapons, agents, music kits, charms, patches, cases and capsules (`weapon_cases`, `tournaments`), collection icons (`set_icons`), collectible pins (`status_icons/collectible_pin_*`) |
 | `econ_stickers.vcss` | stickers: about 80% of all classes, so a layout that draws none leaves it out |
 
 Regenerate both after a CS2 update:

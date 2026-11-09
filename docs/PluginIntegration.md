@@ -160,11 +160,13 @@ scrolling grid of cards. WeaponSkins keeps using ordinary `Core.Menu`.
   glow from its `MenuTextStyle.Color`. An item the game ships no art for is a
   plain card.
 - The item the player has on (a finish, a knife or glove type, an agent, a music
-  kit, a graffiti, a patch) gets a 2px orange outline, read from WeaponSkins' API.
+  kit, a graffiti, a patch, a pin) gets a 2px orange outline, read from
+  WeaponSkins' API.
 - Graffiti show in their colour: the chosen one in the colour picked, and each
   card on a graffiti's colour page in that colour. Agent Properties shows the
   patch on each slot. Both need a WeaponSkins build with graffiti and patches in
   its API; with an older one those pages stay plain and the rest is unchanged.
+  Pins, from WeaponSkins 0.9.0, follow the same rule.
 - With `Sidebar.AutoOpen`, opening the menu lands on its first entry (Weapon
   Skins) and backing out of that level closes it. The root's buttons, such as
   Ranks' `Help`, join the sidebar.

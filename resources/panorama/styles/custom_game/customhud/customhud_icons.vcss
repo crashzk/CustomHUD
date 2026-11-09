@@ -36,6 +36,8 @@
 .chud-ico.ico-gloves { background-image: url( "s2r://panorama/images/icons/equipment/clothing_hands.vsvg" ); }
 .chud-ico.ico-agents { background-image: url( "s2r://panorama/images/icons/ui/ct_silhouette.vsvg" ); }
 .chud-ico.ico-music-kits { background-image: url( "s2r://panorama/images/icons/ui/music_kit.vsvg" ); }
+.chud-ico.ico-graffiti { background-image: url( "s2r://panorama/images/icons/equipment/spray0.vsvg" ); }
+.chud-ico.ico-pins { background-image: url( "s2r://panorama/images/icons/equipment/flair0.vsvg" ); }
 .chud-ico.ico-stickers { background-image: url( "s2r://panorama/images/icons/ui/sticker.vsvg" ); }
 .chud-ico.ico-weapon-props { background-image: url( "s2r://panorama/images/icons/equipment/deagle.vsvg" ); }
 .chud-ico.ico-knife-props { background-image: url( "s2r://panorama/images/icons/equipment/melee.vsvg" ); }

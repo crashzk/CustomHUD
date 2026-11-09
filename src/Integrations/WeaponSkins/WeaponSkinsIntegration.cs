@@ -10,7 +10,7 @@ namespace CustomHUD.Integrations.SkinPages;
 // WeaponSkins' locker: each row's render, its caption and an outline on what the player has on,
 // all read from IWeaponSkinAPI. A row says what it stands for through its Tag: a weapon type's
 // definition index (ushort), a finish's paint kit index (int), an agent / music kit / sticker /
-// capsule / charm / graffiti / tint / patch / patch pack definition, a charm collection's name, a
+// capsule / charm / graffiti / tint / patch / patch pack / pin definition, a charm collection's name, a
 // graffiti tournament's event id or a sticker or patch slot (int). A page under a weapon (its
 // finishes, its properties, its stickers) gets that weapon from the row it was opened from (Openers).
 internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegration
@@ -21,6 +21,7 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
     // as well, so their pages are drawn only through NoInlining methods, and only when present.
     private readonly bool _graffiti = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetGraffiti)).Length > 0;
     private readonly bool _patches = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetAgentPatches)).Length > 0;
+    private readonly bool _pins = typeof(IWeaponSkinAPI).GetMember(nameof(IWeaponSkinAPI.TryGetPin)).Length > 0;
 
     public string Provider => "WeaponSkins";
 
@@ -83,6 +84,9 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
                 return;
             case "weaponskins.agentproperties":
                 if (_patches) DrawPatchSlots(page);
+                return;
+            case "weaponskins.pins":
+                if (_pins) DrawPins(page);
                 return;
         }
 
@@ -339,6 +343,17 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
                     break;
             }
         }
+    }
+
+    // The pin the player wears on the scoreboard is outlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DrawPins(PageDraw page)
+    {
+        var current = api.TryGetPin(page.Player.SteamID, out var index) ? index : (int?)null;
+        var caption = T(page, "pin");
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: PinDefinition pin })
+                page.Decorate(k, Payload(api.GetImageKey("pin", pin.Name), caption, current == pin.Index));
     }
 
     private static string Payload(string? image, string? caption, bool chosen)

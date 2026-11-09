@@ -98,7 +98,7 @@
     //     // token Icons maps its component id (else its label) to, and an entry
     //     // missing from Icons keeps the layout's default. Tokens are the
     //     // ico-* classes in customhud_icons.vcss: weapons, knives, gloves,
-    //     // agents, music-kits, stickers, weapon-props, knife-props,
+    //     // agents, music-kits, graffiti, pins, stickers, weapon-props, knife-props,
     //     // glove-props, agent-props, shop, inventory, credits, gift, crown, star, key,
     //     // colors, sounds, movement, healing, guns, vote, add, map-vote, maps,
     //     // refresh, clock, ticket, timer, rank, stats, trophy, player,
@@ -115,6 +115,7 @@
     //                  "Icons": { "weaponskins.weapons": "weapons", "weaponskins.knifes": "knives",
     //                             "weaponskins.gloves": "gloves", "weaponskins.agents": "agents",
     //                             "weaponskins.musickits": "music-kits",
+    //                             "weaponskins.graffiti": "graffiti", "weaponskins.pins": "pins",
     //                             "weaponskins.weaponproperties": "weapon-props",
     //                             "weaponskins.knifeproperties": "knife-props",
     //                             "weaponskins.gloveproperties": "glove-props",

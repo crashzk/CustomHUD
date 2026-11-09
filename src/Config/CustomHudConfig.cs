@@ -246,6 +246,7 @@ public sealed class MenuLayoutProfile
                 ["weaponskins.weapons"] = "weapons", ["weaponskins.knifes"] = "knives",
                 ["weaponskins.gloves"] = "gloves", ["weaponskins.agents"] = "agents",
                 ["weaponskins.musickits"] = "music-kits",
+                ["weaponskins.graffiti"] = "graffiti", ["weaponskins.pins"] = "pins",
                 ["weaponskins.weaponproperties"] = "weapon-props",
                 ["weaponskins.knifeproperties"] = "knife-props",
                 ["weaponskins.gloveproperties"] = "glove-props",

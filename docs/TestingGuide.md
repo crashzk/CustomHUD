@@ -645,10 +645,10 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       WeaponSkins page lists five entries even with `MaxVisibleLines 20`
 - [ ] `!setnav mouse`: every `weaponskins.*` menu uses the wide locker. `!ws`
       opens straight on the weapon grid; the sidebar reads Weapon Skins,
-      Knifes, Gloves, Agents, Music Kits, Graffiti, then Weapon / Knife /
+      Knifes, Gloves, Agents, Music Kits, Graffiti, Pins, then Weapon / Knife /
       Glove / Agent Properties, and Weapon Skins is active
 - [ ] each sidebar entry has its icon: a pistol, a knife, gloves, an agent, a
-      music note, the default tiles for Graffiti, then the pistol, knife,
+      music note, a spray can, a rosette, then the pistol, knife,
       gloves and agent again, each with a small gear at its lower right. Icons
       are grey at rest, white on hover and orange on the active entry. A blank
       space where an icon should be means the client's `customhud_icons.vcss_c`
@@ -729,6 +729,10 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       packs with their pictures, then the patches no pack holds. A picked patch
       shows on its slot card, is outlined on that slot's lists, and is on your
       agent at once and after a respawn; Stickers lists no patch pack
+- [ ] Pins (WeaponSkins 0.9.0) lists Reset, then every pin with its picture
+      and rarity glow; the picked pin is outlined in orange and shows beside
+      your name on the scoreboard at once, and Reset clears both. A plain card
+      with a `Pin` label means the client's `econ_thumbs.vcss_c` is stale
 - [ ] unavailable categories are not exposed as active sidebar shortcuts;
       without the `Stickers` / `Keychains` permission a weapon's Stickers /
       Charms card is shown disabled
@@ -737,7 +741,7 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       the item you have on
 - [ ] the rarity bar under each image is a thin, crisp line with no halo
       around it
-- [ ] paintkit, knife, glove, agent, music kit, charm, sticker, capsule and
+- [ ] paintkit, knife, glove, agent, music kit, charm, sticker, capsule, pin and
       charm collection cards show the game's thumbnail; the weapon and knife
       lists show the base weapon, the glove list each type's first finish; a
       card with no image ("Default", Reset) shows none, and switching menus
