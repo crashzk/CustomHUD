@@ -194,6 +194,9 @@ public sealed class MenuLayoutProfile
     public LayoutRowSpec Row { get; set; } = new();
     public LayoutClasses Classes { get; set; } = new();
     public MenuSidebarProfile? Sidebar { get; set; }
+    // Tabs over a row layout's list (menu_skins_mouse). Null for none; a page
+    // layout's tabs are part of Page.
+    public MenuTabsProfile? Tabs { get; set; }
     // A one-item card drawn instead of the rows while a frame opens with a
     // `hero` entry. Null for layouts without one.
     public MenuCardProfile? Card { get; set; }
@@ -253,6 +256,8 @@ public sealed class MenuLayoutProfile
                 ["weaponskins.agentproperties"] = "agent-props",
             },
         },
+        // Only Weapon Skins' categories: its knife and glove pages are plain submenus too.
+        Tabs = new() { Hosts = ["weaponskins.weapons"] },
         Card = new(),
         ColorIcons = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -310,6 +315,26 @@ public sealed class MenuSidebarProfile
     public string LiveClass { get; set; } = "live";
 
     public string? Icon(int i) => IconPanel.Length == 0 ? null : string.Format(IconPanel, i);
+}
+
+// The second level as tabs on a row layout, Mouse mode only: the static submenus of
+// a sidebar entry's page, drawn while the player is on one of them. Unlike Page's
+// tabs, only a page Hosts names is a host: a row layout's pages are mostly plain
+// submenus (WeaponSkins' knife and glove types), which would all become tabs.
+public sealed class MenuTabsProfile
+{
+    // Menu ids of the hosts; a trailing * matches an id prefix.
+    public List<string> Hosts { get; set; } = new();
+    public int Slots { get; set; } = 8;
+    public string Panel { get; set; } = "tabs";
+    public string Prefix { get; set; } = "tab_";
+    public string LabelVar { get; set; } = "tab";
+    public string CountVar { get; set; } = "tab_count";
+    // The tab a host opens in place of its own page, as Sidebar.AutoOpen does for the root; -1 shows the page.
+    public int AutoOpen { get; set; } = 0;
+    // On Panels.Shell while the strip shows; on a tab whose label ended in a count.
+    public string HasTabsClass { get; set; } = "has-tabs";
+    public string HasCountClass { get; set; } = "has-count";
 }
 
 // The card: a hero (image, rarity line, name) over form fields. Each field

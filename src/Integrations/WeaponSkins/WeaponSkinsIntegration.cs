@@ -10,9 +10,10 @@ namespace CustomHUD.Integrations.SkinPages;
 // WeaponSkins' locker: each row's render, its caption and an outline on what the player has on,
 // all read from IWeaponSkinAPI. A row says what it stands for through its Tag: a weapon type's
 // definition index (ushort), a finish's paint kit index (int), an agent / music kit / sticker /
-// capsule / charm / graffiti / tint / patch / patch pack / pin definition, a charm collection's name, a
-// graffiti tournament's event id or a sticker or patch slot (int). A page under a weapon (its
-// finishes, its properties, its stickers) gets that weapon from the row it was opened from (Openers).
+// capsule / charm / graffiti / tint / patch / patch pack / pin definition, a charm collection's name
+// or a weapon category's key, a graffiti tournament's event id or a sticker or patch slot (int). A
+// page under a weapon (its finishes, its properties, its stickers) gets that weapon from the row it
+// was opened from (Openers).
 internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegration
 {
     private Dictionary<int, string>? _weaponByIndex;
@@ -45,6 +46,10 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
         switch (id)
         {
             case "weaponskins.weapons":
+                DrawCategories(page);
+                // A WeaponSkins older than its categories lists the guns here.
+                DrawTypes(page, id);
+                return;
             case "weaponskins.knifes":
             case "weaponskins.gloves":
                 DrawTypes(page, id);
@@ -92,7 +97,23 @@ internal sealed class WeaponSkinsIntegration(IWeaponSkinAPI api) : IPageIntegrat
 
         if (id.StartsWith("weaponskins.stickers.slot", StringComparison.Ordinal)) DrawStickers(page);
         else if (_patches && id.StartsWith("weaponskins.patches.slot", StringComparison.Ordinal)) DrawPatches(page);
+        else if (id.StartsWith("weaponskins.weapons.", StringComparison.Ordinal)) DrawTypes(page, "weaponskins.weapons");
     }
+
+    // Weapon Skins' categories, each shown by one of its guns.
+    private void DrawCategories(PageDraw page)
+    {
+        for (var k = 0; k < page.Components.Count; k++)
+            if (page.Components[k] is MenuComponentBase { Tag: string category } && CategoryCovers.TryGetValue(category, out var weapon))
+                page.Decorate(k, Payload(BaseImage(weapon), null, false));
+    }
+
+    // Keyed by WeaponSkins' category Tags (WeaponCategory, lower case).
+    private static readonly Dictionary<string, string> CategoryCovers = new(StringComparer.Ordinal)
+    {
+        ["rifles"] = "weapon_ak47", ["pistols"] = "weapon_deagle", ["smgs"] = "weapon_p90", ["shotguns"] = "weapon_xm1014",
+        ["snipers"] = "weapon_awp", ["heavy"] = "weapon_negev", ["other"] = "weapon_taser",
+    };
 
     // Weapon, knife and glove types. A knife or glove the player has on is outlined.
     private void DrawTypes(PageDraw page, string id)

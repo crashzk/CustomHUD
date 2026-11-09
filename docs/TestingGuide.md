@@ -640,11 +640,15 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       next page, never a one-row slide
 - [ ] buttons/WASD/numbers: the `!ws` root shows no rule row between Music
       Kits and Weapon Properties, and numbers mode skips no key there
+- [ ] buttons/WASD/numbers: Weapon Skins lists Rifles, Pistols, SMGs,
+      Shotguns, Snipers, Heavy and Other, pictured by an AK-47, a Desert Eagle,
+      a P90, an XM1014, an AWP, a Negev and a Zeus; the weapon in hand's
+      category is focused, and each category lists only its guns
 - [ ] with `"Renderer": "centerhtml"` (core's default), the `!ws` root has no
       line of `─` between Music Kits and Weapon Properties, and every
       WeaponSkins page lists five entries even with `MaxVisibleLines 20`
 - [ ] `!setnav mouse`: every `weaponskins.*` menu uses the wide locker. `!ws`
-      opens straight on the weapon grid; the sidebar reads Weapon Skins,
+      opens straight on Weapon Skins' Rifles tab; the sidebar reads Weapon Skins,
       Knifes, Gloves, Agents, Music Kits, Graffiti, Pins, then Weapon / Knife /
       Glove / Agent Properties, and Weapon Skins is active
 - [ ] each sidebar entry has its icon: a pistol, a knife, gloves, an agent, a
@@ -655,6 +659,16 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       is stale
 - [ ] the active entry follows you down: inside AK-47 finishes, Weapon Skins
       stays active
+- [ ] Weapon Skins has a tab strip over the grid: Rifles, Pistols, SMGs,
+      Shotguns, Snipers, Heavy, Other. The open tab is filled orange in an
+      orange edge with an orange label, and the heading names it; Pistols holds
+      the ten pistols, CZ75-Auto to USP-S, in one grid of two rows
+- [ ] a tab opens its category in place; hovering one gives it an orange edge.
+      Knifes, Gloves and Weapon Properties show no strip, and the locker keeps
+      its size moving between them and Weapon Skins
+- [ ] a gun's finishes drop the strip and the grid takes back its full three
+      rows; `<` returns to that gun's category, with its tab open and the gun
+      focused
 - [ ] the active entry is a dim orange fill under a bright orange edge, its
       white label easy to read; hovering `<` or `×` deepens their tint and never
       turns a button solid orange or red
@@ -667,8 +681,8 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       it
 - [ ] the footer holds `<` at the left and `×` at the right, both the height
       of a nav item; there is no `<<` / `>>` or page counter
-- [ ] `<` is hidden on a top-level page (the weapon grid) and returns one level
-      below it (AK-47 finishes → weapon grid)
+- [ ] `<` is hidden on a top-level page (a Weapon Skins category, the knife
+      grid) and returns one level below it (AK-47 finishes → Rifles)
 - [ ] `×` closes the whole menu from any depth and releases the cursor; the
       menu's close key on a top-level page also closes it rather than
       reopening the same page
@@ -757,7 +771,7 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
 - [ ] browsing several large sticker capsules in one sitting keeps working:
       after about ten full pages the menu redraws once as its HUD entity is
       replaced, at the moment a new list opens
-- [ ] entering a weapon after scrolling the weapon list opens its finishes at
+- [ ] entering a knife after scrolling the knife list opens its finishes at
       the top
 - [ ] a sticker capsule longer than 128 (an autograph capsule) ends its first
       page in a `»` card and opens the next with `«`; shorter lists show none
@@ -902,7 +916,8 @@ then repeat the first three in wasd.
       `In chat`, with a dimmed `Confirm ban` (or `Print the command in chat`
       once a part is left for chat) until the last step
 - [ ] with `Other reason`, `Other length` or `Someone else` picked, the last
-      step offers `Print the command in chat` and no summary. It closes the
+      step offers `Print the command in chat` as an orange button and no
+      summary. It closes the
       menu and prints the command filled in with every pick (the player's
       SteamID64, the length as one token such as `30h`, the reason), with
       `<reason>`, `<time>`, `<steamid64>` or `<ip>` only for what was left;

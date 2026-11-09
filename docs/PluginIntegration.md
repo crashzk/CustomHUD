@@ -170,12 +170,19 @@ scrolling grid of cards. WeaponSkins keeps using ordinary `Core.Menu`.
 - With `Sidebar.AutoOpen`, opening the menu lands on its first entry (Weapon
   Skins) and backing out of that level closes it. The root's buttons, such as
   Ranks' `Help`, join the sidebar.
+- From WeaponSkins 0.9.0, Weapon Skins' categories (Rifles, Pistols, SMGs,
+  Shotguns, Snipers, Heavy, Other) are a tab strip over the grid, opening on
+  Rifles. A weapon's finishes, a level below its category, drop the strip.
+  Only `weaponskins.weapons` is a tab host (`Tabs.Hosts`): the knife and glove
+  pages are plain submenus too and stay cards. An older WeaponSkins keeps one
+  grid of every gun.
 - The weapon, knife and glove properties pages draw as an inspect card: the
   item's picture, rarity and name, then one field per entry (name tag, wear,
   seed, StatTrak™, Souvenir, Stickers, Charms; gloves take only the wear). A
   click on the wear bar sets wear in 0.02 steps. Keyboard modes keep their list.
 - In the keyboard modes WeaponSkins' menus draw in `menu_list_skins`: the list
-  with the same art, sticker art included.
+  with the same art, sticker art included. Weapon Skins' categories are rows
+  there, each pictured by one of its guns.
 
 ## Provider Integrations
 

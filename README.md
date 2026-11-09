@@ -29,8 +29,9 @@
 
 ### [WeaponSkins](https://github.com/samyycX/WeaponSkins)
 
-A skin locker: a category sidebar, a card per finish with its in-game art and
-rarity glow, and an inspect card for name tag, wear, seed and StatTrak™.
+A skin locker: a category sidebar, a tab for each kind of gun, a card per finish
+with its in-game art and rarity glow, and an inspect card for name tag, wear,
+seed and StatTrak™.
 
 ![WeaponSkins in CustomHUD](docs/media/weaponskins.webp)
 

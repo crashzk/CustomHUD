@@ -231,7 +231,10 @@ internal sealed partial class AdminsIntegration
                 case AdminActionRow { Action: AdminAction.Confirm }:
                     page.Decorate(k, "at=detailbar;danger");
                     break;
-                case AdminActionRow { Action: AdminAction.Summary or AdminAction.PrintCommand }:
+                case AdminActionRow { Action: AdminAction.PrintCommand }:
+                    page.Decorate(k, "at=detailbar;primary;glyph=chat");
+                    break;
+                case AdminActionRow { Action: AdminAction.Summary }:
                     page.Decorate(k, "at=detailbar;glyph=chat");
                     break;
             }
@@ -256,7 +259,7 @@ internal sealed partial class AdminsIntegration
         Rail(page, draft, steps, current, kick, changing);
         if (!kick && !changing && flow.Step != AdminFlowStep.Confirm)
             page.Add(typed.Count > 0 ? T(page, "print_command") : T(page, "confirm." + KindKey(draft.Kind)),
-                typed.Count > 0 ? "at=detailbar;glyph=chat;disabled" : "at=detailbar;danger;disabled");
+                typed.Count > 0 ? "at=detailbar;primary;glyph=chat;disabled" : "at=detailbar;danger;disabled");
     }
 
     // The banner holds five: a longer flow shows the five around the step it is on.

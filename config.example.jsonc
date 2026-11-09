@@ -120,6 +120,11 @@
     //                             "weaponskins.knifeproperties": "knife-props",
     //                             "weaponskins.gloveproperties": "glove-props",
     //                             "weaponskins.agentproperties": "agent-props" } },
+    //     // Weapon Skins' categories as a strip over the grid (Mouse only). Only
+    //     // the pages Hosts names are tab hosts: the knife and glove pages are
+    //     // plain submenus too. AutoOpen 0 opens the first tab in place of the
+    //     // host's page.
+    //     "Tabs": { "Hosts": [ "weaponskins.weapons" ], "AutoOpen": 0, "Slots": 8 },
     //     // A page whose first row carries `hero` draws as an inspect card in
     //     // place of the grid: one field per row, an `inline` row joining the
     //     // field above it. {} keeps the ids menu_skins_mouse declares.

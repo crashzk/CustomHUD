@@ -39,12 +39,14 @@
 	text-overflow: ellipsis;
 }
 
-/* Three visible card rows of 192px (184px card + 2 x 4px margin). */
+/* Three visible card rows of 192px (184px card + 2 x 4px margin). Placed by alignment, not
+   flow, so the tab strip can take the top of the grid's column: the grid and the card view sit
+   right-aligned beside the sidebar, exactly where flowing them would put them. */
 .ws-content
 {
 	width: 100%;
 	height: 576px;
-	flow-children: right;
+	flow-children: none;
 }
 
 /* 5 x 176px (card width + 2 x 4px margin) = 880px, plus the 16px scrollbar gutter. */
@@ -52,7 +54,15 @@
 {
 	width: 896px;
 	height: 100%;
+	horizontal-align: right;
+	vertical-align: bottom;
 	overflow: clip scroll;
+}
+
+/* The strip's 30px and its 12px gap. A scroll panel needs a fixed height, so no fill. */
+.ws-locker.has-tabs .ws-grid
+{
+	height: 534px;
 }
 
 .ws-grid__items
@@ -66,6 +76,88 @@
 {
 	width: 100%;
 	flow-children: right;
+}
+
+/* ---- tabs: Weapon Skins' categories (MenuTabsProfile) ---- */
+
+.ws-tabs
+{
+	width: 896px;
+	height: 30px;
+	horizontal-align: right;
+	flow-children: right;
+}
+
+.ws-tabs.hidden
+{
+	visibility: collapse;
+}
+
+.ws-tab
+{
+	height: 30px;
+	margin-right: 6px;
+	padding: 0px 14px;
+	flow-children: right;
+	border: 1px solid chudSurfaceEdge;
+	border-radius: 3px;
+	background-color: chudSurfaceRow;
+	transition-property: background-color, border;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.ws-tab.hidden
+{
+	visibility: collapse;
+}
+
+.ws-tab:hover
+{
+	border: 1px solid chudAccentBase;
+	background-color: chudSurfaceHover;
+}
+
+/* The open category takes the Chosen look of the locker's tabs, its label in the accent. */
+.ws-tab.selected,
+.ws-tab.selected:hover
+{
+	border: 1px solid chudAccentBase;
+	background-color: chudAccentSoft;
+}
+
+.ws-tab.disabled
+{
+	opacity: 0.35;
+}
+
+.ws-tab__label
+{
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 12px;
+	color: chudTextMuted;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	white-space: nowrap;
+}
+
+.ws-tab:hover .ws-tab__label { color: chudTextMain; }
+.ws-tab.selected .ws-tab__label { color: chudAccentStrong; }
+
+.ws-tab__count
+{
+	vertical-align: center;
+	margin-left: 8px;
+	font-family: chudDigitsBold;
+	font-size: 11px;
+	color: chudTextFaint;
+	visibility: collapse;
+}
+
+.ws-tab.has-count .ws-tab__count
+{
+	visibility: visible;
 }
 
 .ws-card
@@ -274,6 +366,7 @@
 {
 	width: 896px;
 	height: 100%;
+	horizontal-align: right;
 	visibility: collapse;
 }
 

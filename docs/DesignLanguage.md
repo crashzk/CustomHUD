@@ -186,7 +186,7 @@ lives in `menu_mouse.vcss`, which every mouse layout includes; the rest are in
 | Tile | a card in a grid: the tile gradient in a hairline. Hover lifts it with an accent edge and a soft glow; a chosen tile keeps a 2px accent edge. A static tile lists its `:hover` with its rest state, so it does not react | `menu_mouse.vcss` |
 | Eyebrow | the gold uppercase caption over a title: the grid's heading, a hero's name, a form's title | `menu_mouse.vcss` |
 | Locker chrome | the sidebar, its entries and dividers, the footer bar, the nav buttons and the red close button, in both lockers and the mouse list | `menu_mouse.vcss` |
-| Chosen | the player's own pick in a list, and the open tab: a flat `Soft` accent fill in a 1px accent edge | `locker.vcss` |
+| Chosen | the player's own pick in a list, and the open tab: a flat `Soft` accent fill in a 1px accent edge | `locker.vcss`; the WeaponSkins locker's tabs in `menu_skins_mouse.vcss`, labelled in the accent |
 | Bare | text with no surface; a banner's, a foot's and a bar's text are bare by default | `locker.vcss` |
 | Control | a button on `chudSurfaceRow` in a hairline, accent-edged on hover; a foot's and a bar's actions are controls by default | `locker.vcss` |
 | Inset control | a control on a row or card, a step darker than its ground | `locker.vcss` |
@@ -313,7 +313,19 @@ leave a gap. The 576px
 content height leaves room for every root category without shifting the
 navigation as short submenus open. Labels and values are real menu data.
 
+Over the grid, a strip of eight `tab_N` buttons holds the second level of the
+pages `Tabs.Hosts` names, WeaponSkins' categories, while the player is on one:
+30px buttons sized to their uppercase labels, the open one in the Chosen look
+with its label in the accent. The content area places its panels by alignment
+rather than flow, so the strip takes the top of the grid's column: with it the
+shell carries `has-tabs` and the grid shrinks to a fixed 534px, leaving the
+locker the same size on every page. A page below a tab (a weapon's finishes)
+drops the strip.
+
 ```text
+#tabs.ws-tabs                           shown on a tab's own page · #shell gets has-tabs
+└─ Button#tab_N.ws-tab                  {s:tab}, {s:tab_count} · selected · has-count · disabled
+
 Button#option_N.chud-tile.ws-card       has-thumb · has-type · page-tile · chosen · inside #options > .ws-grid__items > .ws-line
 ├─ #icon_N.chud-tile__rarity            lvl-1…10 → glow rising from the foot
 │  └─ .ws-card__bar                     rarity bar under the image (has-thumb only)

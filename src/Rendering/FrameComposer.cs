@@ -100,6 +100,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         };
         if (mode == NavMode.Mouse && profile.Sidebar is { } sidebar)
             rows = ComposeSidebar(context, profile, sidebar, rows, vars, classes);
+        if (mode == NavMode.Mouse && profile.Tabs is { } tabs)
+            rows = ComposeTabs(context, profile, TabStrip.Of(tabs), rows, vars, classes);
 
         // Without a Close button, Back stays visible on a root menu too: core's
         // Close() exits there, and it is a mouse player's only way out because
@@ -164,6 +166,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             string.Join(',', p.Classes.ScaleSteps),
             string.Join(',', p.BlankOnOpen),
             p.Sidebar?.CountVar, p.Sidebar?.CountClass, p.Sidebar?.LiveClass,
+            p.Tabs?.Slots, p.Tabs?.Panel, p.Tabs?.Prefix, p.Tabs?.LabelVar, p.Tabs?.CountVar,
+            p.Tabs?.HasTabsClass, p.Tabs?.HasCountClass,
             RowFingerprint(p.Row),
             p.Page is { } page ? PageFingerprint(page) : "");
 
@@ -343,10 +347,12 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             : -1;
     }
 
-    // A skipped root is no destination: Back from its children would only reopen
-    // the entry the root skips to.
+    // A skipped root or tab host is no destination: Back from its children would only
+    // reopen the entry or tab it skips to.
     private static bool HasBackTarget(IMenu menu, RowMap rows)
-        => menu.Parent is { } parent && !(rows.SkipsRoot && ReferenceEquals(parent, rows.RootMenu));
+        => menu.Parent is { } parent
+           && !(rows.SkipsRoot && ReferenceEquals(parent, rows.RootMenu))
+           && !(rows.SkipsTabHost && ReferenceEquals(parent, rows.TabHost));
 
     private int ComposeRows(
         MenuFrame frame,
