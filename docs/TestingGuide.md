@@ -902,7 +902,7 @@ then repeat the first three in wasd.
       page and it shows that player's sheet: avatar, name, SteamID, team,
       the K/D, ping and group band (`—` for a non-admin), and their last four
       records with the kind and length in red while active
-- [ ] a player's page: Punish, Control, Move and edit, History and Sessions
+- [ ] a player's page: Punish, Control player, History and Sessions
       as cards with what each holds, History counting the records; a group opens its
       actions as tiles three to a line, all dark with white icons, Kick, Ban and
       Slay included, and a switched-on one (frozen, noclip, beacon) outlined.

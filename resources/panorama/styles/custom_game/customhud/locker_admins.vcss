@@ -449,6 +449,13 @@
 
 /* ---- admins-player: one player's pages, what can be done in the list, the sheet beside ---- */
 
+/* 466 less the gutter, set rather than 100% so tile lines wrap the same when the list is measured
+   as when drawn: at 100% the Sessions page scrolled a tile line short of its last row. */
+.lk.view-admins-player .lk-items
+{
+	width: 452px;
+}
+
 /* A group of actions on their own page: a card naming what is inside. */
 .lk.view-admins-player .lk-list .grp-group
 {
