@@ -1,8 +1,8 @@
 /*
 	Icon vocabulary: a .chud-ico panel draws the default, and one token class
 	(MenuSidebarProfile.IconClass, "ico-{0}") swaps the art. Every image is the
-	game's own except the field-of-view dials, which ship in this addon's
-	images/custom_game/customhud. A token with no rule keeps
+	game's own except the field-of-view dials and a white mute icon, which ship in
+	this addon's images/custom_game/customhud. A token with no rule keeps
 	the default, which is why an unmapped sidebar entry still has an icon.
 
 	Art only: the layout sets the panel's size and colour (wash-color), and must
@@ -95,7 +95,8 @@
 .chud-ico.ico-teamplayer { background-image: url( "s2r://panorama/images/icons/ui/teamplayer.vsvg" ); }
 .chud-ico.ico-add-player { background-image: url( "s2r://panorama/images/icons/ui/addplayer.vsvg" ); }
 .chud-ico.ico-ban { background-image: url( "s2r://panorama/images/icons/ui/ban_global.vsvg" ); }
-.chud-ico.ico-mute { background-image: url( "s2r://panorama/images/icons/ui/muted.vsvg" ); }
+/* The game's muted icon is painted red, which wash-color only tints; this copy is white. */
+.chud-ico.ico-mute { background-image: url( "s2r://panorama/images/custom_game/customhud/muted.vsvg" ); }
 .chud-ico.ico-chat { background-image: url( "s2r://panorama/images/icons/ui/message.vsvg" ); }
 .chud-ico.ico-server { background-image: url( "s2r://panorama/images/icons/ui/servers.vsvg" ); }
 .chud-ico.ico-staff { background-image: url( "s2r://panorama/images/icons/ui/teacher.vsvg" ); }

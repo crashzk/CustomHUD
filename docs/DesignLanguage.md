@@ -84,6 +84,7 @@ Rampage addon styles are not reused either.
 | `styles/custom_game/customhud/econ_thumbs.vcss` (generated) | `s2r://panorama/styles/custom_game/customhud/econ_thumbs.vcss_c` | `econ-<token>` classes (hashed keys) for `image=`, pointing at base-game textures |
 | `styles/custom_game/customhud/econ_stickers.vcss` (generated) | `s2r://panorama/styles/custom_game/customhud/econ_stickers.vcss_c` | the same for sticker art; only `menu_skins_mouse` and `menu_list_skins` include it |
 | `images/custom_game/customhud/faceit_lvl1..10.svg` | `panorama/images/custom_game/customhud/faceit_lvlN.vsvg_c` | badges for `icon=N` rows in `menu_teampick` |
+| `images/custom_game/customhud/muted.svg` | `panorama/images/custom_game/customhud/muted.vsvg_c` | `ico-mute`: a white copy of the game's muted icon, which is painted red and so ignores `wash-color` |
 
 The menu variants share `menu.vxml`'s variable vocabulary (`title`, `footer`,
 `option_N`, `option_N_key`, `option_N_right`), so any menu can be pointed at

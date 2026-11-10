@@ -215,6 +215,9 @@
 
 .lk.view-admins-players .grp-stat .lk-name,
 .lk.view-admins-player .grp-stat .lk-name,
+.lk.view-admins-player .grp-playtime .lk-name,
+.lk.view-admins-player .grp-playtime-end .lk-name,
+.lk.view-admins-player .grp-playtime-total .lk-name,
 .lk.view-admins-bans .grp-field .lk-name,
 .lk.view-admins-record .grp-field .lk-name
 {
@@ -236,7 +239,10 @@
 }
 
 .lk.view-admins-players .grp-stat .lk-value,
-.lk.view-admins-player .grp-stat .lk-value
+.lk.view-admins-player .grp-stat .lk-value,
+.lk.view-admins-player .grp-playtime .lk-value,
+.lk.view-admins-player .grp-playtime-end .lk-value,
+.lk.view-admins-player .grp-playtime-total .lk-value
 {
 	font-family: chudFontBody;
 	font-size: 16px;
@@ -487,7 +493,7 @@
 	visibility: visible;
 }
 
-/* Actions: three tiles to a line, 3 x (133 + 6) = 417 of the list's 420 (434 less its gutter). */
+/* Actions: three tiles to a line, 3 x (133 + 6) = 417 of the list's 452 (466 less its gutter). */
 .lk.view-admins-player .lk-list .grp-action
 {
 	width: 133px;
@@ -573,6 +579,45 @@
 {
 	margin-right: 12px;
 	letter-spacing: 1px;
+}
+
+/* Playtime: three tiles, then this year beside a total two wide. Each line is 3 x 146 + 2 x 6
+   = 450 of the list's 452, as wide as the rows below, since a line's last tile has no gap. */
+.lk.view-admins-player .lk-list .grp-playtime,
+.lk.view-admins-player .lk-list .grp-playtime-end,
+.lk.view-admins-player .lk-list .grp-playtime-total
+{
+	width: 146px;
+	height: 52px;
+	margin: 0px 6px 6px 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-playtime-end
+{
+	margin-right: 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-playtime-total
+{
+	width: 298px;
+	margin-right: 0px;
+}
+
+.lk.view-admins-player .lk-list .grp-playtime .lk-text,
+.lk.view-admins-player .lk-list .grp-playtime-end .lk-text,
+.lk.view-admins-player .lk-list .grp-playtime-total .lk-text
+{
+	vertical-align: top;
+	margin: 10px 0px 0px 12px;
+}
+
+.lk.view-admins-player .lk-list .grp-playtime .lk-end,
+.lk.view-admins-player .lk-list .grp-playtime-end .lk-end,
+.lk.view-admins-player .lk-list .grp-playtime-total .lk-end
+{
+	horizontal-align: left;
+	vertical-align: top;
+	margin: 24px 0px 0px 12px;
 }
 
 /* ---- admins-ban: the steps, the length to pick, the ban as it stands ---- */

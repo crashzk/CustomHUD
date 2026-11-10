@@ -17,7 +17,7 @@ namespace CustomHUD.Integrations.AdminPages;
 // Soft dependency: no type here may hold an Admins.Contract enum or struct in a field, a closure
 // included, or the assembly stops loading on servers without Admins (tools/SoftDependencyCheck).
 internal sealed partial class AdminsIntegration(
-    IAdminMenuAPI menus, IAdminsManager admins, IBansManager bans, ICommsManager comms, ISwiftlyCore core) : IPageIntegration
+    IAdminMenuAPI menus, IAdminsManager admins, IGroupsManager groups, IBansManager bans, ICommsManager comms, ISwiftlyCore core) : IPageIntegration
 {
     private const long HistoryCacheMs = 15_000;
 
@@ -35,11 +35,16 @@ internal sealed partial class AdminsIntegration(
         ApiProbe.Require(typeof(IBansManager), "Admins 2.0.0", nameof(IBansManager.CountBansAsync));
         ApiProbe.Require(typeof(IAdminVote), "Admins 2.0.0", nameof(IAdminVote.Options));
         ApiProbe.Require(typeof(IAdminDraft), "Admins 2.0.0", nameof(IAdminDraft.TypedInChat));
+        ApiProbe.Require(typeof(AdminMenuIds), "Admins 2.0.0", nameof(AdminMenuIds.PlayerSessions));
+        ApiProbe.Require(typeof(IBan), "Admins 2.0.0", nameof(IBan.Status));
+        ApiProbe.Require(typeof(ISanction), "Admins 2.0.0", nameof(ISanction.Status));
+        ApiProbe.Require(typeof(AdminRecordCounts), "Admins 2.0.0", nameof(AdminRecordCounts.Lifted));
         return interfaces.TryGetSharedInterface<IAdminMenuAPI>("Admins.Menu.V2", out var menus) && menus is not null
                && interfaces.TryGetSharedInterface<IAdminsManager>("Admins.Admins.V2", out var admins) && admins is not null
+               && interfaces.TryGetSharedInterface<IGroupsManager>("Admins.Groups.V2", out var groups) && groups is not null
                && interfaces.TryGetSharedInterface<IBansManager>("Admins.Bans.V2", out var bans) && bans is not null
                && interfaces.TryGetSharedInterface<ICommsManager>("Admins.Comms.V2", out var comms) && comms is not null
-            ? new AdminsIntegration(menus, admins, bans, comms, core)
+            ? new AdminsIntegration(menus, admins, groups, bans, comms, core)
             : null;
     }
 
@@ -51,8 +56,9 @@ internal sealed partial class AdminsIntegration(
             ? "detailbar"
             : null;
 
-    // A section heading, a table head, a quote: the most any page adds to its main list.
-    public int RowsAdded(IMenu menu) => menu.Tag is AdminFlowPage ? 2 : 1;
+    // A section heading, a table head, a quote: the most any page adds to its main list. A player's sessions page
+    // heads each of its three lists.
+    public int RowsAdded(IMenu menu) => menu.Tag is AdminFlowPage ? 2 : menu.Id == AdminMenuIds.PlayerSessions ? 3 : 1;
 
     public void Draw(PageDraw page)
     {
@@ -240,8 +246,14 @@ internal sealed partial class AdminsIntegration(
     private void Chips(PageDraw page)
     {
         page.AddHeader($"{Listed(page).Count} / {core.Engine.GlobalVars.MaxClients}\t{T(page, "chip.players")}", "chip;glyph=player");
-        page.AddHeader($"{admins.GetImmunity(page.Player.SteamID)}\t{T(page, "chip.immunity")}", "chip;glyph=shield");
+        page.AddHeader($"{AdminGroup(page, page.Player.SteamID) ?? T(page, "unknown")}\t{T(page, "chip.group")}", "chip;glyph=shield");
     }
+
+    // Of an admin's groups here, the one with the highest immunity; null for someone who is no admin.
+    private string? AdminGroup(PageDraw page, ulong steamId)
+        => steamId == 0 || admins.GetAdmin(steamId) is not { } admin ? null
+            : groups.GetAdminGroups(admin).MaxBy(g => g.Immunity)?.Name is { Length: > 0 } name ? Directive.Clean(name)
+            : T(page, "admin");
 
     // Admins puts a page's notices (left the server, still loading) on header lines, which join the
     // title; drawn as chips they keep the title the page's name.

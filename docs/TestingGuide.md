@@ -895,18 +895,29 @@ then repeat the first three in wasd.
 - [ ] Players: a roster of avatars with each player's team, `You` on your
       own row, K/D, ping in the colour of its bars (`BOT` for a bot), and in
       red under the name what is on them (`Muted · 2 d`, `Frozen`); a player
-      above your immunity reads `Immune (80)` in grey. Two chips beside the
-      title count the players and give your immunity; the team filter sits
-      in the foot
+      above your immunity reads `Immune (<their group>)` in grey. Two chips
+      beside the title count the players and give your admin group; the team
+      filter sits in the foot
 - [ ] the pane beside it reads `No player selected`; back out of a player's
       page and it shows that player's sheet: avatar, name, SteamID, team,
-      the K/D, ping and immunity band, and their last four records with the
-      kind and length in red while active
-- [ ] a player's page: Punish, Control, Move and edit and History as cards
-      with what each holds, History counting the records; a group opens its
-      actions as tiles three to a line, Kick, Ban and Slay in red, and a
-      switched-on one (frozen, noclip, beacon) outlined. Unmute appears in
-      place of Mute while they are muted
+      the K/D, ping and group band (`—` for a non-admin), and their last four
+      records with the kind and length in red while active
+- [ ] a player's page: Punish, Control, Move and edit, History and Sessions
+      as cards with what each holds, History counting the records; a group opens its
+      actions as tiles three to a line, all dark with white icons, Kick, Ban and
+      Slay included, and a switched-on one (frozen, noclip, beacon) outlined.
+      Unmute appears in place of Mute while they are muted
+- [ ] Sessions (needs `admins.commands.sessions`): `Playtime` as five tiles,
+      today, this week and this month on one line, this year beside a total
+      two tiles wide on the next, both lines as wide as the rows under them and
+      no tile lighting up under the pointer; then `IP addresses`
+      with each address's session count and when it was last used, then
+      `Sessions` with each connection's length, start, the server when it
+      was another, `Online` while open, and its IP. Clicking an address
+      prints the accounts that used it in chat
+- [ ] a bot's Punish group also offers Ban, Gag, Mute and Silence; each
+      opens that punishment's player list under a `has no SteamID` chip
+      naming the bot. Your own row offers them too
 - [ ] Ban: the steps across the top, finished ones ticked with their pick,
       the current one numbered in orange; kinds as chips with their glyph,
       reasons two to a line, lengths four to a line with Permanent across the
@@ -925,12 +936,14 @@ then repeat the first three in wasd.
 - [ ] from the length step on, a quote shows the message the player will
       read, for the length picked or, before one is, the first on offer
 - [ ] Bans and Comms: a table of `#id`, player, reason and time left over a
-      meter (red under a fifth left, `Permanent` in red, `Ended` dimmed), a
-      globe on a global record, chips with the active and ended counts, and
-      `Give`, the filters and `Retry` in the foot; the pane shows the
-      selected record's fields with the IP masked
-- [ ] a record's page lists its actions with glyphs, Unban or Remove in red,
-      beside the same fields
+      meter (red under a fifth left, `Permanent` in red, `Ended` dimmed, and
+      `Unbanned`, `Ungagged` or `Unmuted` dimmed on a lifted one), a globe on a
+      global record, chips with the active, expired and unbanned (lifted on
+      Comms) counts, and `Give`, the filters and `Retry` in the foot; the pane
+      shows the selected record's fields with the IP masked, a lifted one's
+      end as `Unbanned` and the date
+- [ ] a record's page lists its actions with glyphs, Unban, Ungag or Unmute in
+      red, beside the same fields
 - [ ] My tools: ESP, Hidden, Noclip and God mode with their state, an `On`
       one outlined; Server: the restart delays, the maps with the current
       one outlined and `Current`

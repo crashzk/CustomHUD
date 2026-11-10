@@ -202,7 +202,7 @@ plugin built. Any other custom renderer can read the same API.
 | ShopCore | `ShopCore.API.v2` | 1.1.9 | `shopcore.*` | Prices in a value column, item art, and owned, equipped or unaffordable state |
 | MapChooser | `MapChooser.Api.v1` | 1.5.0 (contract 1.1.0) | `mapchooser.*` | The vote as cards or poll rows with each option's share, the vote's clock and turnout, the map menu as the sidebar, and the pool with player limits, nominations and why a map can't be nominated |
 | VIPCore | `VIPCore.Api.v1` | 1.2.0 (contract 1.1.0) | `vipcore.*` | The membership over its perk cards, choices as cards, admin pages as a table beside the selected player's grants |
-| Admins | `Admins.Menu.V2`, with `Admins.Admins.V2`, `Admins.Bans.V2`, `Admins.Comms.V2` | 2.0.0 | `admins.*` | The players as a roster beside the selected player's sheet, a player's actions as cards and tiles, a punishment's steps over chips with the punishment as it stands and the message the player will read, bans and comms as a table beside the selected record, and the vote ballot |
+| Admins | `Admins.Menu.V2`, with `Admins.Admins.V2`, `Admins.Groups.V2`, `Admins.Bans.V2`, `Admins.Comms.V2` | 2.0.0 | `admins.*` | The players as a roster beside the selected player's sheet, a player's actions as cards and tiles, a punishment's steps over chips with the punishment as it stands and the message the player will read, bans and comms as a table beside the selected record, and the vote ballot |
 
 - **MapChooser:** the ballot gets each option's share as `text=\t45;vunit=%` and
   `bar=`, its votes as `note=`, and `chosen` with a `Your vote` tag on the
