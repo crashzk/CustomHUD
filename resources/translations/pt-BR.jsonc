@@ -10,16 +10,16 @@
   // Menu footer per nav mode; ".view" is a menu with nothing to select. {up} {down}
   // {select} {close} name the menu's keys. A "Hints" entry in config.jsonc overrides
   // a key in every language. The footer is one uppercase line, so keep them short.
-  "customhud.hint.wasd": "W/S mover · E selecionar · R fechar",
-  "customhud.hint.buttons": "{up}/{down} mover · {select} selecionar · {close} fechar",
-  "customhud.hint.numbers": "1-6 selecionar · 7/8 página · 9 fechar",
+  "customhud.hint.wasd": "W/S MOVER · E SELECIONAR · R FECHAR",
+  "customhud.hint.buttons": "{up}/{down} MOVER · {select} SELECIONAR · {close} FECHAR",
+  "customhud.hint.numbers": "1-6 SELECIONAR · 7/8 PÁGINA · 9 FECHAR",
   "customhud.hint.mouse": "Clique para selecionar",
-  "customhud.hint.chat": "!N selecionar · !0 fechar",
-  "customhud.hint.wasd.view": "R fechar",
-  "customhud.hint.buttons.view": "{close} fechar",
-  "customhud.hint.numbers.view": "9 fechar",
-  "customhud.hint.mouse.view": "Clique em {close} para fechar",
-  "customhud.hint.chat.view": "!0 fechar",
+  "customhud.hint.chat": "!N SELECIONAR · !0 SELECIONAR",
+  "customhud.hint.wasd.view": "R FECHAR",
+  "customhud.hint.buttons.view": "{close} FECHAR",
+  "customhud.hint.numbers.view": "9 FECHAR",
+  "customhud.hint.mouse.view": "CLIQUE EM {close} PARA FECHAR",
+  "customhud.hint.chat.view": "!0 FECHAR",
 
   // Page lockers (menu_locker): the gold line above a plugin's title when its menu
   // has no root title of its own, and the tag on the row holding the most votes.
@@ -70,7 +70,7 @@
   "customhud.ranks.you": "Você",
   "customhud.ranks.kills": "Abates",
   "customhud.ranks.deaths": "Mortes",
-  "customhud.ranks.kd": "A/M",
+  "customhud.ranks.kd": "K/D",
   "customhud.ranks.kd_sub": "Abates por morte",
   "customhud.ranks.assists": "Assistências",
   "customhud.ranks.headshots": "Tiros na cabeça",
