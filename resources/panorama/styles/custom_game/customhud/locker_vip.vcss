@@ -1156,7 +1156,8 @@
 	border-radius: 3px;
 }
 
-/* Extend: a caption and five steps on one line, 76 + 5 x 42 = 286 of 300. */
+/* Extend: a caption and five steps on one line, 76 + 5 x 43 = 291 of 300; the last step ends level
+   with the card's right-hand text. */
 .lk.view-vip-users .grp-caption
 {
 	width: 76px;
@@ -1181,11 +1182,12 @@
 
 .lk.view-vip-users .grp-step
 {
-	width: 38px;
+	width: 40px;
 	height: 26px;
-	margin: 2px 4px 0px 0px;
+	margin: 2px 3px 0px 0px;
 }
 
+/* Steps take the Control look, not Chip: a 100% label inside a fit-children button resolves to nothing. */
 .lk.view-vip-users .grp-step .lk-text
 {
 	width: 100%;
@@ -1238,10 +1240,25 @@
 	margin-left: 20px;
 }
 
+/* 488 = the page's 576 less the bar's 88: a taller form squished the bar to a strip in game. */
 .lk.view-vip-grant .lk-detail__box,
 .lk.view-vip-grant .lk-detail__body
 {
 	height: fit-children;
+	max-height: 488px;
+}
+
+/* Past VipIntegration.CompactGroups: a pixel height, the only kind of box seen scrolling in game. */
+.lk.view-vip-grant.variant-scroll .lk-detail__box,
+.lk.view-vip-grant.variant-scroll .lk-detail__body
+{
+	height: 488px;
+}
+
+.lk.view-vip-grant.chud-rewind .lk-detail__items
+{
+	height: fit-children;
+	max-height: 488px;
 }
 
 .lk.view-vip-grant .lk-detail__items
@@ -1328,12 +1345,12 @@
 	border-bottom: 0px solid transparent;
 }
 
-/* Group: three cards, 3 x (170 + 6) = 528 of 540. */
+/* Group: three cards to a line, 3 x (170 + 8) = 534 of 540, 8px apart either way like the other card grids. */
 .lk.view-vip-grant .lk-detail .lk-slot.grp-tier
 {
 	width: 170px;
 	height: 88px;
-	margin: 0px 6px 0px 0px;
+	margin: 0px 8px 8px 0px;
 }
 
 .lk.view-vip-grant .lk-detail .lk-slot.grp-tier .lk-glyph
@@ -1356,6 +1373,25 @@
 	font-size: 16px;
 	font-weight: bold;
 	letter-spacing: 2px;
+}
+
+/* Past VipIntegration.RoomyGroups: 56px cards, glyph beside the name, three lines in 192px not 288. */
+.lk.view-vip-grant.variant-compact .lk-detail .lk-slot.grp-tier
+{
+	height: 56px;
+}
+
+.lk.view-vip-grant.variant-compact .lk-detail .lk-slot.grp-tier .lk-glyph
+{
+	vertical-align: center;
+	margin: 0px 0px 0px 14px;
+}
+
+.lk.view-vip-grant.variant-compact .lk-detail .lk-slot.grp-tier .lk-text
+{
+	width: 112px;
+	vertical-align: center;
+	margin: 0px 0px 0px 48px;
 }
 
 /* Scope: two halves of one control, the chosen one underlined; 2 x 264 = 528 of 540. */

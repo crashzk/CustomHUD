@@ -1,0 +1,44 @@
+/* hud_text_v2: hud_text in CS2's store look, over v2/hud_text.vcss. Only the frame differs: a hairline round
+   the navy, and the kind's edge, 2px as on the v2 rails, on a panel inside it: a panel draws one border colour. */
+
+/* With the kinds the copy edges on the shell, so none of them widens or recolours the hairline. */
+.chud-toast.chud-toast2,
+.chud-toast.chud-toast2.kind-chat,
+.chud-toast.chud-toast2.kind-chatendofround,
+.chud-toast.chud-toast2.kind-alert
+{
+	padding: 0px;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 100% 100%, from( chudStoreRaised ), to( chudStoreDeep ) );
+}
+
+.chud-toast2__body
+{
+	padding: 10px 18px 10px 16px;
+	border-left: 2px solid chudNavBase;
+}
+
+.chud-toast2.kind-chat .chud-toast2__body
+{
+	border-left: 2px solid chudStoreFaint;
+}
+
+.chud-toast2.kind-chatendofround .chud-toast2__body
+{
+	border-left: 2px solid chudGoldBase;
+}
+
+.chud-toast2.kind-alert .chud-toast2__body
+{
+	border-left: 2px solid chudDangerBase;
+}
+
+/* 1 + 2 + 16 + 722 + 18 + 1 = 760, the toast's max-width. */
+.chud-toast2 .chud-toast__text
+{
+	max-width: 722px;
+}

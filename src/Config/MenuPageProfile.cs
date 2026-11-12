@@ -145,9 +145,12 @@ public sealed class PageClasses
 {
     // On the shell.
     public string View { get; set; } = "view-{0}";
+    public string Variant { get; set; } = "variant-{0}";
     public string Region { get; set; } = "has-{0}";
     public string HasTabs { get; set; } = "has-tabs";
     public string HasHead { get; set; } = "has-head";
+    // A main-list row has an avatar and a glyph (a global record's globe): the list gives every avatar row a column for it.
+    public string GlyphColumn { get; set; } = "has-glyph-column";
     public string NoSidebar { get; set; } = "no-sidebar";
     // `{0}` = wasd | buttons | numbers | mouse: the player's nav mode.
     public string Mode { get; set; } = "mode-{0}";
@@ -214,4 +217,7 @@ public sealed class PageClasses
     public string Glyph { get; set; } = "ico-{0}";
     // On a slot holding an inline entry: `{0}` = disabled | danger | primary | on.
     public string InlineState { get; set; } = "inline-{0}";
+    // On a slot with `act=` buttons, and on a button: `{0}` = danger | off.
+    public string HasActs { get; set; } = "has-acts";
+    public string ActState { get; set; } = "act-{0}";
 }

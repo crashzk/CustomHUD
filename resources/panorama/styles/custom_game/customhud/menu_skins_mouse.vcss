@@ -71,6 +71,13 @@
 	flow-children: down;
 }
 
+/* The scroll rewind, as .chud-locker__items in menu_mouse.vcss. */
+.ws-locker.chud-rewind .ws-grid__items
+{
+	height: 1px;
+	overflow: squish noclip;
+}
+
 /* Five cards per line panel, for the reason given at .chud-locker__line in menu_mouse.vcss. */
 .ws-line
 {

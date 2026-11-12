@@ -654,6 +654,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_0_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_0_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_0_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_0_act0" class="lk-act hidden"><Panel id="option_0_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_0_act1" class="lk-act hidden"><Panel id="option_0_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_0_act2" class="lk-act hidden"><Panel id="option_0_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_1" class="lk-slot hidden">
 											<Button id="option_1_hit" class="lk-hit">
@@ -681,6 +686,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_1_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_1_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_1_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_1_act0" class="lk-act hidden"><Panel id="option_1_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_1_act1" class="lk-act hidden"><Panel id="option_1_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_1_act2" class="lk-act hidden"><Panel id="option_1_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_2" class="lk-slot hidden">
 											<Button id="option_2_hit" class="lk-hit">
@@ -708,6 +718,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_2_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_2_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_2_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_2_act0" class="lk-act hidden"><Panel id="option_2_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_2_act1" class="lk-act hidden"><Panel id="option_2_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_2_act2" class="lk-act hidden"><Panel id="option_2_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_3" class="lk-slot hidden">
 											<Button id="option_3_hit" class="lk-hit">
@@ -735,6 +750,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_3_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_3_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_3_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_3_act0" class="lk-act hidden"><Panel id="option_3_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_3_act1" class="lk-act hidden"><Panel id="option_3_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_3_act2" class="lk-act hidden"><Panel id="option_3_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_4" class="lk-slot hidden">
 											<Button id="option_4_hit" class="lk-hit">
@@ -762,6 +782,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_4_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_4_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_4_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_4_act0" class="lk-act hidden"><Panel id="option_4_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_4_act1" class="lk-act hidden"><Panel id="option_4_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_4_act2" class="lk-act hidden"><Panel id="option_4_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_5" class="lk-slot hidden">
 											<Button id="option_5_hit" class="lk-hit">
@@ -789,6 +814,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_5_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_5_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_5_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_5_act0" class="lk-act hidden"><Panel id="option_5_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_5_act1" class="lk-act hidden"><Panel id="option_5_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_5_act2" class="lk-act hidden"><Panel id="option_5_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_6" class="lk-slot hidden">
 											<Button id="option_6_hit" class="lk-hit">
@@ -816,6 +846,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_6_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_6_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_6_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_6_act0" class="lk-act hidden"><Panel id="option_6_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_6_act1" class="lk-act hidden"><Panel id="option_6_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_6_act2" class="lk-act hidden"><Panel id="option_6_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_7" class="lk-slot hidden">
 											<Button id="option_7_hit" class="lk-hit">
@@ -843,6 +878,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_7_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_7_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_7_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_7_act0" class="lk-act hidden"><Panel id="option_7_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_7_act1" class="lk-act hidden"><Panel id="option_7_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_7_act2" class="lk-act hidden"><Panel id="option_7_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_8" class="lk-slot hidden">
 											<Button id="option_8_hit" class="lk-hit">
@@ -870,6 +910,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_8_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_8_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_8_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_8_act0" class="lk-act hidden"><Panel id="option_8_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_8_act1" class="lk-act hidden"><Panel id="option_8_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_8_act2" class="lk-act hidden"><Panel id="option_8_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_9" class="lk-slot hidden">
 											<Button id="option_9_hit" class="lk-hit">
@@ -897,6 +942,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_9_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_9_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_9_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_9_act0" class="lk-act hidden"><Panel id="option_9_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_9_act1" class="lk-act hidden"><Panel id="option_9_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_9_act2" class="lk-act hidden"><Panel id="option_9_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_10" class="lk-slot hidden">
 											<Button id="option_10_hit" class="lk-hit">
@@ -924,6 +974,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_10_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_10_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_10_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_10_act0" class="lk-act hidden"><Panel id="option_10_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_10_act1" class="lk-act hidden"><Panel id="option_10_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_10_act2" class="lk-act hidden"><Panel id="option_10_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_11" class="lk-slot hidden">
 											<Button id="option_11_hit" class="lk-hit">
@@ -951,6 +1006,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_11_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_11_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_11_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_11_act0" class="lk-act hidden"><Panel id="option_11_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_11_act1" class="lk-act hidden"><Panel id="option_11_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_11_act2" class="lk-act hidden"><Panel id="option_11_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_12" class="lk-slot hidden">
 											<Button id="option_12_hit" class="lk-hit">
@@ -978,6 +1038,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_12_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_12_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_12_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_12_act0" class="lk-act hidden"><Panel id="option_12_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_12_act1" class="lk-act hidden"><Panel id="option_12_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_12_act2" class="lk-act hidden"><Panel id="option_12_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_13" class="lk-slot hidden">
 											<Button id="option_13_hit" class="lk-hit">
@@ -1005,6 +1070,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_13_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_13_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_13_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_13_act0" class="lk-act hidden"><Panel id="option_13_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_13_act1" class="lk-act hidden"><Panel id="option_13_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_13_act2" class="lk-act hidden"><Panel id="option_13_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_14" class="lk-slot hidden">
 											<Button id="option_14_hit" class="lk-hit">
@@ -1032,6 +1102,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_14_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_14_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_14_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_14_act0" class="lk-act hidden"><Panel id="option_14_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_14_act1" class="lk-act hidden"><Panel id="option_14_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_14_act2" class="lk-act hidden"><Panel id="option_14_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_15" class="lk-slot hidden">
 											<Button id="option_15_hit" class="lk-hit">
@@ -1059,6 +1134,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_15_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_15_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_15_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_15_act0" class="lk-act hidden"><Panel id="option_15_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_15_act1" class="lk-act hidden"><Panel id="option_15_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_15_act2" class="lk-act hidden"><Panel id="option_15_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_16" class="lk-slot hidden">
 											<Button id="option_16_hit" class="lk-hit">
@@ -1086,6 +1166,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_16_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_16_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_16_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_16_act0" class="lk-act hidden"><Panel id="option_16_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_16_act1" class="lk-act hidden"><Panel id="option_16_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_16_act2" class="lk-act hidden"><Panel id="option_16_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_17" class="lk-slot hidden">
 											<Button id="option_17_hit" class="lk-hit">
@@ -1113,6 +1198,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_17_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_17_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_17_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_17_act0" class="lk-act hidden"><Panel id="option_17_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_17_act1" class="lk-act hidden"><Panel id="option_17_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_17_act2" class="lk-act hidden"><Panel id="option_17_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_18" class="lk-slot hidden">
 											<Button id="option_18_hit" class="lk-hit">
@@ -1140,6 +1230,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_18_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_18_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_18_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_18_act0" class="lk-act hidden"><Panel id="option_18_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_18_act1" class="lk-act hidden"><Panel id="option_18_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_18_act2" class="lk-act hidden"><Panel id="option_18_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_19" class="lk-slot hidden">
 											<Button id="option_19_hit" class="lk-hit">
@@ -1167,6 +1262,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_19_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_19_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_19_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_19_act0" class="lk-act hidden"><Panel id="option_19_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_19_act1" class="lk-act hidden"><Panel id="option_19_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_19_act2" class="lk-act hidden"><Panel id="option_19_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_20" class="lk-slot hidden">
 											<Button id="option_20_hit" class="lk-hit">
@@ -1194,6 +1294,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_20_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_20_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_20_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_20_act0" class="lk-act hidden"><Panel id="option_20_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_20_act1" class="lk-act hidden"><Panel id="option_20_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_20_act2" class="lk-act hidden"><Panel id="option_20_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_21" class="lk-slot hidden">
 											<Button id="option_21_hit" class="lk-hit">
@@ -1221,6 +1326,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_21_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_21_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_21_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_21_act0" class="lk-act hidden"><Panel id="option_21_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_21_act1" class="lk-act hidden"><Panel id="option_21_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_21_act2" class="lk-act hidden"><Panel id="option_21_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_22" class="lk-slot hidden">
 											<Button id="option_22_hit" class="lk-hit">
@@ -1248,6 +1358,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_22_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_22_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_22_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_22_act0" class="lk-act hidden"><Panel id="option_22_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_22_act1" class="lk-act hidden"><Panel id="option_22_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_22_act2" class="lk-act hidden"><Panel id="option_22_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_23" class="lk-slot hidden">
 											<Button id="option_23_hit" class="lk-hit">
@@ -1275,6 +1390,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_23_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_23_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_23_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_23_act0" class="lk-act hidden"><Panel id="option_23_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_23_act1" class="lk-act hidden"><Panel id="option_23_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_23_act2" class="lk-act hidden"><Panel id="option_23_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_24" class="lk-slot hidden">
 											<Button id="option_24_hit" class="lk-hit">
@@ -1302,6 +1422,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_24_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_24_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_24_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_24_act0" class="lk-act hidden"><Panel id="option_24_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_24_act1" class="lk-act hidden"><Panel id="option_24_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_24_act2" class="lk-act hidden"><Panel id="option_24_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_25" class="lk-slot hidden">
 											<Button id="option_25_hit" class="lk-hit">
@@ -1329,6 +1454,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_25_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_25_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_25_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_25_act0" class="lk-act hidden"><Panel id="option_25_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_25_act1" class="lk-act hidden"><Panel id="option_25_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_25_act2" class="lk-act hidden"><Panel id="option_25_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_26" class="lk-slot hidden">
 											<Button id="option_26_hit" class="lk-hit">
@@ -1356,6 +1486,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_26_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_26_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_26_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_26_act0" class="lk-act hidden"><Panel id="option_26_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_26_act1" class="lk-act hidden"><Panel id="option_26_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_26_act2" class="lk-act hidden"><Panel id="option_26_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_27" class="lk-slot hidden">
 											<Button id="option_27_hit" class="lk-hit">
@@ -1383,6 +1518,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_27_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_27_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_27_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_27_act0" class="lk-act hidden"><Panel id="option_27_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_27_act1" class="lk-act hidden"><Panel id="option_27_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_27_act2" class="lk-act hidden"><Panel id="option_27_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_28" class="lk-slot hidden">
 											<Button id="option_28_hit" class="lk-hit">
@@ -1410,6 +1550,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_28_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_28_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_28_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_28_act0" class="lk-act hidden"><Panel id="option_28_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_28_act1" class="lk-act hidden"><Panel id="option_28_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_28_act2" class="lk-act hidden"><Panel id="option_28_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_29" class="lk-slot hidden">
 											<Button id="option_29_hit" class="lk-hit">
@@ -1437,6 +1582,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_29_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_29_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_29_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_29_act0" class="lk-act hidden"><Panel id="option_29_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_29_act1" class="lk-act hidden"><Panel id="option_29_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_29_act2" class="lk-act hidden"><Panel id="option_29_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_30" class="lk-slot hidden">
 											<Button id="option_30_hit" class="lk-hit">
@@ -1464,6 +1614,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_30_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_30_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_30_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_30_act0" class="lk-act hidden"><Panel id="option_30_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_30_act1" class="lk-act hidden"><Panel id="option_30_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_30_act2" class="lk-act hidden"><Panel id="option_30_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_31" class="lk-slot hidden">
 											<Button id="option_31_hit" class="lk-hit">
@@ -1491,6 +1646,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_31_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_31_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_31_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_31_act0" class="lk-act hidden"><Panel id="option_31_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_31_act1" class="lk-act hidden"><Panel id="option_31_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_31_act2" class="lk-act hidden"><Panel id="option_31_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_32" class="lk-slot hidden">
 											<Button id="option_32_hit" class="lk-hit">
@@ -1518,6 +1678,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_32_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_32_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_32_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_32_act0" class="lk-act hidden"><Panel id="option_32_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_32_act1" class="lk-act hidden"><Panel id="option_32_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_32_act2" class="lk-act hidden"><Panel id="option_32_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_33" class="lk-slot hidden">
 											<Button id="option_33_hit" class="lk-hit">
@@ -1545,6 +1710,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_33_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_33_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_33_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_33_act0" class="lk-act hidden"><Panel id="option_33_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_33_act1" class="lk-act hidden"><Panel id="option_33_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_33_act2" class="lk-act hidden"><Panel id="option_33_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_34" class="lk-slot hidden">
 											<Button id="option_34_hit" class="lk-hit">
@@ -1572,6 +1742,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_34_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_34_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_34_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_34_act0" class="lk-act hidden"><Panel id="option_34_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_34_act1" class="lk-act hidden"><Panel id="option_34_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_34_act2" class="lk-act hidden"><Panel id="option_34_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_35" class="lk-slot hidden">
 											<Button id="option_35_hit" class="lk-hit">
@@ -1599,6 +1774,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_35_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_35_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_35_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_35_act0" class="lk-act hidden"><Panel id="option_35_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_35_act1" class="lk-act hidden"><Panel id="option_35_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_35_act2" class="lk-act hidden"><Panel id="option_35_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_36" class="lk-slot hidden">
 											<Button id="option_36_hit" class="lk-hit">
@@ -1626,6 +1806,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_36_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_36_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_36_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_36_act0" class="lk-act hidden"><Panel id="option_36_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_36_act1" class="lk-act hidden"><Panel id="option_36_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_36_act2" class="lk-act hidden"><Panel id="option_36_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_37" class="lk-slot hidden">
 											<Button id="option_37_hit" class="lk-hit">
@@ -1653,6 +1838,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_37_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_37_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_37_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_37_act0" class="lk-act hidden"><Panel id="option_37_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_37_act1" class="lk-act hidden"><Panel id="option_37_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_37_act2" class="lk-act hidden"><Panel id="option_37_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_38" class="lk-slot hidden">
 											<Button id="option_38_hit" class="lk-hit">
@@ -1680,6 +1870,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_38_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_38_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_38_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_38_act0" class="lk-act hidden"><Panel id="option_38_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_38_act1" class="lk-act hidden"><Panel id="option_38_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_38_act2" class="lk-act hidden"><Panel id="option_38_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_39" class="lk-slot hidden">
 											<Button id="option_39_hit" class="lk-hit">
@@ -1707,6 +1902,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_39_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_39_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_39_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_39_act0" class="lk-act hidden"><Panel id="option_39_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_39_act1" class="lk-act hidden"><Panel id="option_39_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_39_act2" class="lk-act hidden"><Panel id="option_39_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_40" class="lk-slot hidden">
 											<Button id="option_40_hit" class="lk-hit">
@@ -1734,6 +1934,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_40_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_40_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_40_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_40_act0" class="lk-act hidden"><Panel id="option_40_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_40_act1" class="lk-act hidden"><Panel id="option_40_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_40_act2" class="lk-act hidden"><Panel id="option_40_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_41" class="lk-slot hidden">
 											<Button id="option_41_hit" class="lk-hit">
@@ -1761,6 +1966,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_41_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_41_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_41_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_41_act0" class="lk-act hidden"><Panel id="option_41_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_41_act1" class="lk-act hidden"><Panel id="option_41_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_41_act2" class="lk-act hidden"><Panel id="option_41_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_42" class="lk-slot hidden">
 											<Button id="option_42_hit" class="lk-hit">
@@ -1788,6 +1998,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_42_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_42_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_42_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_42_act0" class="lk-act hidden"><Panel id="option_42_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_42_act1" class="lk-act hidden"><Panel id="option_42_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_42_act2" class="lk-act hidden"><Panel id="option_42_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_43" class="lk-slot hidden">
 											<Button id="option_43_hit" class="lk-hit">
@@ -1815,6 +2030,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_43_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_43_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_43_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_43_act0" class="lk-act hidden"><Panel id="option_43_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_43_act1" class="lk-act hidden"><Panel id="option_43_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_43_act2" class="lk-act hidden"><Panel id="option_43_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_44" class="lk-slot hidden">
 											<Button id="option_44_hit" class="lk-hit">
@@ -1842,6 +2062,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_44_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_44_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_44_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_44_act0" class="lk-act hidden"><Panel id="option_44_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_44_act1" class="lk-act hidden"><Panel id="option_44_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_44_act2" class="lk-act hidden"><Panel id="option_44_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_45" class="lk-slot hidden">
 											<Button id="option_45_hit" class="lk-hit">
@@ -1869,6 +2094,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_45_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_45_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_45_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_45_act0" class="lk-act hidden"><Panel id="option_45_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_45_act1" class="lk-act hidden"><Panel id="option_45_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_45_act2" class="lk-act hidden"><Panel id="option_45_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_46" class="lk-slot hidden">
 											<Button id="option_46_hit" class="lk-hit">
@@ -1896,6 +2126,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_46_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_46_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_46_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_46_act0" class="lk-act hidden"><Panel id="option_46_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_46_act1" class="lk-act hidden"><Panel id="option_46_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_46_act2" class="lk-act hidden"><Panel id="option_46_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 										<Panel id="option_47" class="lk-slot hidden">
 											<Button id="option_47_hit" class="lk-hit">
@@ -1923,6 +2158,11 @@
 												<Panel class="lk-meter2" hittest="false"><Panel class="lk-meter2__fill" hittest="false" /></Panel>
 											</Button>
 											<Button id="option_47_inline" class="lk-inline"><Label class="lk-inline__label" text="{s:option_47_inline}" hittest="false" /><Label class="lk-inline__value" text="{s:option_47_inline_value}" hittest="false" /></Button>
+											<Panel class="lk-acts" hittest="false">
+												<Button id="option_47_act0" class="lk-act hidden"><Panel id="option_47_act0_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_47_act1" class="lk-act hidden"><Panel id="option_47_act1_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+												<Button id="option_47_act2" class="lk-act hidden"><Panel id="option_47_act2_glyph" class="chud-ico lk-act__glyph" hittest="false" /></Button>
+											</Panel>
 										</Panel>
 									</Panel>
 								</Panel>

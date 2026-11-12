@@ -20,9 +20,15 @@ internal sealed class Openers
         object? value = null;
         if (previous is not null && !ReferenceEquals(previous, session) && ReferenceEquals(previous.Menu, menu.Parent)
             && previous.FocusedComponent is { } row)
-            value = CollectionItems.Of(row) ?? (row as MenuComponentBase)?.Tag;
+            value = OpenerOf(row);
         seen[slot] = value;
     }
+
+    // Before the page's first draw, which Capture then leaves alone.
+    public void Record(IMenuSession session, IMenuComponent row)
+        => _byMenu.GetOrCreateValue(session.Menu)[session.Player.PlayerID] = OpenerOf(row);
+
+    private static object? OpenerOf(IMenuComponent row) => CollectionItems.Of(row) ?? (row as MenuComponentBase)?.Tag;
 
     // This page's opener, else the nearest ancestor's: a page under a weapon's page is about that weapon too.
     public object? Of(IMenu menu, int slot) => Find(menu, slot, static _ => true);

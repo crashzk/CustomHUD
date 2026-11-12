@@ -1,3 +1,4 @@
+using CustomHUD.Integrations.RankPages;
 using SwiftlyS2.Shared.Menu;
 
 namespace CustomHUD.Integrations;
@@ -20,6 +21,9 @@ internal interface IPageIntegration
     // menu is paged so they are never cut. Rows added only where they fit check PageDraw.Room instead.
     int RowsAdded(IMenu menu) => 0;
 
+    // RowsAdded for the layout drawing the menu, for a heading that only some regions' views carry.
+    int RowsAdded(IMenu menu, IReadOnlySet<string> regions) => RowsAdded(menu);
+
     void Draw(PageDraw page);
 }
 
@@ -28,4 +32,15 @@ internal interface IPageIntegration
 internal interface IRankChips
 {
     void AddChip(PageDraw page);
+
+    // Another player's rank as their scoreboard draws it, with the totals behind their K/D and
+    // headshot rate; null until Ranks holds their snapshot.
+    PlayerRank? RankOf(ulong steamId);
+}
+
+internal sealed record PlayerRank(RankArt Art, long Points, long Kills, long Deaths, long Headshots)
+{
+    public string KillDeath => Directive.Decimal(Deaths == 0 ? Kills : Math.Round((double)Kills / Deaths, 2));
+
+    public double HeadshotRate => Directive.Percent(Headshots, Kills);
 }

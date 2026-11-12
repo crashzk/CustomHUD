@@ -1,0 +1,594 @@
+/*
+	menu_locker_v2 (Design "v2"): the page locker in CS2's store look, framed as the WeaponSkins
+	locker v2 is: a rail of the root's entries under the plugin's name, a 48px content bar (Back
+	with the parent's title, the page's title, its chips, Close), the page, then a band for the
+	page's hint and pager. The page is the first design's, read from the v2 copies of its sheets;
+	this sheet comes last and draws only what the store look draws differently.
+	Geometry: docs/DesignLanguage.md.
+*/
+
+/* 1160 x 682: a 230px rail beside a 928px column, whose 896 x 576 page is the first design's. */
+.lk.lk2
+{
+	width: 1160px;
+	padding: 0px;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 100% 100%, from( chudStoreRaised ), to( chudStoreDeep ) );
+}
+
+.lk2-frame
+{
+	width: 100%;
+	height: 680px;
+	flow-children: right;
+}
+
+/* ---- the rail: the root menu's entries under the plugin's name ---- */
+
+.lk2-side
+{
+	width: 230px;
+	height: 100%;
+	flow-children: down;
+	border-top: 0px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 0px solid chudStoreEdge;
+	border-left: 0px solid chudStoreEdge;
+	background-color: chudShadowSoft;
+}
+
+/* A menu that is its own root (MixScrims' pages, a ballot) has nothing to list. */
+.lk.no-sidebar .lk2-side
+{
+	visibility: collapse;
+}
+
+/* On the content bar's band, so the top reads as one strip. */
+.lk2-brand
+{
+	width: 100%;
+	height: 48px;
+	padding: 0px 20px;
+	background-color: chudStoreBar;
+}
+
+.lk2-brand__text,
+.lk2-bar__brand
+{
+	max-width: 190px;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 13px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.lk2-nav
+{
+	width: 100%;
+	padding: 10px 0px;
+	flow-children: down;
+}
+
+.lk2-nav__item
+{
+	width: 100%;
+	height: 44px;
+	flow-children: right;
+	background-color: transparent;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.lk2-nav__item.hidden
+{
+	visibility: collapse;
+}
+
+.lk2-nav__item:hover
+{
+	background-color: chudGlassWash;
+}
+
+/* selectedNavColor, with the light the main menu's open tab rises from, turned to the rail. */
+.lk2-nav__item.selected,
+.lk2-nav__item.selected:hover
+{
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudNavSoft ), to( chudNavFade ) );
+}
+
+.lk2-nav__item.disabled
+{
+	opacity: 0.4;
+}
+
+/* Crisp: a box-shadow round a 2px line draws as a halo in game. */
+.lk2-nav__edge
+{
+	width: 2px;
+	height: 100%;
+	margin-right: 18px;
+	background-color: transparent;
+}
+
+.lk2-nav__item.selected .lk2-nav__edge
+{
+	background-color: chudNavBase;
+}
+
+.lk2-nav__icon
+{
+	width: 20px;
+	height: 20px;
+	vertical-align: center;
+	margin-right: 12px;
+	wash-color: chudStoreText;
+}
+
+.lk2-nav__item:hover .lk2-nav__icon { wash-color: chudTextMain; }
+.lk2-nav__item.selected .lk2-nav__icon { wash-color: chudNavBase; }
+
+.lk2-nav__label
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	margin-right: 12px;
+	font-family: chudFontMedium;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.lk2-nav__item:hover .lk2-nav__label { color: chudTextMain; }
+.lk2-nav__item.selected .lk2-nav__label { color: chudNavBase; }
+
+/* A page with something running on it now (MapChooser's vote). */
+.lk2-nav__live
+{
+	width: 7px;
+	height: 7px;
+	vertical-align: center;
+	margin-right: 14px;
+	border-radius: 4px;
+	background-color: chudDangerBase;
+	visibility: collapse;
+}
+
+.lk2-nav__item.live .lk2-nav__live
+{
+	visibility: visible;
+}
+
+.lk2-nav__count
+{
+	vertical-align: center;
+	margin-right: 16px;
+	font-family: chudDigitsBold;
+	font-size: 11px;
+	color: chudStoreFaint;
+	visibility: collapse;
+}
+
+.lk2-nav__item.has-count .lk2-nav__count
+{
+	visibility: visible;
+}
+
+.lk2-nav__item.selected .lk2-nav__count
+{
+	color: chudNavBase;
+}
+
+/* A root DividerComponent: a hairline between groups of entries. */
+.lk2-nav__item.divider,
+.lk2-nav__item.divider:hover
+{
+	width: 189px;
+	height: 1px;
+	margin: 8px 0px 8px 20px;
+	background-color: chudStoreEdge;
+}
+
+.lk2-nav__item.divider .lk2-nav__edge,
+.lk2-nav__item.divider .lk2-nav__icon,
+.lk2-nav__item.divider .lk2-nav__label,
+.lk2-nav__item.divider .lk2-nav__count
+{
+	visibility: collapse;
+}
+
+/* ---- the content bar: content-navbar, 48px on a quarter black ---- */
+
+.lk2-col
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: down;
+}
+
+.lk2-bar
+{
+	width: 100%;
+	height: 48px;
+	padding: 0px 10px 0px 20px;
+	flow-children: right;
+	background-color: chudStoreBar;
+}
+
+.lk2-bar__brand
+{
+	margin-right: 14px;
+	padding-right: 14px;
+	border-top: 0px solid chudGlassDim;
+	border-right: 1px solid chudGlassDim;
+	border-bottom: 0px solid chudGlassDim;
+	border-left: 0px solid chudGlassDim;
+	visibility: collapse;
+}
+
+.lk.no-sidebar .lk2-bar__brand
+{
+	visibility: visible;
+}
+
+.lk2-back
+{
+	height: 100%;
+	flow-children: right;
+}
+
+.lk2-back.hidden
+{
+	visibility: collapse;
+}
+
+.lk2-back__icon
+{
+	width: 14px;
+	height: 14px;
+	vertical-align: center;
+	margin-right: 8px;
+	wash-color: chudStoreText;
+}
+
+.lk2-back__label
+{
+	max-width: 240px;
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.lk2-back:hover .lk2-back__icon { wash-color: chudTextMain; }
+.lk2-back:hover .lk2-back__label { color: chudTextMain; }
+
+.lk2-back__rule
+{
+	width: 1px;
+	height: 22px;
+	vertical-align: center;
+	margin: 0px 14px;
+	background-color: chudGlassDim;
+}
+
+.lk2-title
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 20px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* The page's chips, at the bar's size. Their tones stay the page sheets'. */
+.lk.lk2 .lk2-chips
+{
+	height: 100%;
+	margin-right: 6px;
+}
+
+.lk.lk2 .lk2-chips .lk-chip
+{
+	height: 34px;
+	margin-left: 8px;
+	padding: 0px 12px 0px 10px;
+	border-radius: 3px;
+}
+
+.lk.lk2 .lk2-chips .lk-chip__glyph
+{
+	width: 16px;
+	height: 16px;
+	margin-right: 8px;
+}
+
+.lk.lk2 .lk2-chips .lk-chip__value
+{
+	font-size: 17px;
+}
+
+.lk.lk2 .lk2-chips .lk-chip.has-rating .lk-chip__value,
+.lk.lk2 .lk2-chips .lk-chip.has-thumb .lk-chip__value
+{
+	font-size: 14px;
+}
+
+.lk2-close
+{
+	width: 32px;
+	height: 32px;
+	vertical-align: center;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.lk2-close.hidden
+{
+	visibility: collapse;
+}
+
+.lk2-close:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.lk2-close__icon
+{
+	width: 16px;
+	height: 16px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreText;
+}
+
+.lk2-close:hover .lk2-close__icon { wash-color: chudTextMain; }
+
+.lk2-heading
+{
+	width: 100%;
+	padding: 14px 16px 0px 16px;
+	font-family: chudFontBody;
+	font-size: 22px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	visibility: collapse;
+}
+
+/* ---- the page: the first design's 896 x 576 ---- */
+
+.lk.lk2 .lk-content
+{
+	height: 600px;
+	padding: 12px 16px;
+}
+
+/* ---- the band under the page: its hint, then the pager ---- */
+
+.lk2-foot
+{
+	width: 100%;
+	height: 32px;
+	padding: 0px 10px 0px 20px;
+	flow-children: right;
+	background-color: chudStoreBar;
+}
+
+.lk2-hint
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 11px;
+	color: chudStoreFaint;
+	letter-spacing: 1.5px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.lk2-pager
+{
+	width: 28px;
+	height: 24px;
+	vertical-align: center;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.lk2-pager.hidden
+{
+	visibility: collapse;
+}
+
+.lk2-pager:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.lk2-pager Label
+{
+	horizontal-align: center;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 18px;
+	font-weight: bold;
+	color: chudStoreText;
+}
+
+.lk2-pager:hover Label
+{
+	color: chudTextMain;
+}
+
+.lk2-page
+{
+	vertical-align: center;
+	margin: 0px 4px;
+	font-family: chudDigitsBold;
+	font-size: 12px;
+	color: chudStoreText;
+}
+
+.lk2-page.hidden
+{
+	visibility: collapse;
+}
+
+/* ---- tabs: content-navbar__tabs__btn, the open one in selectedNavColor over a tenth of it ---- */
+
+.lk.lk2 .lk-tabs
+{
+	height: 34px;
+	margin-bottom: 8px;
+	border-top: 0px solid chudStoreEdge;
+	border-right: 0px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 0px solid chudStoreEdge;
+}
+
+.lk.lk2 .lk-tab
+{
+	height: 30px;
+	margin-right: 4px;
+	padding: 0px 12px;
+	border: 0px solid transparent;
+	border-radius: 3px;
+	background-color: transparent;
+}
+
+.lk.lk2 .lk-tab:hover
+{
+	border: 0px solid transparent;
+	background-color: chudGlassWash;
+}
+
+.lk.lk2 .lk-tab.selected,
+.lk.lk2 .lk-tab.selected:hover
+{
+	border: 0px solid transparent;
+	background-color: chudNavWash;
+}
+
+.lk.lk2 .lk-tab__label
+{
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+}
+
+.lk.lk2 .lk-tab:hover .lk-tab__label { color: chudTextMain; }
+.lk.lk2 .lk-tab.selected .lk-tab__label { color: chudNavBase; }
+.lk.lk2 .lk-tab.selected .lk-tab__count { color: chudNavBase; }
+
+/* ---- a ballot: docked at the side and sized to what it holds, its question under the bar ---- */
+
+.lk.lk2.view-mix-ballot
+{
+	width: 440px;
+}
+
+.lk.lk2.view-mix-ballot .lk2-frame,
+.lk.lk2.view-mix-ballot .lk2-col,
+.lk.lk2.view-mix-ballot .lk-content
+{
+	height: fit-children;
+}
+
+/* Still there, so the chips keep to the bar's right. */
+.lk.lk2.view-mix-ballot .lk2-title
+{
+	opacity: 0;
+}
+
+.lk.lk2.view-mix-ballot .lk2-heading
+{
+	visibility: visible;
+}
+
+/* ---- words: CS2 heads its sections in grey; gold stays for values, prices and tiers ---- */
+
+.lk2 .lk-type
+{
+	color: chudStoreText;
+}
+
+.lk2 .lk-col-head
+{
+	color: chudStoreFaint;
+}
+
+.lk.lk2 .lk-content .lk-slot.section .lk-name,
+.lk.lk2.view-shop-product .lk-banner .lk-type,
+.lk.lk2.view-ranks-rank .lk-banner .lk-type,
+.lk.lk2.view-admins-votes .lk-banner .lk-type,
+.lk.lk2.view-admins-ban .grp-title .lk-name,
+.lk.lk2.view-maps-rtv .lk-banner .lk-type,
+.lk.lk2.view-maps-rtv .lk-detail .lk-slot.section .lk-name
+{
+	color: chudStoreText;
+}
+
+/* ---- what the player has on: CS2's green, as the WeaponSkins locker marks it ---- */
+
+/* A shop's chosen item is the one equipped: green rising from the card's foot. */
+.lk.lk2.view-shop-grid .lk-list .lk-slot.chosen .lk-hit,
+.lk.lk2.view-shop-grid .lk-list .lk-slot.chosen .lk-hit:hover
+{
+	border: 2px solid chudEquipHalf;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudStoreTileBase ), color-stop( 0.55, chudStoreTileDeep ), to( chudEquipRise ) );
+}
+
+.lk.lk2.view-shop-inventory .lk-list .lk-slot.chosen .lk-hit,
+.lk.lk2.view-shop-inventory .lk-list .lk-slot.chosen .lk-hit:hover
+{
+	border: 1px solid chudEquipHalf;
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudEquipSoft ), to( chudEquipFade ) );
+}
+
+.lk.lk2.view-shop-grid .note-accent .lk-note
+{
+	color: chudEquipStrong;
+}
+
+/* A category with something on carries CS2's green pill. */
+.lk.lk2.view-shop-categories .lk-note
+{
+	border: 1px solid chudEquipHalf;
+	background-color: chudEquipSoft;
+	color: chudEquipStrong;
+}
+
+.lk.lk2.view-shop-inventory .tag-accent .lk-tag
+{
+	border: 1px solid chudEquipHalf;
+	background-color: chudEquipSoft;
+	color: chudEquipStrong;
+}

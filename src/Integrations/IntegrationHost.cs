@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using CustomHUD.Config;
 using CustomHUD.Integrations.AdminPages;
 using CustomHUD.Integrations.MapPages;
+using CustomHUD.Integrations.MixPages;
 using CustomHUD.Integrations.RankPages;
 using CustomHUD.Integrations.ShopPages;
 using CustomHUD.Integrations.SkinPages;
@@ -55,6 +56,7 @@ internal sealed class IntegrationHost(
                 Create("MapChooser", "MapChooser.Api.v1", interfaces, i => MapChooserIntegration.TryCreate(i, core, this)),
                 Create("VIPCore", "VIPCore.Api.v1", interfaces, VipIntegration.TryCreate),
                 Create("Admins", "Admins.Menu.V2", interfaces, i => AdminsIntegration.TryCreate(i, core)),
+                Create("MixScrims", "MixScrims.API", interfaces, i => MixScrimsIntegration.TryCreate(i, core, chips)),
             ];
             Replace([.. next.OfType<IPageIntegration>()]);
         }
@@ -87,11 +89,11 @@ internal sealed class IntegrationHost(
         }
     }
 
-    public int RowsAdded(IPageIntegration integration, IMenu menu)
+    public int RowsAdded(IPageIntegration integration, IMenu menu, IReadOnlySet<string> regions)
     {
         try
         {
-            return Math.Max(0, integration.RowsAdded(menu));
+            return Math.Max(0, integration.RowsAdded(menu, regions));
         }
         catch (Exception ex)
         {
@@ -158,7 +160,7 @@ internal sealed class IntegrationHost(
         {
             if (factory(interfaces) is { } integration) return integration;
 
-            // Not necessarily an old build: Rampage's SkinsManager publishes "WeaponSkins.API" with its own contract.
+            // Not necessarily an old build: another plugin can publish "WeaponSkins.API" with its own contract.
             if (_reported.TryAdd("bind:" + provider, 0))
                 logger.LogInformation(
                     "[CustomHUD] '{Key}' is published, but not as the {Provider} contract CustomHUD reads, so those menus draw plain.",

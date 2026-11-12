@@ -8,7 +8,8 @@ namespace CustomHUD.Rendering;
 //
 // THREAD OWNERSHIP IS THE WHOLE POINT OF THIS CLASS:
 //   Entity, Shadow, ClassNames,
-//   ScrollKey, RootHandled, TabHandled -- game thread only.
+//   ScrollKey, RootHandled, TabHandled,
+//   Closing, Rewind*, Settle, MovedOff -- game thread only.
 //   LastComposed        -- render thread only.
 //   Pending, Rows       -- written by the render thread, read by the game
 //                          thread. Reference assignments of immutable values,
@@ -37,6 +38,21 @@ internal sealed class PlayerRenderState
 
     // The same for a skipped tab host (MenuPageProfile.TabAutoOpen).
     public IMenuSession? TabHandled;
+
+    // Set by Clear until the next tick: the session closed, but the entity stays up in case a session
+    // of ours opens in its place (Back reopens the parent right after Clear), which then draws as a diff.
+    public bool Closing;
+
+    // A scroll rewind under way: ticks LayoutClasses.Rewind has left on the shell, or, for a layout
+    // that styles no rewind class, the frame an empty list stands in for until the next tick.
+    public int RewindTicks;
+    public string RewindClass = "";
+    public FrameSnapshot? Settle;
+    public bool RewindQueued;
+
+    // The label the cursor was last moved off (PageFrame.LabelSkip), cleared once a frame draws: should core
+    // keep it there, the page draws rather than asking again every tick.
+    public (IMenuSession Session, int Index)? MovedOff;
 
     // Last frame the render thread composed. Used only for its own early-out,
     // never for deciding what to draw.

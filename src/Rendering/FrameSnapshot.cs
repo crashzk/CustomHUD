@@ -101,12 +101,17 @@ internal sealed record RowMap(
     public ImmutableArray<bool> Keyed { get; init; } = [];
     // Page layouts: a stepper or track-segment Button -> the row it acts on.
     public ImmutableDictionary<string, RowControl> Controls { get; init; } = ImmutableDictionary<string, RowControl>.Empty;
+    // Row layouts: the spot's link Button, and the root entry it opens and what it picks there.
+    public string LinkButton { get; init; } = "";
+    public string LinkEntry { get; init; } = "";
+    public string LinkPick { get; init; } = "";
 
     public bool IsKeyed(int row) => Keyed.IsEmpty ? Focusable[row] : Keyed[row];
 }
 
 // Step -1 / +1 sends NavigateLeft / NavigateRight; Step 0 sets a slider to Segment of Segments.
-internal readonly record struct RowControl(int Row, int Step, int Segment, int Segments);
+// Action set: an `act=` button, sending that menu action to the row instead.
+internal readonly record struct RowControl(int Row, int Step, int Segment, int Segments, string? Action = null);
 
 // Card field -> physical row of the entry each click target acts on, -1 for none.
 internal sealed record CardMap(
@@ -118,10 +123,18 @@ internal sealed record CardMap(
     string SegmentSuffix,
     int Segments)
 {
+    // A field's slot tiles: per field, what each tile picks on the page its row opens. Empty when
+    // the layout has none.
+    public string SlotSuffix { get; init; } = "";
+    public ImmutableArray<ImmutableArray<string>> Picks { get; init; } = [];
+
     public bool SameAs(CardMap? other)
         => other is not null && Segments == other.Segments
         && HitSuffix == other.HitSuffix && AsideSuffix == other.AsideSuffix && SegmentSuffix == other.SegmentSuffix
-        && Main.SequenceEqual(other.Main) && Aside.SequenceEqual(other.Aside) && Track.SequenceEqual(other.Track);
+        && SlotSuffix == other.SlotSuffix
+        && Main.SequenceEqual(other.Main) && Aside.SequenceEqual(other.Aside) && Track.SequenceEqual(other.Track)
+        && Picks.Length == other.Picks.Length
+        && Picks.Zip(other.Picks).All(pair => pair.First.SequenceEqual(pair.Second));
 }
 
 internal readonly record struct VarWrite(string PanelId, string Variable, string Value);
@@ -240,6 +253,8 @@ internal static class FrameSnapshotExtensions
         if (!SameControls(previous.Rows.Controls, next.Rows.Controls)) return false;
         if (!previous.Rows.Keyed.SequenceEqual(next.Rows.Keyed)) return false;
         if (previous.Rows.Card is null ? next.Rows.Card is not null : !previous.Rows.Card.SameAs(next.Rows.Card)) return false;
+        if (previous.Rows.LinkButton != next.Rows.LinkButton || previous.Rows.LinkEntry != next.Rows.LinkEntry
+            || previous.Rows.LinkPick != next.Rows.LinkPick) return false;
         if (previous.Rows.FocusedRow != next.Rows.FocusedRow) return false;
         if (previous.Rows.FocusedIndex != next.Rows.FocusedIndex) return false;
         if (previous.Rows.Focusable.Length != next.Rows.Focusable.Length) return false;

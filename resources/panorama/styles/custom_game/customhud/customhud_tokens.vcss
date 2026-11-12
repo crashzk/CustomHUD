@@ -239,3 +239,40 @@
 @define chudSprayTint17: #9d567a;
 @define chudSprayTint18: #e4ccd5;
 @define chudSprayTint19: #c1c1c1;
+
+/*
+	CS2's own store and inventory look, which every v2 layout draws in. Copied from the game's
+	sheets, not themed: Nav is selectedNavColor, Equip positiveColor and its "selected" tile,
+	Store the panel, bars, tooltip rules and the store tile's foot shading. The v2 copies of the
+	shared sheets (scripts/generate-v2-sheets.ps1) read Nav for Accent, Store for Surface and
+	Text, and StoreTile for Tile, so Row, Hover, Fade and the StoreTile set exist for them.
+*/
+@define chudNavBase: #82d8ff;
+@define chudNavStrong: #b4e8ff;
+@define chudNavHalf: #82d8ff80;
+@define chudNavDim: #82d8ff59;
+@define chudNavSoft: #82d8ff2b;
+@define chudNavWash: #82d8ff14;
+@define chudNavFade: #82d8ff00;
+@define chudEquipBase: #0f9d58;
+@define chudEquipStrong: #46c786;
+@define chudEquipHalf: #0f9d5880;
+@define chudEquipSoft: #0f9d5826;
+@define chudEquipRise: #08703e90;
+@define chudEquipFade: #08703e00;
+@define chudStoreRaised: #1e2d3df2;
+@define chudStoreDeep: #14202bf2;
+@define chudStoreBar: #00000040;
+@define chudStoreEdge: #ffffff14;
+@define chudStoreRule: #25282b;
+@define chudStoreText: #cccccc;
+@define chudStoreFaint: #7c7c7c;
+@define chudStoreFootBase: #3a39398f;
+@define chudStoreFootFade: #3a393900;
+@define chudStoreRow: #ffffff0a;
+@define chudStoreHover: #ffffff17;
+@define chudStoreFade: #ffffff00;
+@define chudStoreTileBase: #ffffff0f;
+@define chudStoreTileDeep: #00000040;
+@define chudStoreTileHover: #ffffff1c;
+@define chudStoreTileFade: #00000000;

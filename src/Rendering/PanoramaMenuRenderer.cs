@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using CustomHUD.Config;
 using CustomHUD.Input;
 using CustomHUD.Integrations;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menu;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomHUD.Rendering;
 
@@ -84,7 +86,7 @@ internal sealed class PanoramaMenuRenderer(
         var focusables = mode == NavMode.Numbers ? NavModeResolver.NumberKeys : int.MaxValue;
         var budget = profile.ShowAllRows
             ? PageBudget.Rows(profile.RowSlots, focusables, mode == NavMode.Mouse && profile.PageTiles ? 2 : 0)
-            : new PageBudget(Math.Min(context.Menu.ItemsPerPage, profile.RowSlots), coreMenus.MaxVisibleLines, focusables);
+            : new PageBudget(Math.Min(context.Menu.ItemsPerPage, profile.RowSlots), cfg.PageLines(coreMenus), focusables);
 
         // Core resolves a Chat menu's !N against its own window, so that window is
         // what has to be drawn there.
@@ -92,8 +94,10 @@ internal sealed class PanoramaMenuRenderer(
 
         // An integration reads its provider's API, which only the game thread may touch.
         var integration = coreWindow ? null : integrations.For(context.Menu);
+        // So does moving a keyboard cursor off a label (PageFrame.LabelSkip).
+        var onLabel = mode != NavMode.Mouse && PageFrame.FocusOnLabel(context.Frame, cfg.RendererId);
 
-        if (!coreWindow && (profile.ShowAllRows || integration is not null || !PageFrame.FitsOnePage(context.Frame, budget)))
+        if (!coreWindow && (profile.ShowAllRows || integration is not null || onLabel || !PageFrame.FitsOnePage(context.Frame, budget)))
         {
             // Rows past core's window can only be rendered on the game thread, so
             // the compose moves into the apply; its diff keeps an unchanged
@@ -159,7 +163,7 @@ internal sealed class PanoramaMenuRenderer(
         if (work is null) return;
 
         // Render runs on a background thread, so a frame can still be in flight
-        // when the session closes and Clear despawns. Without this the apply
+        // when the session closes and its entity is dropped. Without this the apply
         // would recreate an entity for a menu nobody has open, and since Clear
         // has already run nothing would ever despawn it -- leaking the entity
         // and the per-viewer transmit blocks held against its recycled index.
@@ -169,17 +173,25 @@ internal sealed class PanoramaMenuRenderer(
             Drop(slot);
             return;
         }
-        var returnedTo = _returning.TryRemove(slot, out var back) && Environment.TickCount64 - back.At < 1000
-            ? back.Root
-            : null;
+        // A session of ours is open again, so an entity Clear kept is this one's to update.
+        state.Closing = false;
 
+        long started = Stopwatch.GetTimestamp(), built = started, composed = started;
         try
         {
             FrameSnapshot pending;
+            FrameSnapshot? blank = null;
+            var rewound = false;
             if (work is DeferredCompose deferred)
             {
                 // A newer session has its own render queued behind this one.
                 if (!ReferenceEquals(session, deferred.Context.Session)) return;
+
+                // A skipped root or tab host opens its entry in its place, so its own page is never built.
+                var skips = FrameComposer.PlanSkips(deferred.Context.Menu, deferred.Profile, deferred.Mode);
+                if (SkipRoot(slot, state, session, skips, TakeReturn(slot))) return;
+                if (SkipTabHost(slot, state, session, skips)) return;
+
                 PageIntegrationContext? hook = null;
                 if (deferred.Integration is { } integration)
                 {
@@ -191,37 +203,50 @@ internal sealed class PanoramaMenuRenderer(
                         deferred.Profile.Sidebar?.Icons ?? EmptyIcons,
                         deferred.Profile.Page?.ResolveView(deferred.Context.Menu.Id, null, config.Current.PageViews));
                 }
+                // The cursor's last place on this page tells which way a keyboard move was going.
+                int? cameFrom = deferred.Mode == NavMode.Mouse ? null
+                    : state.Rows is { } drawn && ReferenceEquals(drawn.Session, session) ? drawn.FocusedIndex : -1;
                 var (frame, page) = PageFrame.Build(deferred.Context, core.Menu.Renderers, core.PlayerManager,
-                    translations.For(slot), deferred.Budget, ReportRowRenderError, hook);
+                    translations.For(slot), deferred.Budget, ReportRowRenderError, hook, cameFrom);
+                if (page.Retarget >= 0 && state.MovedOff != (session, session.FocusedIndex))
+                {
+                    state.MovedOff = (session, session.FocusedIndex);
+                    session.SetFocus(page.Retarget);
+                    session.Invalidate();
+                    return;
+                }
+                built = Stopwatch.GetTimestamp();
                 pending = ComposeDeferred(deferred, frame, page, slot);
-                if (SkipRoot(slot, state, session, pending.Rows, returnedTo)) return;
-                if (SkipTabHost(slot, state, session, pending.Rows)) return;
 
                 if (deferred.Profile.ShowAllRows)
                 {
                     var scrollKey = (deferred.Context.Menu, pending.Rows.FirstRow);
-                    var rewind = state.Entity.IsValid && !FrameSnapshotExtensions.RequiresRespawn(state.Shadow, pending)
-                        && state.ScrollKey is { } shown && !shown.Equals(scrollKey);
+                    rewound = state.Entity.IsValid && !FrameSnapshotExtensions.RequiresRespawn(state.Shadow, pending)
+                        && state.ScrollKey is { } onScreen && !onScreen.Equals(scrollKey);
                     state.ScrollKey = scrollKey;
-                    if (rewind)
+                    if (rewound)
                     {
-                        // Panorama keeps a scrolled panel's offset when its content
-                        // changes, so a new list would open mid-scroll. An empty grid
-                        // for a network frame clamps the offset to the top; the
-                        // invalidate brings the real list a tick or two later.
-                        pending = ComposeDeferred(deferred, frame with { Body = [] }, page, slot);
-                        InvalidateSlot(slot);
+                        // Panorama keeps a scrolled panel's offset when its content changes, so a new
+                        // list would open mid-scroll. The layout's rewind class shortens the scroll
+                        // content for a few network frames with the new rows already up, which clamps
+                        // the offset to the top; a layout without one gets an empty list for a tick.
+                        state.RewindClass = deferred.Profile.Classes.Rewind;
+                        if (state.RewindClass.Length > 0) state.RewindTicks = RewindHoldTicks;
+                        else blank = ComposeDeferred(deferred, frame with { Body = [] }, page, slot);
                     }
                 }
                 else
                 {
                     state.ScrollKey = null;
                 }
+                composed = Stopwatch.GetTimestamp();
             }
             else
             {
                 pending = (FrameSnapshot)work;
-                if (SkipRoot(slot, state, session, pending.Rows, returnedTo)) return;
+                // Left in flight by a session that has closed since; the open one's own frame is on its way.
+                if (pending.Rows.Session is { } owner && !ReferenceEquals(owner, session)) return;
+                if (SkipRoot(slot, state, session, pending.Rows, TakeReturn(slot))) return;
                 if (SkipTabHost(slot, state, session, pending.Rows)) return;
                 state.ScrollKey = null;
             }
@@ -248,6 +273,11 @@ internal sealed class PanoramaMenuRenderer(
                 // against an empty shadow or most writes would be skipped.
                 state.Shadow = FrameSnapshot.Empty;
                 state.ClassNames.Clear();
+
+                // And it starts scrolled to the top.
+                state.RewindTicks = 0;
+                blank = null;
+                rewound = false;
             }
 
             if (state.Entity.Value is not { } entity)
@@ -256,31 +286,16 @@ internal sealed class PanoramaMenuRenderer(
                 return;
             }
 
-            var delta = state.Shadow.DiffTo(pending);
-            if (!delta.IsEmpty) entities.Apply(entity, delta);
-            foreach (var write in delta.Classes) state.ClassNames.Add(write.ClassName);
-
-            // Reasserted on every apply while on, not just on change: it is one
-            // native call, and a fresh entity or a client-side reset otherwise
-            // leaves the cursor hidden with nothing left to restore it.
-            if (pending.CaptureInput || state.Shadow.CaptureInput)
-                entities.SetInputCapture(entity, slot, pending.CaptureInput);
-
-            // Advanced even on an empty delta: a Mouse-mode focus move or a
-            // capture-only change writes nothing, and returning early would
-            // leave the click map below describing the previous frame.
-            state.Shadow = pending;
-
-            // Published here, not at compose time, so the map the input bridge
-            // resolves clicks against always describes what is actually on the
-            // player's screen. A map published early would interpret a click
-            // against rows the player cannot see yet.
-            state.Rows = pending.Rows;
+            // While a rewind holds, every frame keeps its class on; an empty list goes up first instead.
+            var shown = blank ?? (state.RewindTicks > 0 ? WithRewind(pending, state.RewindClass) : pending);
+            var delta = Show(state, slot, entity, shown, out var diffed);
+            state.MovedOff = null;
+            state.Settle = blank is null ? null : pending;
+            if ((state.Settle is not null || state.RewindTicks > 0) && !state.RewindQueued) QueueRewind(slot, state);
 
             if (config.Current.DetailedLogging)
-                logger.LogInformation(
-                    "[CustomHUD] applied slot={Slot} menu={Menu} vars={Vars} classes={Classes} layout={Layout}",
-                    slot, pending.Rows.Session?.Menu.Id, delta.Vars.Length, delta.Classes.Length, pending.LayoutPath);
+                LogApply(slot, shown, delta, started, built, composed, diffed,
+                    respawn ? " respawn" : blank is not null ? " rewind-blank" : rewound ? " rewind" : "");
         }
         catch (Exception ex)
         {
@@ -291,6 +306,109 @@ internal sealed class PanoramaMenuRenderer(
             logger.LogError(ex, "[CustomHUD] Apply failed for slot {Slot}.", slot);
         }
     }
+
+    // Game thread. Brings the entity from its shadow to `next`, which is then what it shows.
+    private FrameDelta Show(PlayerRenderState state, int slot, CCSCustomHudLayout entity, FrameSnapshot next, out long diffed)
+    {
+        var delta = state.Shadow.DiffTo(next);
+        diffed = Stopwatch.GetTimestamp();
+        if (!delta.IsEmpty) entities.Apply(entity, delta);
+        foreach (var write in delta.Classes) state.ClassNames.Add(write.ClassName);
+
+        // Reasserted on every apply while on, not just on change: it is one
+        // native call, and a fresh entity or a client-side reset otherwise
+        // leaves the cursor hidden with nothing left to restore it.
+        if (next.CaptureInput || state.Shadow.CaptureInput)
+            entities.SetInputCapture(entity, slot, next.CaptureInput);
+
+        // Advanced even on an empty delta: a Mouse-mode focus move or a
+        // capture-only change writes nothing, and returning early would
+        // leave the click map below describing the previous frame.
+        state.Shadow = next;
+
+        // Published here, not at compose time, so the map the input bridge
+        // resolves clicks against always describes what is actually on the
+        // player's screen. A map published early would interpret a click
+        // against rows the player cannot see yet. A closed session's map is not republished.
+        if (!state.Closing) state.Rows = next.Rows;
+        return delta;
+    }
+
+    // Three network frames: one is enough for the clamp, the others cover a dropped packet. The rows
+    // are drawn throughout, so the hold costs nothing visible but the scrollbar's few ticks of absence.
+    private const int RewindHoldTicks = 3;
+
+    private static FrameSnapshot WithRewind(FrameSnapshot frame, string rewindClass)
+        => frame with { Classes = frame.Classes.Add(new ClassWrite(frame.ShellPanel, rewindClass, true)) };
+
+    private void QueueRewind(int slot, PlayerRenderState state)
+    {
+        try
+        {
+            core.Scheduler.NextTick(() => RewindTick(slot, state));
+            state.RewindQueued = true;
+        }
+        catch (Exception ex)
+        {
+            // A redraw with no hold left settles the rewind in its place.
+            state.RewindTicks = 0;
+            state.Settle = null;
+            logger.LogError(ex, "[CustomHUD] Could not schedule the end of a scroll rewind for slot {Slot}.", slot);
+            RequestRetry(state, slot);
+        }
+    }
+
+    // Game thread. A rewind's end: the frame an empty list stood in for goes up, or once the
+    // hold runs out the rewind class comes off, which writes that one class and nothing else.
+    private void RewindTick(int slot, PlayerRenderState state)
+    {
+        state.RewindQueued = false;
+        if (!_states.TryGetValue(slot, out var current) || !ReferenceEquals(current, state)) return;
+        if (state.Settle is null && --state.RewindTicks > 0)
+        {
+            QueueRewind(slot, state);
+            return;
+        }
+
+        var next = state.Settle;
+        state.Settle = null;
+        state.RewindTicks = 0;
+        if (next is null)
+        {
+            var on = state.Shadow.Classes.IndexOf(new ClassWrite(state.Shadow.ShellPanel, state.RewindClass, true));
+            if (on < 0) return;
+            next = state.Shadow with { Classes = state.Shadow.Classes.RemoveAt(on) };
+        }
+        if (state.Entity.Value is not { } entity) return;
+
+        try
+        {
+            var started = Stopwatch.GetTimestamp();
+            var delta = Show(state, slot, entity, next, out var diffed);
+            if (config.Current.DetailedLogging)
+                LogApply(slot, next, delta, started, started, started, diffed, " rewound");
+        }
+        catch (Exception ex)
+        {
+            RequestRetry(state, slot);
+            logger.LogError(ex, "[CustomHUD] Ending a scroll rewind failed for slot {Slot}.", slot);
+        }
+    }
+
+    // One line per apply: what was written, and the game-thread time each step took (build includes
+    // the integration's Draw; write is the native calls, so write / (vars + classes) prices one).
+    private void LogApply(int slot, FrameSnapshot frame, FrameDelta delta, long started, long built, long composed,
+        long diffed, string what)
+    {
+        var done = Stopwatch.GetTimestamp();
+        logger.LogInformation(
+            "[CustomHUD] applied slot={Slot} menu={Menu} vars={Vars} classes={Classes} layout={Layout} " +
+            "ms build={Build:0.00} compose={Compose:0.00} diff={Diff:0.00} write={Write:0.00} total={Total:0.00}{What}",
+            slot, frame.Rows.Session?.Menu.Id, delta.Vars.Length, delta.Classes.Length, frame.LayoutPath,
+            Ms(started, built), Ms(built, composed), Ms(composed, diffed), Ms(diffed, done), Ms(started, done), what);
+    }
+
+    private static double Ms(long from, long to) => (to - from) * 1000.0 / Stopwatch.Frequency;
 
     // Setting the flag alone is not enough: a static menu may never be
     // invalidated again, so nothing would ever call Render to consume it and
@@ -358,13 +476,60 @@ internal sealed class PanoramaMenuRenderer(
         Memory(slot).Tab = (hostSession.Menu, tab);
     }
 
+    // Game thread. A page the input bridge opened through another it never let draw (a card's slot tile).
+    public void RecordOpener(IMenuSession opened, IMenuComponent row) => integrations.Openers.Record(opened, row);
+
     private NavMemory Memory(int slot) => _memory.GetOrAdd(slot, _ => new NavMemory());
 
     // Game thread. Closing the whole stack passes through the root on its way out.
     public void ForgetReturn(int slot) => _returning.TryRemove(slot, out _);
 
-    // Runs on the game thread when a session closes.
-    public void Clear(IPlayer player) => Drop(player.PlayerID);
+    // Game thread. Taken only once a frame is known to be the open session's, so a frame a closed
+    // child left in flight cannot spend it and let the root reopen the page Back just left.
+    private IMenu? TakeReturn(int slot)
+        => _returning.TryRemove(slot, out var back) && Environment.TickCount64 - back.At < 1000 ? back.Root : null;
+
+    // Runs on the game thread when a session closes. Core's Back calls this and then opens the
+    // parent in the same call, so the entity is kept until the next tick: a session of ours by then
+    // updates it as a diff instead of spawning a whole new layout, and FinishClose drops it otherwise.
+    public void Clear(IPlayer player)
+    {
+        var slot = player.PlayerID;
+        if (_shuttingDown || !_states.TryGetValue(slot, out var state) || !state.Entity.IsValid)
+        {
+            Drop(slot);
+            return;
+        }
+        RecordReturn(slot, state);
+        // What a fresh state would hold; the entity, its shadow and ScrollKey stay for the diff.
+        state.Pending = null;
+        state.Rows = null;
+        state.RootHandled = null;
+        state.TabHandled = null;
+        state.Settle = null;
+        if (state.Closing) return;
+        state.Closing = true;
+        try
+        {
+            core.Scheduler.NextTick(() => FinishClose(slot, state));
+        }
+        catch (Exception ex)
+        {
+            // Nothing else would ever let a kept entity go.
+            logger.LogError(ex, "[CustomHUD] Could not schedule the close for slot {Slot}; dropping now.", slot);
+            Drop(slot);
+        }
+    }
+
+    // Game thread. Input capture stays on while the entity is kept: releasing it for a tick and
+    // taking it back moves the player's cursor. Drop releases it when nothing took the entity over.
+    private void FinishClose(int slot, PlayerRenderState state)
+    {
+        if (!state.Closing || !_states.TryGetValue(slot, out var current) || !ReferenceEquals(current, state)) return;
+        state.Closing = false;
+        if (!_shuttingDown && CurrentSession(slot) is not null) return;
+        Drop(slot);
+    }
 
     // Core does not call Clear when a player disconnects mid-menu, so without
     // this the entity survives with nothing left to despawn it -- and because
@@ -383,11 +548,7 @@ internal sealed class PanoramaMenuRenderer(
     private void Drop(int slot)
     {
         if (!_states.TryRemove(slot, out var state)) return;
-        // Core clears the renderer before reopening the parent, so a page of a
-        // skipped root is recognised here, while its frame is still at hand.
-        if (state.Rows is { SkipsRoot: true, RootMenu: { } root, Session: { } closing }
-            && ReferenceEquals(closing.Menu.Parent, root))
-            _returning[slot] = (root, Environment.TickCount64);
+        RecordReturn(slot, state);
         // Released before the despawn, or the client keeps a cursor with no
         // panel left to aim it at.
         if (state.Shadow.CaptureInput && state.Entity.Value is { } entity)
@@ -401,6 +562,19 @@ internal sealed class PanoramaMenuRenderer(
         // LastComposed is deliberately left alone -- it belongs to the render
         // thread, and the state object is already unreachable from the map, so
         // a later render creates a fresh one rather than reusing this.
+    }
+
+    // Core clears the renderer before reopening the parent, so a page of a
+    // skipped root is recognised here, while its frame is still at hand.
+    private void RecordReturn(int slot, PlayerRenderState state)
+    {
+        if (state.Rows is { SkipsRoot: true, RootMenu: { } root, Session: { } closing }
+            && ReferenceEquals(closing.Menu.Parent, root))
+            _returning[slot] = (root, Environment.TickCount64);
+        // A session that closes before drawing a frame is the root Back opened, so its return is spent;
+        // left in place, it would close the same root opened afresh within the second.
+        else if (state.Rows is null)
+            _returning.TryRemove(slot, out _);
     }
 
     // Game thread. A session belonging to another renderer means a menu we are

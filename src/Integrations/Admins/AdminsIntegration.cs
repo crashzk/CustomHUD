@@ -283,15 +283,15 @@ internal sealed partial class AdminsIntegration(
     private IPlayer? Live(PageDraw page, AdminPlayerRow row)
         => row.SessionId == 0 ? null : Listed(page).FirstOrDefault(p => p.SessionId == row.SessionId);
 
-    private sealed record Facts(Team Team, int Kills, int Deaths, uint Ping, bool Bot);
+    private sealed record Facts(Team Team, int Kills, int Deaths, bool Bot);
 
     private static Facts FactsOf(IPlayer player)
     {
         var controller = player.Controller;
-        if (controller is not { IsValid: true }) return new(Team.None, 0, 0, 0, player.IsFakeClient);
+        if (controller is not { IsValid: true }) return new(Team.None, 0, 0, player.IsFakeClient);
         var tracking = controller.ActionTrackingServices;
         var stats = tracking is { IsValid: true } ? tracking.MatchStats : null;
-        return new((Team)controller.TeamNum, stats?.Kills ?? 0, stats?.Deaths ?? 0, controller.Ping, player.IsFakeClient);
+        return new((Team)controller.TeamNum, stats?.Kills ?? 0, stats?.Deaths ?? 0, player.IsFakeClient);
     }
 
     private static string? TeamTag(PageDraw page, Team team) => team switch
@@ -308,8 +308,6 @@ internal sealed partial class AdminsIntegration(
         Team.T => "t",
         _ => "dark",
     };
-
-    private static string PingGlyph(uint ping) => ping < 40 ? "ping-4" : ping < 70 ? "ping-3" : ping < 110 ? "ping-2" : "ping-1";
 
     private string? Status(PageDraw page, IPlayer player, bool full)
     {

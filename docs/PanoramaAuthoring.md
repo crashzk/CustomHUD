@@ -64,6 +64,23 @@ and the descriptions.
 validation authoritative rather than a hand-maintained whitelist. It is
 `developmentonly`, so it may not run on a retail client.
 
+## What a HUD layout may contain
+
+The client checks a custom HUD layout against an allowlist, disassembled from
+`client.dll`; every layout here keeps to it:
+
+| Element | Attributes |
+|---|---|
+| `Panel` | `id`, `class`, `hittest` |
+| `Label` | `id`, `class`, `hittest`, `text` |
+| `Image` | `id`, `class`, `hittest`, `src`, `languages` |
+| `Button` | `id`, `class` |
+
+plus `root`, `styles` and `include`. The only resource a layout may reference
+is a `.vcss`, so an `Image` cannot point its `src` at a texture and a panel
+takes no inline `style`. A picture is a `background-image` in a sheet, switched
+on by a class (see [Images](#images)). A `Button` takes no `hittest`.
+
 ## There is no layout hot-reload command
 
 Searched the live CS2 convar surface: `panorama_reload`, `panorama_reload_css`,
@@ -108,7 +125,8 @@ images follow the same Valve convention.
    compile the script copies that `_c` into the client tree. The script compiles
    everything once, then recompiles each file you save. `-Once` builds and
    exits with a non-zero code on any failure, so use it as the pre-publish
-   check. `-SkipClient` leaves the client tree alone, and `-ClientRoot <path>`
+   check. `-Once -Changed` compiles only the files that changed since their
+   last compile. `-SkipClient` leaves the client tree alone, and `-ClientRoot <path>`
    points the copy somewhere else.
 3. **Launch with the addon mounted.**
    `cs2.exe -addon customhud -tools -insecure +sv_lan 1 +map de_dust2`.
@@ -147,6 +165,11 @@ level at once; the locker's is `nav_close`, `×`, at the footer's right. With a
 Close button the renderer hides Back where it has nowhere to go: on a root, and
 on the first level under a sidebar root it skips. The locker overrides
 `.chud-nav` inside `.ws-locker` to a nav item's 34px height.
+`menu_skins_mouse_v2` has no footer: its `nav_back` and `nav_close` sit in a
+content bar at the top, Back holding `{s:crumb}` (`Variables.CrumbPanel` /
+`CrumbVar`, the title of the page it returns to) and the bar `{s:info}`
+(`InfoPanel` / `InfoVar`, the header's chips on one line). It still declares a
+collapsed `footer` Label, for the hint every row layout writes.
 The page counter is a Label, `page` by default (`Variables.PagePanel` /
 `PageVar`), with `text="{s:page}"` and starting `hidden`. The renderer writes
 `Variables.PageFormat` (`"{0} / {1}"`) and reveals it only while a menu has more
@@ -254,11 +277,13 @@ custom HUD does, but lay their lines out explicitly:
   child to the next line when the line was exactly full, which is what a
   column grid is: the WeaponSkins locker drew four cards and a gap instead of
   five. A line panel never wraps, and its default `overflow: squish` absorbs
-  the rounding. `menu_locker` is the exception, with its own rule: see
-  [Page layouts](#page-layouts).
+  the rounding. `menu_locker` and `menu_skins_mouse_v2` are the exceptions,
+  with one rule: see [Page layouts](#page-layouts). The second keeps its five
+  tiles 14px short of the line, because its categories view rearranges the
+  first three, which fixed line panels could not do.
 * Keep line panels bare — no margin, padding or height. A bare line whose rows
-  are all hidden measures zero, which the height ladders and the scroll rewind
-  below rely on.
+  are all hidden measures zero, which the height ladders and the empty-grid
+  rewind below rely on.
 * Leave a gutter beside the rows and style `.chud-scroll VerticalScrollBar`
   with `layout-position: fixed`, which keeps the bar in place while the content
   scrolls (see `menu_mouse.vcss`).
@@ -267,32 +292,51 @@ custom HUD does, but lay their lines out explicitly:
   the last visible one is full. It only writes the classes a row actually has;
   a free row receives `hidden` and nothing else, so its text is never written
   and its placeholder never shown.
-* Panorama keeps a scrolled panel's offset when its content changes, so when a
-  different menu or chunk replaces the list the renderer sends one empty grid
-  first, then the new rows.
+* Panorama keeps a scrolled panel's offset when its content changes. When a
+  different menu or chunk replaces the list, the renderer writes the new rows
+  with the profile's `Classes.Rewind` class on the shell for three ticks, then
+  takes it off in a one-write apply. Style it to shorten the scroll panel's
+  content box while its rows still draw, so the offset clamps to the top with
+  nothing visibly missing: the built-in layouts give the items container
+  `height: 1px; overflow: squish noclip` under `chud-rewind`, or the panel's
+  own `max-height` where the panel fits its content (`.ls-mouse`, `maps-rows`),
+  so the panel keeps its height. With `Rewind` empty the renderer sends one
+  empty grid for a tick instead, from the same build.
 * A layout with no footer paging sets `PageTiles`: past `RowSlots` rows, the
   renderer keeps the first and last slot of each chunk for a `«` / `»` card
   (label = the arrow, value = the target page, class `Classes.PageTile`,
   `page-tile`) that turns the page when clicked.
 
-`menu_locker` cannot give its scroll panels a fixed height, because the
-regions around them come and go per view. Its list and detail pane get a
-definite height another way:
+`menu_locker`'s regions around its list come and go per view, so its list box
+has a pixel height only while the list owns its column:
 
-* Each scroll panel (`#options.lk-list`, `.lk-detail__body`) is `height: 100%`
-  of a box (`.lk-listbox`, `.lk-detail__box`) that takes the leftover height
-  with `fill-parent-flow`. A view that sizes the list or the pane itself sizes
-  the box as well: `fit-children` (`mix-ballot`, `maps-rtv`, `vip-grant`), or
-  the list's own size in a column with no flow (`shop-product`).
+* `#options.lk-list` is `height: 100%` of `.lk-listbox`, which is 576px (the
+  page) or 534px under the tabs (`has-tabs`). A band sharing the column
+  (`has-strip`, `has-banner`, `has-head`, `has-foot`) or a view that pads it
+  (`maps-rtv`, `admins-votes`, `mix-control`) puts the box back on
+  `fill-parent-flow`. A view that sizes the list itself sizes the box as
+  well: `fit-children` (`mix-ballot`, `maps-rows`), or the list's own size in a
+  column with no flow (`shop-product`).
+* The detail pane is still `height: 100%` of a box that takes the leftover
+  height (`.lk-detail__body` in `.lk-detail__box`), or `fit-children` where a
+  view sizes it (`maps-rtv`, `vip-grant`). `vip-grant` caps both at
+  `max-height: 488px`, the page less its 88px bar, so the bar under the form
+  always fits: a form that outgrew the page squished Grant to a strip. Past
+  nine groups, where the form always outgrows it, its `variant-scroll` makes
+  the cap a pixel height.
 * Both are `overflow: squish scroll`. Their items are `width: 100%`, which
   under `clip` keeps the padding and runs over the scrollbar in the gutter.
 * The boxes and the items containers are `hittest="false"`, so nothing but
   the scrollbar sits under the cursor in the gutter.
 
-The locker's list scrolled with neither the wheel nor its thumb while it was
-`fill-parent-flow` itself and `clip scroll`. This layout has not yet been
-checked in game; if it still doesn't scroll, inspect `#options` with the F6
-debugger before changing it again.
+A list whose height came from `fill-parent-flow` showed a scrollbar that
+neither the wheel nor its thumb moved in game, both as `fill-parent-flow`
+itself and as `height: 100%` of a filling box (Start a vote, Shop). Every
+panel seen scrolling in game has a pixel height: the WeaponSkins grids and
+the tile grid. A view that keeps a filling box keeps that risk; give it a
+pixel height before it has to scroll. A `max-height` cap (`maps-rows`,
+`vip-grant`) has not been seen scrolling either: it reliably keeps what
+follows on the page, but keep the content under the cap where you can.
 
 ### Row meters
 
@@ -355,14 +399,30 @@ declare them widest first:
 Give a value row's label a fixed width and its box `fill-parent-flow`, or the
 boxes start wherever each label ends.
 
+`menu_skins_mouse_v2.vxml` declares the same card under `sk-` classes and is
+generated by `scripts/generate-skins-layout.ps1`, whose counts must match
+`MenuLayoutProfile.WeaponSkinsLockerV2()`: rerun it after changing one, then
+`watch-panorama.ps1`. Each of its fields also declares `Card.SlotTiles` slot
+tiles: Button `field_N_slotK` (`Card.SlotSuffix`), holding a picture panel
+`field_N_slotK_thumb` (`Card.SlotThumbSuffix`) for the `econ-*` class and a
+Label reading `{s:field_N_slotK}`, the slot's name. The composer sets
+`Card.SlotsClass` (`has-slots`) on a field whose row has slots, and `hidden` and
+`has-thumb` on each tile; keep the tiles outside the field's `_hit` Button, as
+the track's segments are, so a click lands on the tile. While `has-slots` is
+set the v2 sheet collapses the field's row, its `_hit` and `_aside` Buttons
+included, and shows a heading Label reading `{s:field_N}` instead, so the tiles
+are the field's only click targets.
+
 ### Page layouts
 
-`menu_locker.vxml` is generated. `scripts/generate-locker-layout.ps1` writes it
-from a region table that must match `LockerProfiles.Regions`, `MainSlots` and
-`MainParts`: a slot the layout draws but the profile doesn't name never fills,
-and one the profile names but the layout lacks shows its `{s:…}` placeholder.
-After changing a count or a part, rerun the generator, then
-`watch-panorama.ps1`. `locker_art.vcss` comes from
+`menu_locker.vxml` and `menu_locker_v2.vxml` are generated.
+`scripts/generate-locker-layout.ps1` writes both from a region table that must
+match `LockerProfiles.Regions`, `MainSlots`, `MainActs` and `MainParts`: a slot the layout
+draws but the profile doesn't name never fills, and one the profile names but
+the layout lacks shows its `{s:…}` placeholder. The two files share the page
+(the `Page` function) and differ only in the frame round it, so a change to
+the anatomy reaches both. After changing a count or a part, rerun the
+generator, then `watch-panorama.ps1`. `locker_art.vcss` comes from
 `scripts/generate-locker-art.ps1` (`-Source2Viewer <cli>` or `-Listing <file>`,
 as for econ thumbnails): map screenshots and logos, skill-group and Wingman
 emblems from the game, the replacement rank icon sets in its `$CustomIconSets`
@@ -375,8 +435,8 @@ stylesheet has a class for.
 
 A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 
-* Scope every rule by `.lk.view-<name>`, and add the name to the `PageViews`
-  list in `config.example.jsonc` so operators can find it.
+* Scope every rule by `.lk.view-<name>`, and add the name to the Views table on
+  the wiki's Supported Plugins page so operators can find it.
 * Draw surfaces with the shared [looks](DesignLanguage.md#looks), never a
   colour of your own: add the view's selector to the look's list in
   `locker.vcss` (or `menu_mouse.vcss` for the tile, the eyebrow and the
@@ -400,6 +460,10 @@ A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 * The `_icon` panel (`.lk-rarity`) is a full-size layer under every other part:
   draw a card's background, box or glow on it. Foot slots have none; use
   `.lk-shade` there.
+* A main-list row's `act=` buttons sit in `.lk-acts`, a `hittest="false"` strip
+  over the right end of its hit, so a click between them still selects the
+  row. A view that puts anything at the row's right end leaves room for them:
+  `maps-cycle` keeps its tags 140px from the edge.
 * A pip carries the lit colour, so a view or `metertone=` recolours lit pips
   with one rule; `pips-N` collapses the pips past N, and `lit-K` greys the
   unlit ones at a weight no tone rule reaches.
@@ -416,10 +480,11 @@ A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 `menu_list.vxml` (Wasd, Buttons, Numbers) and `menu_list_mouse.vxml` (Mouse)
 are generated too, with `menu_list_skins.vxml`: the keyboard file plus
 `econ_stickers.vcss`, for WeaponSkins. `scripts/generate-list-layout.ps1`
-writes them from `ListProfiles.KeySlots`, `MouseSlots` and `Segments` and the
-row anatomy that `ListProfiles.Row` names part by part. As with the locker, a
-part one side draws and the other doesn't name either never fills or shows its
-placeholder, so rerun the generator after changing either.
+writes them, and their `_v2` files, from `ListProfiles.KeySlots`, `MouseSlots`
+and `Segments` and the row anatomy that `ListProfiles.Row` names part by part.
+As with the locker, a part one side draws and the other doesn't name either
+never fills or shows its placeholder, so rerun the generator after changing
+either.
 
 * The rows reuse the locker's part classes and load `locker.vcss` before
   `list.vcss`, so the list only places what the locker already styles. Those
@@ -450,6 +515,49 @@ placeholder, so rerun the generator after changing either.
   its track, segment S setting `S / (Segments - 1)` of the range. Reserve
   room for it with the Button's `padding-right` (214px for a slider, 104px
   for a selector), or the name runs under the control.
+
+### The v2 sheet copies
+
+The `v2` layouts (the `_v2` names, the defaults) read copies of the shared sheets
+in `styles/custom_game/customhud/v2/`, which `scripts/generate-v2-sheets.ps1`
+writes with the first design's palette renamed to the store tokens. A
+`@define` is replaced as text when a sheet compiles, so the same rule cannot
+draw in two palettes from one file.
+
+* Edit `menu.vcss`, `menu_mouse.vcss`, `locker.vcss`, `locker_<plugin>.vcss`,
+  `list.vcss`, `hud_text.vcss` and `hud_alert.vcss`, then rerun
+  `generate-v2-sheets.ps1`. Never edit a copy.
+* A token the map renames needs its store twin in `customhud_tokens.vcss`;
+  the script fails, naming the sheet, when a copy uses a token that is not
+  defined.
+* Draw what the store look draws differently (a frame, a word's colour, the
+  green of an equipped item) in `menu_locker_v2.vcss`, `menu_list_v2.vcss`,
+  `hud_text_v2.vcss` or `hud_alert_v2.vcss`, which come last, scoped by `.lk2`,
+  `.ls2`, `.chud-toast2` or `.chud-alert2`.
+
+### Checking a change
+
+`pwsh -File scripts/audit.ps1` checks what neither CS2 nor `resourcecompiler`
+reports. It then publishes the plugin as CI does and compiles the changed
+Panorama files. `-Quick` stops after the static checks, a few seconds. A pass
+writes `build/audit/receipt.json`.
+
+* **Sheets:** every property against `scripts/panorama-properties.txt`;
+  selectors, pseudo-classes, `calc()`, `var()`, `hsl()` and at-rules; the
+  [stylesheet rules](DesignLanguage.md#stylesheet-rules); and every width
+  budget written in a comment as `3 x 146 + 2 x 6 = 450 of the list's 452`.
+* **Layouts:** the [allowlist](#what-a-hud-layout-may-contain), includes,
+  tokens first, unique ids and image sources.
+* **Generated files:** the `v2/` copies and the generated layouts are
+  regenerated into a scratch folder and compared byte for byte.
+* **C# and strings:** every `glyph=` against an `ico-` class, every literal
+  translation key against `en.jsonc`, English–Lithuanian parity, and `{N}`
+  placeholders.
+
+Run it, and every script in `scripts/`, with PowerShell 7. Windows PowerShell
+5.1 reads these BOM-less scripts as ANSI, so the list generator writes `â€º`
+where the layout needs `›`. After a CS2 update, refresh the property list from
+`dump_panorama_css_properties`.
 
 ### Before publishing
 
@@ -523,9 +631,9 @@ on a panel inside it.
 
 An unrecognised property is **dropped with no error and no warning** — the rule
 simply does nothing. Every web reflex in the "Not supported" row above fails
-exactly this way. That is why a property allow-list is worth having in a
-pre-compile validator, and why `dump_panorama_css_properties` is the right
-source for it.
+exactly this way. `scripts/audit.ps1` therefore checks every property against
+`scripts/panorama-properties.txt`, a list to refresh from
+`dump_panorama_css_properties`.
 
 A selector the parser cannot read is the opposite: it loses the **whole
 sheet**. The game shows an "Error parsing layout and style files" dialog naming

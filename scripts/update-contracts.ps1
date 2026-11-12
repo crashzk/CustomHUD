@@ -5,8 +5,10 @@
 #
 # Run after a provider's contract changes. Providers are expected next to this repository:
 #   ..\Ranks, ..\WeaponSkins, ..\ShopCore, ..\MapChooser, ..\VIPCore, ..\Admins
+# MixScrims is rebuilt only when -MixScrims names the root of its repository.
 param(
-    [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [string]$MixScrims
 )
 
 $ErrorActionPreference = 'Stop'
@@ -23,9 +25,14 @@ $contracts = @(
     @{ Project = 'VIPCore\VIPCore.Contract\VIPCore.Contract.csproj'; License = 'VIPCore\LICENSE.MIT' },
     @{ Project = 'Admins\Admins.Contract\Admins.Contract.csproj'; License = 'Admins\LICENSE' }
 )
+if ($MixScrims) {
+    $mix = (Resolve-Path $MixScrims).Path
+    $contracts += @{ Project = (Join-Path $mix 'MixScrims.Contract\MixScrims.Contract.csproj'); License = (Join-Path $mix 'LICENSE') }
+}
 
 foreach ($contract in $contracts) {
-    $project = Join-Path $Root $contract.Project
+    # Combine keeps a rooted path (-MixScrims) as it is.
+    $project = [IO.Path]::Combine($Root, $contract.Project)
     if (-not (Test-Path $project)) {
         Write-Warning "Skipped: $($contract.Project) not found."
         continue
@@ -38,7 +45,7 @@ foreach ($contract in $contracts) {
     Copy-Item $target $lib -Force
     $name = [IO.Path]::GetFileNameWithoutExtension($target)
 
-    $license = Join-Path $Root $contract.License
+    $license = [IO.Path]::Combine($Root, $contract.License)
     if (Test-Path $license) { Copy-Item $license (Join-Path $lib "$name.LICENSE.txt") -Force }
 
     Write-Host "lib/$name.dll <- $($contract.Project)"

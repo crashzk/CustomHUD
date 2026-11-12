@@ -1,0 +1,41 @@
+/* hud_alert_v2: hud_alert in CS2's store look, over v2/hud_alert.vcss. Only the frame differs: a hairline round
+   the navy, and the kind's edges on a panel inside it: a panel draws one border colour. */
+
+/* With the kinds the copy edges on the shell, so none of them widens or recolours the hairline. */
+.chud-alert.chud-alert2,
+.chud-alert.chud-alert2.kind-chatendofround,
+.chud-alert.chud-alert2.kind-alert
+{
+	padding: 0px;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 100% 100%, from( chudStoreRaised ), to( chudStoreDeep ) );
+}
+
+.chud-alert2__body
+{
+	padding: 12px 28px 12px 28px;
+	border-top: 2px solid chudNavBase;
+	border-bottom: 2px solid chudNavBase;
+}
+
+.chud-alert2.kind-chatendofround .chud-alert2__body
+{
+	border-top: 2px solid chudGoldBase;
+	border-bottom: 2px solid chudGoldBase;
+}
+
+.chud-alert2.kind-alert .chud-alert2__body
+{
+	border-top: 2px solid chudDangerBase;
+	border-bottom: 2px solid chudDangerBase;
+}
+
+/* 1 + 28 + 842 + 28 + 1 = 900, the band's max-width. */
+.chud-alert2 .chud-alert__text
+{
+	max-width: 842px;
+}

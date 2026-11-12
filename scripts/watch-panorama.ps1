@@ -51,9 +51,14 @@
 .PARAMETER Once
     Sync and compile everything once and exit (exit code 1 on any failure).
 
+.PARAMETER Changed
+    Compile only the sources that changed since their last compile: the addon's copy differs,
+    or the compiled file is missing or older than the source. scripts/audit.ps1 runs it this way.
+
 .EXAMPLE
     .\scripts\watch-panorama.ps1
     .\scripts\watch-panorama.ps1 -Once
+    .\scripts\watch-panorama.ps1 -Once -Changed
     .\scripts\watch-panorama.ps1 -SkipClient
     .\scripts\watch-panorama.ps1 -PublishedId 1234567890
 #>
@@ -65,7 +70,8 @@ param(
     [string] $PublishedId = $null,
     [string] $ClientRoot  = $null,
     [switch] $SkipClient,
-    [switch] $Once
+    [switch] $Once,
+    [switch] $Changed
 )
 
 $ErrorActionPreference = 'Stop'
@@ -227,9 +233,24 @@ function Invoke-Sync([string] $File) {
     return $true
 }
 
+function Test-Stale([IO.FileInfo] $File) {
+    $rel      = Get-RelativePath $File.FullName
+    $copy     = Join-Path $contentRoot $rel
+    $compiled = Join-Path $gameRoot (Get-CompiledRel $rel)
+    if (-not (Test-Path -LiteralPath $copy) -or -not (Test-Path -LiteralPath $compiled)) { return $true }
+    if (-not $SkipClient -and -not (Test-Path -LiteralPath (Join-Path $ClientRoot (Get-CompiledRel $rel)))) { return $true }
+    # A failed compile leaves the copy current but the compiled file older than the source.
+    if ((Get-Item -LiteralPath $compiled).LastWriteTimeUtc -lt $File.LastWriteTimeUtc) { return $true }
+    return (Get-FileHash -LiteralPath $File.FullName).Hash -ne (Get-FileHash -LiteralPath $copy).Hash
+}
+
 function Invoke-SyncAll {
     $files = @(Get-SourceFiles)
-    if (-not $files) { Write-Host 'nothing to compile.' -ForegroundColor Yellow; return 0 }
+    if ($Changed) { $files = @($files | Where-Object { Test-Stale $_ }) }
+    if (-not $files) {
+        if ($Changed) { Write-Host 'nothing changed.' -ForegroundColor Green } else { Write-Host 'nothing to compile.' -ForegroundColor Yellow }
+        return 0
+    }
 
     $failed = 0
     foreach ($f in $files) { if (-not (Invoke-Sync $f.FullName)) { $failed++ } }

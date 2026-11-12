@@ -1,14 +1,15 @@
 namespace CustomHUD.Config;
 
-// The profiles behind menu_locker.vxml, one per plugin it is built in for. All
-// share one layout and differ only in sidebar icons, view rules and a few page
-// options, so a plugin without a rule of its own can point at Generic().
-// scripts/generate-locker-layout.ps1 declares exactly these panels.
+// The profiles behind menu_locker_v2.vxml (and menu_locker.vxml, the first design), one per plugin
+// it is built in for. All share one layout and differ only in sidebar icons, view rules and a few
+// page options, so a plugin without a rule of its own can point at Generic().
+// scripts/generate-locker-layout.ps1 declares exactly these panels, in both files.
 public static class LockerProfiles
 {
-    public const string File = "menu_locker.vxml_c";
+    public const string File = "menu_locker_v2.vxml_c";
     public const int MainSlots = 48;
-    public const string MainParts = "icon thumb logo mark swatch glyph rating tags tagglyph note value vunit switch chev meter meter2 inline";
+    public const int MainActs = 3;
+    public const string MainParts = "icon thumb logo mark swatch glyph rating tags tagglyph note value vunit switch chev meter meter2 inline acts";
 
     // Name, slot count, and the parts its slots carry; generate-locker-layout.ps1 holds the same table.
     public static readonly (string Name, int Slots, string Parts)[] Regions =
@@ -61,6 +62,8 @@ public static class LockerProfiles
             ValueUnitVar = has.Contains("value") ? If("vunit", "{0}_vunit") : null,
             RatingVar = If("rating", "{0}_rating"),
             RatingMinorVar = If("rating", "{0}_rating_minor"),
+            ActSuffix = has.Contains("acts") ? "_act" : null,
+            ActSlots = has.Contains("acts") ? MainActs : 0,
         };
     }
 
@@ -78,6 +81,7 @@ public static class LockerProfiles
         },
         Variables = new() { PagePanel = "page", PageVar = "page" },
         Row = Row("option_", MainParts),
+        Classes = new() { Rewind = MenuLayoutProfile.BuiltInRewind },
         Sidebar = new() { Slots = 12, RootButton = "", AutoOpen = 0, CountVar = "category_count" },
         Page = new()
         {
@@ -98,8 +102,12 @@ public static class LockerProfiles
     // the English labels, and an item without art takes its category's icon.
     public static MenuLayoutProfile Shop() => With(Generic(), "shop", new()
     {
+        ["shopcore.buy.categories"] = "shop-categories",
+        ["shopcore.buy.subcategories"] = "shop-categories",
         ["shopcore.buy.items"] = "shop-grid",
         ["shopcore.buy.item"] = "shop-product",
+        ["shopcore.inventory.categories"] = "shop-categories",
+        ["shopcore.inventory.subcategories"] = "shop-categories",
         ["shopcore.inventory.*"] = "shop-inventory",
     }, new()
     {
@@ -128,6 +136,7 @@ public static class LockerProfiles
             ["mapchooser.admin-change-map"] = "maps-pool",
             ["mapchooser.set-next-map"] = "maps-pool",
             ["mapchooser.rtv"] = "maps-rtv",
+            ["mapchooser.cycle"] = "maps-cycle",
         }, new()
         {
             ["mapchooser.eof-vote"] = "vote", ["mapchooser.nominate"] = "add", ["mapchooser.rtv"] = "map-vote",
@@ -178,6 +187,8 @@ public static class LockerProfiles
         ["vipcore.gun-menu*"] = "vip-guns",
         ["vipcore.users*"] = "vip-users",
         ["vipcore.grant"] = "vip-grant",
+        // Grant VIP's later steps: a group, a length or a scope a card each, as perks are.
+        ["vipcore.grant.*"] = "vip-perks",
     }, new()
     {
         ["vipcore.perks"] = "star", ["vipcore.customize"] = "sliders", ["vipcore.gun-menu"] = "guns",
@@ -245,6 +256,9 @@ public static class LockerProfiles
             ["mixscrims.surrender-vote"] = "mix-ballot",
             ["mixscrims.vote-kick"] = "mix-ballot",
             ["mixscrims.control*"] = "mix-control",
+            // The panel's Change map and Map pool, every configured map as a card.
+            ["mixscrims.change-map"] = "maps-pool",
+            ["mixscrims.map-pool"] = "maps-pool",
             ["mixscrims.map-vote"] = "maps-board",
         }, new());
         profile.Sidebar = null;

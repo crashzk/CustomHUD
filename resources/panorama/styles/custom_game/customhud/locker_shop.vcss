@@ -4,6 +4,268 @@
 	own icon, shown where an item without a picture would show its art.
 */
 
+/* ---- shop-categories: a category as a tile, the way the WeaponSkins locker draws its own ---- */
+
+/* Three to a line, 3 x (286 + 6) = 876 of the list's 882. Fewer categories get taller tiles, so one
+   line of them, or two, fills the page rather than leaving a strip above an empty one. */
+.lk.view-shop-categories .lk-slot
+{
+	width: 286px;
+	height: 168px;
+	margin: 0px 6px 8px 0px;
+}
+
+.lk.view-shop-categories .hk-rows-1 .lk-slot,
+.lk.view-shop-categories .hk-rows-2 .lk-slot,
+.lk.view-shop-categories .hk-rows-3 .lk-slot
+{
+	height: 320px;
+}
+
+.lk.view-shop-categories .hk-rows-4 .lk-slot,
+.lk.view-shop-categories .hk-rows-5 .lk-slot,
+.lk.view-shop-categories .hk-rows-6 .lk-slot
+{
+	height: 256px;
+}
+
+/* The last line closes square: two left over share it, one left over makes the last two lines pairs. */
+.lk.view-shop-categories .hk-rows-1 #option_0 { width: 870px; }
+.lk.view-shop-categories .hk-rows-2 #option_0, .lk.view-shop-categories .hk-rows-2 #option_1 { width: 432px; }
+.lk.view-shop-categories .hk-rows-4 #option_0, .lk.view-shop-categories .hk-rows-4 #option_1, .lk.view-shop-categories .hk-rows-4 #option_2, .lk.view-shop-categories .hk-rows-4 #option_3 { width: 432px; }
+.lk.view-shop-categories .hk-rows-5 #option_3, .lk.view-shop-categories .hk-rows-5 #option_4 { width: 432px; }
+.lk.view-shop-categories .hk-rows-7 #option_3, .lk.view-shop-categories .hk-rows-7 #option_4, .lk.view-shop-categories .hk-rows-7 #option_5, .lk.view-shop-categories .hk-rows-7 #option_6 { width: 432px; }
+.lk.view-shop-categories .hk-rows-8 #option_6, .lk.view-shop-categories .hk-rows-8 #option_7 { width: 432px; }
+.lk.view-shop-categories .hk-rows-10 #option_6, .lk.view-shop-categories .hk-rows-10 #option_7, .lk.view-shop-categories .hk-rows-10 #option_8, .lk.view-shop-categories .hk-rows-10 #option_9 { width: 432px; }
+.lk.view-shop-categories .hk-rows-11 #option_9, .lk.view-shop-categories .hk-rows-11 #option_10 { width: 432px; }
+.lk.view-shop-categories .hk-rows-13 #option_9, .lk.view-shop-categories .hk-rows-13 #option_10, .lk.view-shop-categories .hk-rows-13 #option_11, .lk.view-shop-categories .hk-rows-13 #option_12 { width: 432px; }
+.lk.view-shop-categories .hk-rows-14 #option_12, .lk.view-shop-categories .hk-rows-14 #option_13 { width: 432px; }
+.lk.view-shop-categories .hk-rows-16 #option_12, .lk.view-shop-categories .hk-rows-16 #option_13, .lk.view-shop-categories .hk-rows-16 #option_14, .lk.view-shop-categories .hk-rows-16 #option_15 { width: 432px; }
+.lk.view-shop-categories .hk-rows-17 #option_15, .lk.view-shop-categories .hk-rows-17 #option_16 { width: 432px; }
+.lk.view-shop-categories .hk-rows-19 #option_15, .lk.view-shop-categories .hk-rows-19 #option_16, .lk.view-shop-categories .hk-rows-19 #option_17, .lk.view-shop-categories .hk-rows-19 #option_18 { width: 432px; }
+.lk.view-shop-categories .hk-rows-20 #option_18, .lk.view-shop-categories .hk-rows-20 #option_19 { width: 432px; }
+.lk.view-shop-categories .hk-rows-22 #option_18, .lk.view-shop-categories .hk-rows-22 #option_19, .lk.view-shop-categories .hk-rows-22 #option_20, .lk.view-shop-categories .hk-rows-22 #option_21 { width: 432px; }
+.lk.view-shop-categories .hk-rows-23 #option_21, .lk.view-shop-categories .hk-rows-23 #option_22 { width: 432px; }
+.lk.view-shop-categories .hk-rows-25 #option_21, .lk.view-shop-categories .hk-rows-25 #option_22, .lk.view-shop-categories .hk-rows-25 #option_23, .lk.view-shop-categories .hk-rows-25 #option_24 { width: 432px; }
+.lk.view-shop-categories .hk-rows-26 #option_24, .lk.view-shop-categories .hk-rows-26 #option_25 { width: 432px; }
+.lk.view-shop-categories .hk-rows-28 #option_24, .lk.view-shop-categories .hk-rows-28 #option_25, .lk.view-shop-categories .hk-rows-28 #option_26, .lk.view-shop-categories .hk-rows-28 #option_27 { width: 432px; }
+.lk.view-shop-categories .hk-rows-29 #option_27, .lk.view-shop-categories .hk-rows-29 #option_28 { width: 432px; }
+.lk.view-shop-categories .hk-rows-31 #option_27, .lk.view-shop-categories .hk-rows-31 #option_28, .lk.view-shop-categories .hk-rows-31 #option_29, .lk.view-shop-categories .hk-rows-31 #option_30 { width: 432px; }
+.lk.view-shop-categories .hk-rows-32 #option_30, .lk.view-shop-categories .hk-rows-32 #option_31 { width: 432px; }
+.lk.view-shop-categories .hk-rows-34 #option_30, .lk.view-shop-categories .hk-rows-34 #option_31, .lk.view-shop-categories .hk-rows-34 #option_32, .lk.view-shop-categories .hk-rows-34 #option_33 { width: 432px; }
+.lk.view-shop-categories .hk-rows-35 #option_33, .lk.view-shop-categories .hk-rows-35 #option_34 { width: 432px; }
+.lk.view-shop-categories .hk-rows-37 #option_33, .lk.view-shop-categories .hk-rows-37 #option_34, .lk.view-shop-categories .hk-rows-37 #option_35, .lk.view-shop-categories .hk-rows-37 #option_36 { width: 432px; }
+.lk.view-shop-categories .hk-rows-38 #option_36, .lk.view-shop-categories .hk-rows-38 #option_37 { width: 432px; }
+.lk.view-shop-categories .hk-rows-40 #option_36, .lk.view-shop-categories .hk-rows-40 #option_37, .lk.view-shop-categories .hk-rows-40 #option_38, .lk.view-shop-categories .hk-rows-40 #option_39 { width: 432px; }
+.lk.view-shop-categories .hk-rows-41 #option_39, .lk.view-shop-categories .hk-rows-41 #option_40 { width: 432px; }
+.lk.view-shop-categories .hk-rows-43 #option_39, .lk.view-shop-categories .hk-rows-43 #option_40, .lk.view-shop-categories .hk-rows-43 #option_41, .lk.view-shop-categories .hk-rows-43 #option_42 { width: 432px; }
+.lk.view-shop-categories .hk-rows-44 #option_42, .lk.view-shop-categories .hk-rows-44 #option_43 { width: 432px; }
+.lk.view-shop-categories .hk-rows-46 #option_42, .lk.view-shop-categories .hk-rows-46 #option_43, .lk.view-shop-categories .hk-rows-46 #option_44, .lk.view-shop-categories .hk-rows-46 #option_45 { width: 432px; }
+.lk.view-shop-categories .hk-rows-47 #option_45, .lk.view-shop-categories .hk-rows-47 #option_46 { width: 432px; }
+
+/* The tile cuts its art and mark at its edges. The rarity layer, under the art, lights it from behind and
+   warms to the accent under the pointer; the shade, over it, rises from the foot so the words stay legible. */
+.lk.view-shop-categories .lk-hit
+{
+	overflow: clip clip;
+}
+
+.lk.view-shop-categories .lk-rarity,
+.lk.view-shop-categories .lk-rarity.hidden
+{
+	background-color: gradient( radial, 74% 44%, 0% 0%, 48% 64%, from( chudGlassSoft ), to( chudShadowFade ) );
+	visibility: visible;
+}
+
+.lk.view-shop-categories .lk-hit:hover .lk-rarity
+{
+	background-color: gradient( radial, 74% 44%, 0% 0%, 48% 64%, from( chudAccentSoft ), to( chudAccentFade ) );
+}
+
+.lk.view-shop-categories .lk-shade
+{
+	background-color: gradient( linear, 0% 100%, 0% 40%, from( chudShadowDim ), to( chudShadowFade ) );
+	visibility: visible;
+}
+
+/* A category whose items have no art: its icon as a large, faint mark, cut by the tile's right edge. */
+.lk.view-shop-categories .lk-glyph
+{
+	width: 168px;
+	height: 168px;
+	horizontal-align: right;
+	vertical-align: center;
+	margin: 0px -34px 0px 0px;
+	opacity: 0.14;
+	wash-color: chudTextMain;
+	transition-property: opacity;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.lk.view-shop-categories .hk-rows-4 .lk-glyph,
+.lk.view-shop-categories .hk-rows-5 .lk-glyph,
+.lk.view-shop-categories .hk-rows-6 .lk-glyph
+{
+	width: 236px;
+	height: 236px;
+	margin-right: -52px;
+}
+
+.lk.view-shop-categories .hk-rows-1 .lk-glyph,
+.lk.view-shop-categories .hk-rows-2 .lk-glyph,
+.lk.view-shop-categories .hk-rows-3 .lk-glyph
+{
+	width: 292px;
+	height: 292px;
+	margin-right: -64px;
+}
+
+.lk.view-shop-categories .lk-hit:hover .lk-glyph
+{
+	opacity: 0.3;
+	wash-color: chudAccentStrong;
+}
+
+/* One with art: the item you have on, else its dearest, standing on the tile's foot. The box is the art's
+   own 4:3 at 90% of the tile's height, pulled out past the right edge so the figure (13-90% of the frame
+   in CS2's renders) ends there, and only the tile ever cuts it. */
+.lk.view-shop-categories .lk-thumb
+{
+	width: 202px;
+	height: 90%;
+	horizontal-align: right;
+	vertical-align: bottom;
+	margin: 0px -20px 0px 0px;
+	background-position: 50% 100%;
+}
+
+.lk.view-shop-categories .hk-rows-4 .lk-thumb,
+.lk.view-shop-categories .hk-rows-5 .lk-thumb,
+.lk.view-shop-categories .hk-rows-6 .lk-thumb
+{
+	width: 307px;
+	margin-right: -31px;
+}
+
+.lk.view-shop-categories .hk-rows-1 .lk-thumb,
+.lk.view-shop-categories .hk-rows-2 .lk-thumb,
+.lk.view-shop-categories .hk-rows-3 .lk-thumb
+{
+	width: 384px;
+	margin-right: -38px;
+}
+/* Top left, as plain words: the cheapest item left to buy, All owned, or in Inventory what runs out first. */
+.lk.view-shop-categories .lk-tags
+{
+	horizontal-align: left;
+	vertical-align: top;
+	margin: 16px 0px 0px 18px;
+}
+
+.lk.view-shop-categories .lk-tag
+{
+	margin: 0px;
+	padding: 0px;
+	border: 0px solid transparent;
+	background-color: transparent;
+	font-size: 12px;
+	letter-spacing: 1px;
+}
+
+.lk.view-shop-categories .lk-slot.has-tagglyph .lk-tag
+{
+	padding-left: 19px;
+}
+
+.lk.view-shop-categories .lk-tagglyph
+{
+	width: 14px;
+	height: 14px;
+	margin: 0px -14px 0px 0px;
+}
+
+/* Top right: a pill while something in the category is on. */
+.lk.view-shop-categories .lk-note
+{
+	horizontal-align: right;
+	vertical-align: top;
+	margin: 13px 14px 0px 0px;
+	padding: 3px 8px;
+	border: 1px solid chudAccentDim;
+	border-radius: 2px;
+	background-color: chudAccentSoft;
+	color: chudAccentStrong;
+}
+
+/* Bottom left: the name, large, and how many items it holds. */
+.lk.view-shop-categories .lk-slot .lk-text
+{
+	width: 100%;
+	horizontal-align: left;
+	vertical-align: bottom;
+	margin: 0px 0px 16px 0px;
+	padding: 0px 18px;
+}
+
+.lk.view-shop-categories .lk-name
+{
+	font-family: chudFontBody;
+	font-size: 22px;
+	font-weight: bold;
+	text-transform: uppercase;
+	white-space: normal;
+	text-overflow: clip;
+	text-shadow: 1px 1px 4px 1.0 chudShadowText;
+}
+
+.lk.view-shop-categories .hk-rows-4 .lk-name,
+.lk.view-shop-categories .hk-rows-5 .lk-name,
+.lk.view-shop-categories .hk-rows-6 .lk-name
+{
+	font-size: 28px;
+}
+
+.lk.view-shop-categories .hk-rows-1 .lk-name,
+.lk.view-shop-categories .hk-rows-2 .lk-name,
+.lk.view-shop-categories .hk-rows-3 .lk-name
+{
+	font-size: 34px;
+}
+
+.lk.view-shop-categories .lk-sub
+{
+	margin-top: 2px;
+	font-family: chudFontBody;
+	font-size: 13px;
+	color: chudTextMuted;
+	letter-spacing: 0px;
+	text-transform: none;
+	text-shadow: 1px 1px 3px 1.0 chudShadowText;
+}
+
+/* Along the foot: how much of what can be owned you own, green once it is all of it. */
+.lk.view-shop-categories .lk-meter
+{
+	width: 100%;
+	height: 2px;
+	horizontal-align: left;
+	vertical-align: bottom;
+	margin: 0px;
+	border-radius: 0px;
+	background-color: chudSurfaceEdge;
+}
+
+.lk.view-shop-categories .chud-meter__fill
+{
+	border-radius: 0px;
+	background-color: chudAccentBase;
+}
+
+.lk.view-shop-categories .meter-good .chud-meter__fill
+{
+	background-color: chudSuccessBase;
+}
 /* ---- shop-grid: storefront cards, four to a line ---- */
 
 /* right-wrap pushes an exactly-full line's last card down, so a line keeps slack that

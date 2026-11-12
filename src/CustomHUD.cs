@@ -79,7 +79,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
             .Configure(b => b.AddJsonFile("config.jsonc", optional: false, reloadOnChange: true));
 
         var configProvider = new CustomHudConfigProvider();
-        configProvider.Replace(ReadConfig());
+        configProvider.Replace(ReadConfig() ?? new CustomHudConfig());
 
         var collection = new ServiceCollection();
         collection.AddSwiftly(Core);
@@ -96,6 +96,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         // BasePath is {configs}/plugins/CustomHUD; core reads menus.jsonc from {configs}.
         collection.AddSingleton(sp => new CoreMenuSettings(
             Path.GetFullPath(Path.Combine(Core.Configuration.BasePath, "..", "..")),
+            () => !configProvider.Current.OwnMenuSettings(),
             sp.GetRequiredService<ILogger<CoreMenuSettings>>()));
         collection.AddSingleton(sp => new IntegrationHost(Core, sp.GetRequiredService<CustomHudConfigProvider>(),
             sp.GetRequiredService<HudTranslations>(), sp.GetRequiredService<ILogger<IntegrationHost>>()));
@@ -138,6 +139,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
             sp.GetRequiredService<SteamIdCache>(),
             sp.GetRequiredService<ILogger<NumbersNavCommands>>()));
         collection.AddSingleton<SettingsCommands>();
+        collection.AddSingleton<TestCommands>();
 
         _services = collection.BuildServiceProvider();
         _logger = _services.GetRequiredService<ILogger<CustomHUD>>();
@@ -166,7 +168,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
 
         _hudSurface = _services.GetRequiredService<HudSurface>();
         _nativeText = _services.GetRequiredService<NativeTextCapture>();
-        _nativeText.Subscribe();
+        _nativeText.Sync();
 
         // Expiry is swept rather than scheduled per message: a per-message
         // timer would have to be cancelled every time a newer message replaced
@@ -175,7 +177,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         _panels.Attach(Core, configProvider, _steamIds, _panelSurface);
         _nativeTextTimer = Core.Scheduler.RepeatBySeconds(0.25f, () =>
         {
-            _hudSurface?.ExpireDue(configProvider.Current);
+            _hudSurface?.ExpireDue();
             _panelSurface?.ExpireDue();
         });
 
@@ -194,6 +196,7 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         numbers.RegisterAliases();
         Core.Registrator.Register(numbers);
         Core.Registrator.Register(_services.GetRequiredService<SettingsCommands>());
+        Core.Registrator.Register(_services.GetRequiredService<TestCommands>());
 
         // A transmit deny only covers clients connected when it was issued, and
         // a reconnect rebuilds the player object holding it -- so every live
@@ -244,29 +247,85 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
             () => Core.Configuration.Manager.GetReloadToken(),
             () =>
             {
-                configProvider.Replace(ReadConfig());
+                var previous = configProvider.Current;
+                if (ReadConfig() is not { } next) return;
+                configProvider.Replace(next);
                 _logger?.LogInformation("[CustomHUD] Config reloaded.");
+                ReportProblems(next);
+                if (previous.OwnMenuSettings() != next.OwnMenuSettings()
+                    || next.OwnMenuSettings() && (previous.DefaultNavMode != next.DefaultNavMode || previous.MaxVisibleLines != next.MaxVisibleLines))
+                    ReportMenuSettings(next);
+                // The capture hook is installed and removed on the game thread, as at load.
+                Core.Scheduler.NextTick(() => _nativeText?.Sync());
             });
 
         _logger.LogInformation(
             "[CustomHUD] Renderer '{Id}' registered. Select it with \"Renderer\": \"{Id}\" in configs/menus/menus.jsonc.",
             configProvider.Current.RendererId, configProvider.Current.RendererId);
 
-        if (Core.Configuration.Manager.GetSection("CustomHUD:MouseOverrides").GetChildren().Any())
-            _logger.LogWarning(
-                "[CustomHUD] config.jsonc has a MouseOverrides section, which is no longer read. "
-                + "The WeaponSkins locker rule is built in now; move any rule you added yourself to MouseLayouts and delete MouseOverrides.");
+        ReportMenuSettings(configProvider.Current);
+        ReportRetiredKeys();
+        ReportProblems(configProvider.Current);
+    }
 
-        // Builds before the list wrote the classic layouts into config.jsonc, and a pinned profile
-        // wins over it: without this an upgraded server keeps the old look with nothing saying why.
-        if (configProvider.Current.Default is { } pinnedKeys)
-            _logger.LogInformation(
-                "[CustomHUD] config.jsonc sets \"Default\" ({File}), so keyboard menus draw in it rather than the list. Set \"Default\" to null for the list.",
-                pinnedKeys.File);
-        if (configProvider.Current.Mouse is { } pinnedMouse)
-            _logger.LogInformation(
-                "[CustomHUD] config.jsonc sets \"Mouse\" ({File}), so mouse menus without a layout rule draw in it rather than the list. Set \"Mouse\" to null for the list.",
-                pinnedMouse.File);
+    // The profiles before layout names, and Design, which a name's _v2 replaced. SW2 never removes a
+    // key it once wrote, and a key that is still in the file but does nothing would look like a broken setting.
+    private static readonly string[] RetiredKeys =
+        ["Default", "Wasd", "Buttons", "Numbers", "Mouse", "Overrides", "MouseLayouts", "MouseOverrides", "NativeText", "Design"];
+
+    private void ReportRetiredKeys()
+    {
+        var section = Core.Configuration.Manager.GetSection("CustomHUD");
+        var retired = section.GetChildren().Select(child => child.Key)
+            .Where(key => RetiredKeys.Contains(key, StringComparer.OrdinalIgnoreCase)).ToList();
+        // Panels held whole layouts before it held names; SW2 cannot add the names beside them.
+        if (section.GetSection("Panels").GetChildren().Any(panel => panel.GetChildren().Any())) retired.Add("Panels");
+        if (retired.Count == 0) return;
+
+        _logger?.LogWarning(
+            "[CustomHUD] config.jsonc still has {Keys} from an older CustomHUD, which this version does not read. Layouts are now picked by name in Menus, Messages and Panels: delete config.jsonc and restart for a fresh one, then set again what you had changed.",
+            string.Join(", ", retired));
+        if (bool.TryParse(section["NativeText:Enabled"], out var captured) && captured)
+            _logger?.LogWarning(
+                "[CustomHUD] NativeText captured HUD messages; it is now set per kind in Messages, such as \"Center\": \"hud_text\", and stays off until you set it.");
+    }
+
+    private void ReportProblems(CustomHudConfig config)
+    {
+        foreach (var problem in config.Problems().Concat(ShapeProblems()))
+            _logger?.LogWarning("[CustomHUD] config.jsonc: {Problem}", problem);
+    }
+
+    // The binder skips a value of the wrong shape without a word, so these are read from the file: one
+    // name where Menus wants a name per mode, and a whole layout where Messages wants a name.
+    private IEnumerable<string> ShapeProblems()
+    {
+        var section = Core.Configuration.Manager.GetSection("CustomHUD");
+        foreach (var group in new[] { "Menus", "MenuOverrides" })
+            foreach (var entry in section.GetSection(group).GetChildren())
+                if (!string.IsNullOrEmpty(entry.Value))
+                    yield return $"{group}.{entry.Key} \"{entry.Value}\" needs a name per mode, {{ \"Mouse\": \"{entry.Value}\", \"Keyboard\": \"{entry.Value}\" }}, so it is ignored.";
+        foreach (var entry in section.GetSection("Messages").GetChildren())
+            if (entry.GetChildren().Any())
+                yield return $"Messages.{entry.Key} needs a layout name such as \"hud_text\", so it is ignored; a layout of your own goes in MessageLayouts.";
+        // A Base entry without one would draw its base's profile in the class default, menu.vxml_c.
+        foreach (var entry in section.GetSection("MenuLayouts").GetChildren())
+            if (!string.IsNullOrEmpty(entry["Base"]) && string.IsNullOrEmpty(entry["File"]))
+                yield return $"MenuLayouts.{entry.Key} has a Base but no File, the .vxml_c of your restyled copy.";
+    }
+
+    // Where players' starting mode and the page size come from, at start and whenever a reload moves them.
+    private void ReportMenuSettings(CustomHudConfig config)
+    {
+        if (_services?.GetService<CoreMenuSettings>() is not { } menus) return;
+        if (!config.OwnMenuSettings())
+        {
+            menus.Report();
+            return;
+        }
+        _logger?.LogInformation(
+            "[CustomHUD] Players who have not run !setnav navigate in {Mode} mode, and menu pages hold up to {Lines} lines (\"MenuConfig\": \"customhud\" in config.jsonc).",
+            NavModeResolver.Name(config.StartMode(menus) ?? NavMode.Buttons), config.PageLines(menus));
     }
 
     public override void Unload()
@@ -371,6 +430,20 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         }
     }
 
-    private CustomHudConfig ReadConfig()
-        => Core.Configuration.Manager.GetSection("CustomHUD").Get<CustomHudConfig>() ?? new CustomHudConfig();
+    // A value the binder cannot convert ("MaxVisibleLines": "five") throws. It must neither stop the
+    // load nor end a reload half done: the defaults apply at load, and the last good config after it.
+    private CustomHudConfig? ReadConfig()
+    {
+        try
+        {
+            return Core.Configuration.Manager.GetSection("CustomHUD").Get<CustomHudConfig>() ?? new CustomHudConfig();
+        }
+        catch (InvalidOperationException ex)
+        {
+            (_logger ?? Core.Logger).LogError(
+                "[CustomHUD] config.jsonc could not be read, so {Kept} stay in use: {Error}",
+                _logger is null ? "the defaults" : "the settings it held before", ex.Message);
+            return null;
+        }
+    }
 }

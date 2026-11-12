@@ -181,7 +181,7 @@ internal sealed class PanoramaComponentRenderer(
 
     // A type that keeps MenuComponentBase's no-op action handler (a TextComponent, and a subclass
     // that only changes its text) does nothing when activated. A collection's item rows override it.
-    private static bool IsFact(Type type) => Facts.GetOrAdd(type, static t =>
+    internal static bool IsFact(Type type) => Facts.GetOrAdd(type, static t =>
         t.GetMethod(nameof(MenuComponentBase.HandleActionAsync), [typeof(MenuActionContext)])?.DeclaringType == typeof(MenuComponentBase));
 
     // Separator lives on the generic MenuValueComponent<TValue>, so it is found by reflection once per type.

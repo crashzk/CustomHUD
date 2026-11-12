@@ -98,6 +98,15 @@ internal sealed class RanksIntegration(IRanksApi api) : IPageIntegration, IRankC
         page.AddHeader($"{Directive.Clean(tiers[index].Name)}\t{caption}", "chip;" + RankArt.For(icon, index, tiers.Count).Payload);
     }
 
+    public PlayerRank? RankOf(ulong steamId)
+    {
+        if (steamId == 0 || api.GetSnapshot(steamId) is not { } player) return null;
+        var tiers = api.GetLadder();
+        return tiers.Count == 0 ? null
+            : new PlayerRank(RankArt.For(api.GetRankIcon(player.Points), IndexFor(tiers, player.Points), tiers.Count),
+                player.Points, player.Kills, player.Deaths, player.Headshots);
+    }
+
     // Ranks 1.2 names the current season on a header line under the title. A plain header line
     // joins the title, so it is drawn as a chip beside it instead.
     private static void ChipSeasonLine(PageDraw page)

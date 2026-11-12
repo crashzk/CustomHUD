@@ -1,223 +1,69 @@
-// CustomHUD — configs/plugins/CustomHUD/config.jsonc
-//
-// This file is generated with these defaults on first load and reloaded live.
-// Every layout reference is a value here, so swapping in your own Panorama
-// layout is a config edit, not a code change: point a profile at your file and
-// name its panels, variables and classes.
-//
-// NOTE: renderer selection does NOT live here. It lives in the core file
-// configs/menus/menus.jsonc:
-//
-//   { "Menus": { "Renderer": "customhud.panorama" } }
-//
-// and so does MaxVisibleLines (clamped 1..32, DEFAULT 5). CustomHUD reads it
-// from there and cuts every menu into fixed pages of at most that many lines
-// (and the menu's own ItemsPerPage); moving past a page's last row turns the
-// page. Numbers mode also stops a page at six rows, the keys it has.
-// Profiles with "ShowAllRows" ignore it: they draw the whole list and scroll.
+// CustomHUD: configs/plugins/CustomHUD/config.jsonc, exactly as CustomHUD writes it on first start.
+// Changes apply on save; only RendererId needs a restart. The settings you add by hand (MenuOverrides,
+// MenuLayouts, MessageLayouts, PanelLayouts, PageViews, Hints, LayoutRoot, RendererId) are in the wiki:
+// https://github.com/shmitzas/CustomHUD/wiki/Configuration#settings-you-add-yourself
 {
   "CustomHUD": {
-    // Raw nodes addressed to "customhud.panorama" are honoured even after a rename.
-    "RendererId": "customhud.panorama",
-    "DetailedLogging": false,
-    // For players who never ran !setnav, when "InputMethod" in configs/menus/menus.jsonc names
-    // no mode: "wasd", "buttons", "numbers" or "mouse".
+    // Where players' starting navigation mode and the menu page size come from:
+    // "swiftlys2" = Menus.InputMethod and MenuLayout.MaxVisibleLines in configs/menus/menus.jsonc,
+    // "customhud" = DefaultNavMode and MaxVisibleLines below.
+    "MenuConfig": "swiftlys2",
+    // The mode players start in until they run !setnav: "buttons", "wasd", "numbers" or "mouse".
+    // Used with "MenuConfig": "customhud".
     "DefaultNavMode": "buttons",
-    // Footer hint overrides. The hint replaces core's footer outright (its key
-    // list and the plugin's footer components are not shown) and comes from
-    // resources/translations in each player's language (customhud.hint.<key>);
-    // an entry here replaces one in every language, and "" hides it. Keys:
-    // wasd, buttons, numbers, mouse, and chat for menus whose InputMethod is
-    // Chat, each with a ".view" variant for menus with nothing to select.
-    // {up} {down} {select} {close} expand to the menu's keymap; in mouse mode
-    // {close} is the layout's close button (× or <). Overriding a
-    // mode keeps it on view-only menus until its .view is overridden too,
-    // e.g. "numbers": "1-6 pick · 9 exit".
-    "Hints": {},
-    "LayoutRoot": "panorama/layout/custom_game/customhud/",
-
-    // The keyboard modes (Wasd, Buttons, Numbers) draw menu_list.vxml and Mouse
-    // draws menu_list_mouse.vxml while these are null: the same list, docked at
-    // the left, its rows drawn from what each component is (a switch, ‹ a
-    // selector ›, a slider's track, a field, › for a page) and its footer the
-    // keys that work on the focused row. ShopCore, MapChooser, Ranks, VIPCore,
-    // Admins and MixScrims menus get the list with their eyebrow (and
-    // MapChooser's map art), and WeaponSkins' menu_list_skins.vxml, which adds
-    // sticker art. Nothing of these built-ins is written here, so a
-    // release that improves them reaches every server.
-    //
-    // A config written before the list shipped pinned the classic layouts in
-    // these two keys. Delete them (or set them to null) for the list; keep them
-    // to stay on the classic look.
-    //
-    // "Default" is any keyboard mode without a profile of its own; "Wasd",
-    // "Buttons" and "Numbers" win over it. "{}" is the classic menu.vxml list:
-    //   "Default": {},
-    "Default": null,
-
-    // A mouse player's menu for anything without a mouse rule (MouseLayouts or
-    // a built-in one). A keyboard layout here would leave no way out, since a
-    // mouse player's Tab is filtered. The classic tile grid, menu_mouse.vxml:
-    //   "Mouse": {
-    //     "File": "menu_mouse.vxml_c", "RowSlots": 60, "ShowAllRows": true,
-    //     "Panels": { "Shell": "shell", "Body": "grid", "Title": "title", "Footer": "footer",
-    //                 "Back": "nav_back", "Previous": "nav_previous", "Next": "nav_next" },
-    //     "Row": { "PanelId": "tile_{0}", "LabelVar": "tile_{0}", "ValueVar": "tile_{0}_value",
-    //              "KeyVar": null, "IconPanel": "tile_{0}_icon" },
-    //     "Classes": { "RowCount": "hk-tiles-{0}" }
-    //   }
-    "Mouse": null,
-
-    // Mouse-only rules: exact id first, then longest trailing-* prefix. They win
-    // over Overrides below. Empty by default: the WeaponSkins locker is a rule
-    // built into the code, so a release that changes it reaches every server.
-    // (This key used to be MouseOverrides. A config still carrying that section
-    // is warned about on load and the section is ignored.) To restyle the
-    // locker, add a "weaponskins.*" rule here; the built-in one is:
-    //
-    //   "weaponskins.*": {
-    //     "File": "menu_skins_mouse.vxml_c",
-    //     // Every item in one scrolling grid, so WeaponSkins' ItemsPerPage and
-    //     // menus.jsonc MaxVisibleLines do not apply. 128 = cards in the layout;
-    //     // a longer list (a few sticker capsules) pages through a « / » card
-    //     // at each end of the grid instead of footer buttons.
-    //     "RowSlots": 128, "ShowAllRows": true, "PageTiles": true,
-    //     // Close leaves every submenu level at once; Back then shows only
-    //     // where it has somewhere to go. No footer paging, no page counter.
-    //     "Panels": { "Back": "nav_back", "Close": "nav_close", "Previous": "", "Next": "" },
-    //     "Variables": { "PageVar": "" },
-    //     // A row's image= key becomes an econ-* class on ThumbPanel, and its
-    //     // type= label lands in TypeVar; cards gain "has-thumb" / "has-type"
-    //     // so the layout can rearrange around them.
-    //     "Row": { "KeyVar": null, "ThumbPanel": "thumb_{0}", "TypeVar": "option_{0}_type" },
-    //     // The sidebar mirrors the root menu's submenus and dividers, and marks
-    //     // the entry the player is anywhere beneath (component id = menu id,
-    //     // else label = title). AutoOpen 0 opens the first entry in place of
-    //     // the root page; backing out of that level closes the menu.
-    //     // Every entry carries an icon: IconPanel gets the IconClass of the
-    //     // token Icons maps its component id (else its label) to, and an entry
-    //     // missing from Icons keeps the layout's default. Tokens are the
-    //     // ico-* classes in customhud_icons.vcss: weapons, knives, gloves,
-    //     // agents, music-kits, graffiti, pins, stickers, weapon-props, knife-props,
-    //     // glove-props, agent-props, shop, inventory, credits, gift, crown, star, key,
-    //     // colors, sounds, movement, healing, guns, vote, add, map-vote, maps,
-    //     // refresh, clock, ticket, timer, rank, stats, trophy, player,
-    //     // add-player, ban, mute, chat, server, staff, shield, tiles, settings,
-    //     // sliders, info, trash, check, lock, hourglass, globe, search,
-    //     // stopwatch, bot, legend, health, armor, money, bhop, parachute, fov,
-    //     // tag, sound-off, flash, zeus, defuse, bomb, kick, freeze, slap, swap,
-    //     // beacon, goto, bring, rename, kill, headshot, crosshair, graph, team,
-    //     // ping-1, ping-2, ping-3, ping-4, ct-logo, t-logo, cancel, play, pause,
-    //     // restart, ready, unready, lobby, edit, cycle.
-    //     "Sidebar": { "Slots": 12, "RootButton": "", "ButtonPrefix": "category_",
-    //                  "LabelVar": "category", "DividerClass": "divider", "AutoOpen": 0,
-    //                  "IconPanel": "category_{0}_icon", "IconClass": "ico-{0}",
-    //                  "Icons": { "weaponskins.weapons": "weapons", "weaponskins.knifes": "knives",
-    //                             "weaponskins.gloves": "gloves", "weaponskins.agents": "agents",
-    //                             "weaponskins.musickits": "music-kits",
-    //                             "weaponskins.graffiti": "graffiti", "weaponskins.pins": "pins",
-    //                             "weaponskins.weaponproperties": "weapon-props",
-    //                             "weaponskins.knifeproperties": "knife-props",
-    //                             "weaponskins.gloveproperties": "glove-props",
-    //                             "weaponskins.agentproperties": "agent-props" } },
-    //     // Weapon Skins' categories as a strip over the grid (Mouse only). Only
-    //     // the pages Hosts names are tab hosts: the knife and glove pages are
-    //     // plain submenus too. AutoOpen 0 opens the first tab in place of the
-    //     // host's page.
-    //     "Tabs": { "Hosts": [ "weaponskins.weapons" ], "AutoOpen": 0, "Slots": 8 },
-    //     // A page whose first row carries `hero` draws as an inspect card in
-    //     // place of the grid: one field per row, an `inline` row joining the
-    //     // field above it. {} keeps the ids menu_skins_mouse declares.
-    //     "Card": {},
-    //     "ColorIcons": { "#b0c3d9": "1", "#5e98d9": "2", "#4b69ff": "3", "#8847ff": "4",
-    //                     "#d32ce6": "5", "#eb4b4b": "6", "#e4ae39": "7", "#cf6a32": "8", "#ffd700": "9" }
-    //   }
-    //
-    // ShopCore, MapChooser, Ranks, VIPCore, Admins and MixScrims also have built-in
-    // mouse rules ("shopcore.*", "mapchooser.*", "ranks.*", "vipcore.*", "admins.*",
-    // "mixscrims.*", plus Ranks' modules "weaponstats.*", "customcombos.*" and
-    // "prestige.*"), all pointing at one page layout, menu_locker.vxml_c: a sidebar,
-    // a tab strip, header chips, and regions (banner, the main list, detail,
-    // detailbar, foot, aside, strip) that a page fills through raw directives. Each
-    // menu draws as a view, the shell class that styles it. PageViews below picks
-    // one per menu id; see there for the list.
-    "MouseLayouts": {},
-
-    // Which design a page-locker menu draws as: menu id (or trailing-* prefix)
-    // to view. Wins over the built-in choice and over a plugin's own `view=`.
-    // Views shipped: shop-grid, shop-list, shop-product, shop-inventory,
-    // maps-board, maps-rows, maps-pool, maps-rtv, ranks-rank, ranks-stats,
-    // ranks-weapons, ranks-board, ranks-settings, vip-perks, vip-options,
-    // vip-guns, vip-tiers, vip-users, vip-grant, admins-players, admins-ban,
-    // admins-bans, admins-votes, admins-staff, mix-captains, mix-draft,
-    // mix-sides, mix-ballot, mix-control, and "list" (the plain list).
-    // The keyboard list reads the same map for its two views, "compact" (a
-    // rarity stripe for art, six rows a page) and "ballot" (Yes and No as the
-    // two big rows), which MixScrims' votes use by default. Ranks' menus draw
-    // in a third, "ranks", by default.
-    //   "PageViews": { "mapchooser.eof-vote*": "maps-rows", "weaponskins.weapons.paintkits": "compact" }
-    "PageViews": {},
-
-    // Exact per-menu overrides win over the nav-mode profile, but not over
-    // a matching MouseLayouts or built-in rule for a mouse player.
-    // A partial entry is NOT merged with Default -- unset fields take the
-    // built-in defaults, so repeat Panels/Classes if your layout renames them.
-    "Overrides": {
-      // Variant layouts shipped with the addon; point a plugin's menu id at one:
-      // "mixscrims.team-pick":            { "File": "menu_teampick.vxml_c", "RowSlots": 10 },
-      // "shopcore.buy.items":             { "File": "menu_shop.vxml_c" },
-      // "weaponskins.weapons.paintkits":  { "File": "menu_skins.vxml_c" }
-    },
-
-    // Standalone panels other plugins draw through the CustomHUD.Panels.v1
-    // shared interface (resources/exports/CustomHUD.Contract.dll). Keyed by
-    // the profile name the caller passes; list only the ones you restyle.
-    "Panels": {
-      "versus":  { "File": "panel_versus.vxml_c",  "BlankVariables": ["team1", "team2", "score1", "score2", "status", "detail"] },
-      "ready":   { "File": "panel_ready.vxml_c",   "BlankVariables": ["title", "count", "state", "hint"] },
-      "timeout": { "File": "panel_timeout.vxml_c", "BlankVariables": ["title", "team", "timer", "detail"] }
-      // Optional per profile: "ShellPanel", "HiddenClass", "VariablePanel",
-      // "DurationSeconds" (<= 0 = until hidden; the caller's value wins).
-    },
-
-    // Take over the game's own HUD text so messages from plugins that know
-    // nothing about CustomHUD still render in your style.
-    //
-    // Covers every CUserMessageTextMsg destination -- Notify (1), Console (2),
-    // Chat (3), Center (4), ChatEOT (5), Alert (6) -- which is what
-    // IPlayer.SendCenter / SendAlert / SendChat / SendMessage all emit.
-    //
-    // NOT SendCenterHTML: that one is buffered and re-sent every tick as a
-    // game event rather than a TextMsg, and the same buffer carries legacy
-    // Core.MenusAPI menu text. See docs/PublicPort.md section 6.
-    "NativeText": {
-      // Master switch. While false no hook is installed at all.
-      "Enabled": false,
-
-      // Used by any captured kind without a profile of its own.
-      "Default": {
-        "Capture": false,
-        "File": "hud_text.vxml_c",
-        "ShellPanel": "shell",
-        "HiddenClass": "hidden",
-        "TextPanel": "text",
-        "TextVariable": "text",
-        // `{0}` is the lowercase kind, so one layout can style a center
-        // message and an alert differently.
-        "KindClass": "kind-{0}",
-        // <= 0 leaves the text up until something replaces it.
-        "DurationSeconds": 5,
-        // false draws in CustomHUD AND leaves the native message visible --
-        // useful while authoring a layout.
-        "Suppress": true
+    // Lines on one page of a keyboard menu, 1-32. Used with "MenuConfig": "customhud".
+    "MaxVisibleLines": 5,
+    // The layout each plugin's menus draw in, for mouse players and for keyboard players (buttons, wasd, numbers).
+    // Names ending in _v2 are CS2's store look, the rest the first designs. Every layout: https://github.com/shmitzas/CustomHUD/wiki/Layouts
+    "Menus": {
+      "WeaponSkins": {
+        "Mouse": "menu_skins_mouse_v2",
+        "Keyboard": "menu_list_skins_v2"
       },
-
-      "Center": { "Capture": false, "File": "hud_text.vxml_c", "DurationSeconds": 5 },
-      "Alert":  { "Capture": false, "File": "hud_alert.vxml_c", "DurationSeconds": 4 }
-
-      // "Notify", "Chat", "ChatEndOfRound" and "Console" exist too. Capturing
-      // Chat replaces the chat line a player can scroll back to with a HUD
-      // element that disappears -- rarely what anyone wants.
-    }
+      "ShopCore": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      "MapChooser": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      "Ranks": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      "VIPCore": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      "Admins": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      "MixScrims": {
+        "Mouse": "menu_locker_v2",
+        "Keyboard": "menu_list_v2"
+      },
+      // Every other plugin.
+      "Other": {
+        "Mouse": "menu_list_mouse_v2",
+        "Keyboard": "menu_list_v2"
+      }
+    },
+    // The game's own HUD messages: "game" leaves a kind to CS2, "hud_text" or "hud_alert" draws it in that CustomHUD layout.
+    // "hud_text_v2" and "hud_alert_v2" are the same in CS2's store look.
+    "Messages": {
+      "Center": "game",
+      "Alert": "game",
+      "Notify": "game"
+    },
+    // Layout of each panel other plugins show through CustomHUD.
+    "Panels": {
+      "Versus": "panel_versus",
+      "Ready": "panel_ready",
+      "Timeout": "panel_timeout"
+    },
+    // Log every menu frame drawn and every message captured.
+    "DetailedLogging": false
   }
 }
