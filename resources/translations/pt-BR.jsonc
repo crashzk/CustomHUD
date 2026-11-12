@@ -37,10 +37,10 @@
   // them), or "customhud.eyebrow.default" for every plugin without one. "" shows no line.
   // Nenhum deles vem incluído, so a key added here reaches players in every language.
   "customhud.eyebrow.shop": "Loja",
-  "customhud.eyebrow.maps": "Votação de mapa",
+  "customhud.eyebrow.maps": "Votação de Mapa",
   "customhud.eyebrow.ranks": "Classificações",
   "customhud.eyebrow.vip": "VIP",
-  "customhud.eyebrow.admins": "Administrador",
+  "customhud.eyebrow.admins": "Admin",
   "customhud.eyebrow.mix": "Mix",
   "customhud.lead": "Na liderança",
 
@@ -148,15 +148,15 @@
   // Captions above an item's name. Rarities are the game's own grade names.
   "customhud.weaponskins.ct_agent": "Agente CT",
   "customhud.weaponskins.t_agent": "Agente TR",
-  "customhud.weaponskins.music_kit": "Kit musical",
+  "customhud.weaponskins.music_kit": "Kit de Música",
   "customhud.weaponskins.sticker": "Adesivo",
   "customhud.weaponskins.charm": "Pingente",
   "customhud.weaponskins.graffiti": "Grafite",
   "customhud.weaponskins.patch": "Patch",
   "customhud.weaponskins.pin": "Insígnia",
-  "customhud.weaponskins.rarity.common": "Nível de consumo",
-  "customhud.weaponskins.rarity.uncommon": "Nível industrial",
-  "customhud.weaponskins.rarity.rare": "Nível militar",
+  "customhud.weaponskins.rarity.common": "Nível de Consumo",
+  "customhud.weaponskins.rarity.uncommon": "Nível Industrial",
+  "customhud.weaponskins.rarity.rare": "Nível Militar",
   "customhud.weaponskins.rarity.mythical": "Restrito",
   "customhud.weaponskins.rarity.legendary": "Confidencial",
   "customhud.weaponskins.rarity.ancient": "Secreto",
