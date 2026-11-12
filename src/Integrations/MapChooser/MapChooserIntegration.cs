@@ -11,11 +11,13 @@ namespace CustomHUD.Integrations.MapPages;
 // MapChooser's pages with each map's art and state, read from IMapChooserApi: every map row carries the
 // map's name as Tag, which GetMap resolves. The ballot shows each option's share, votes and the player's
 // pick under the vote's clock and turnout; the pool pages show player ranges, nominations and why a map
-// can't be picked. After voting, MapChooser closes the ballot; CustomHUD then opens a read-only tally in
-// its place, under the same hub, which closes when the vote ends.
+// can't be picked; the cycle shows each map's place with its moves on its row. After voting, MapChooser
+// closes the ballot; CustomHUD then opens a read-only tally in its place, under the same hub, which
+// closes when the vote ends.
 internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
 {
     private const string RowsView = "maps-rows";
+    private const string CycleView = "maps-cycle";
     private const int MaxPips = 20;
 
     private readonly IMapChooserApi _api;
@@ -43,7 +45,7 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static IPageIntegration? TryCreate(IInterfaceManager interfaces, ISwiftlyCore core, IntegrationHost host)
     {
-        ApiProbe.Require(typeof(IMapChooserApi), "MapChooser 1.5.0", nameof(IMapChooserApi.GetAvailability));
+        ApiProbe.Require(typeof(IMapChooserApi), "MapChooser 1.6.0", nameof(IMapChooserApi.GetAvailability), nameof(IMapChooserApi.NextMap));
         return interfaces.TryGetSharedInterface<IMapChooserApi>(IMapChooserApi.InterfaceKey, out var api) && api is not null
             ? new MapChooserIntegration(api, core, host)
             : null;
@@ -61,6 +63,8 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
         if (_api.IsVoteActive) page.AddHeader(string.Empty, "live=" + MapChooserMenuIds.Vote);
 
         if (ballot) DrawBallot(page, tally);
+        else if (page.Menu.Id == MapChooserMenuIds.Cycle) DrawCycle(page);
+        else if (page.Menu.Id == MapChooserMenuIds.CycleRemove) DrawRemoval(page);
         else DrawPool(page);
     }
 
@@ -170,6 +174,50 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
         page.Decorate(k, string.Join(';', parts));
     }
 
+    // The cycle in order. Every row is a map, so a row's place is its map's: on a later page the count
+    // starts at FirstRow. MapChooser's rows take MoveUp, MoveDown and Remove as their own actions.
+    private void DrawCycle(PageDraw page)
+    {
+        if (MapChip(page) is { } chip) page.AddHeader(chip.Text, chip.Payload);
+
+        var column = page.View == CycleView;
+        var next = _api.NextMap;
+        var place = page.FirstRow;
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            if (page.Components[k] is not MenuComponentBase { Tag: string name } || _api.GetMap(name) is not { } map) continue;
+            var parts = new List<string>(10) { "sub=" + Players(page, map), "subtone=info", Badge(page, map) };
+            if (Art(map) is { Length: > 0 } art) parts.Add(art);
+            if (_api.GetAvailability(map.Name) == MapChooserAvailability.CurrentMap)
+                parts.AddRange(["tag=" + T(page, "now_playing"), "tagtone=good", "tagglyph=play"]);
+            else if (string.Equals(map.Name, next, StringComparison.OrdinalIgnoreCase))
+                parts.AddRange(["tag=" + T(page, "up_next"), "tagtone=info", "tagglyph=clock"]);
+            parts.Add(Act(MapChooserCycleActions.MoveUp, "up", off: place == 0));
+            parts.Add(Act(MapChooserCycleActions.MoveDown, "down", off: place == page.RowCount - 1));
+            parts.Add(Act(MapChooserCycleActions.Remove, "trash", danger: true));
+            // MapChooser's label carries the place and an arrow on the current and next map, which the tags replace.
+            var label = Directive.Clean(map.Name);
+            place++;
+            page.Draw(k, column ? $"{label}\t{place}" : $"{place}. {label}", string.Join(';', parts));
+        }
+    }
+
+    private static string Act(string action, string glyph, bool off = false, bool danger = false)
+        => $"act={action}|{glyph}" + (danger ? "|danger" : "") + (off ? "|off" : "");
+
+    // The question before a removal, under the list: the map from the row that opened it, then
+    // MapChooser's Yes and Cancel, Yes in red.
+    private void DrawRemoval(PageDraw page)
+    {
+        if (page.Opener is string name && _api.GetMap(name) is { } map)
+        {
+            var parts = new List<string>(4) { "info", Badge(page, map) };
+            if (Art(map) is { Length: > 0 } art) parts.Add(art);
+            page.Add(Directive.Clean(map.Name), string.Join(';', parts), 0);
+        }
+        if (page.Components is [ButtonComponent, ButtonComponent]) page.Decorate(0, "danger;glyph=trash");
+    }
+
     // A stock map shows its screenshot and logo. Any other map shows its prefix (aim_redline: AIM) over
     // stripes in that prefix's tone. A workshop map's own name is not known until it loads, so its prefix
     // comes from its pool name when that is shaped like a map's.
@@ -251,6 +299,7 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
         MapChooserMenuIds.ChangeMap => "hint.change",
         MapChooserMenuIds.SetNextMap => "hint.next",
         MapChooserMenuIds.StartVote => "hint.start",
+        MapChooserMenuIds.Cycle => "hint.cycle",
         _ => null,
     };
 

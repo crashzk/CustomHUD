@@ -19,7 +19,7 @@ internal sealed class PanelService : ICustomHudPanels
     public void Detach() => _wiring = null;
 
     public IReadOnlyCollection<string> Profiles
-        => _wiring?.Config.Current.Panels.Keys.ToArray() ?? [];
+        => _wiring?.Config.Current.PanelNames().ToArray() ?? [];
 
     public bool Show(
         int playerId,
@@ -31,7 +31,7 @@ internal sealed class PanelService : ICustomHudPanels
         if (_wiring is not { } w || string.IsNullOrWhiteSpace(profile)) return false;
 
         var config = w.Config.Current;
-        if (!config.Panels.TryGetValue(profile, out var panel) || string.IsNullOrWhiteSpace(panel.File))
+        if (config.ResolvePanel(profile) is not { } panel || string.IsNullOrWhiteSpace(panel.File))
             return false;
 
         // Copied here: the caller may mutate its collections before the tick runs.

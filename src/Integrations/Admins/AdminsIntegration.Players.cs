@@ -58,15 +58,6 @@ internal sealed partial class AdminsIntegration
         parts.Add(facts.Bot ? $"avatar={T(page, "bot")}" : "avatar");
         if (TeamTag(page, facts.Team) is { } tag) parts.AddRange([$"tag={tag}", $"tagtone={TeamTone(facts.Team)}"]);
         if (self) parts.AddRange([$"tag2={T(page, "you")}", "tag2tone=accent"]);
-        if (facts.Bot)
-        {
-            parts.AddRange([$"note={T(page, "bot")}", "notetone=faint"]);
-        }
-        else
-        {
-            parts.AddRange([$"note={facts.Ping}", $"glyph={PingGlyph(facts.Ping)}"]);
-            if (facts.Ping >= 110) parts.Add("notetone=bad");
-        }
 
         if (!self && !facts.Bot && !admins.CanTarget(page.Player, live.SteamID))
             parts.AddRange([$"sub={T(page, "immune", AdminGroup(page, live.SteamID) ?? T(page, "admin"))}", "subtone=faint"]);
@@ -94,7 +85,6 @@ internal sealed partial class AdminsIntegration
 
         var unknown = T(page, "unknown");
         page.Add($"{T(page, "stat.kd")}\t{(facts is null ? unknown : $"{facts.Kills} / {facts.Deaths}")}", "at=detail;group=stat");
-        page.Add($"{T(page, "stat.ping")}\t{(facts is null ? unknown : bot ? T(page, "bot") : T(page, "ms", facts.Ping))}", "at=detail;group=stat");
         page.Add($"{T(page, "stat.group")}\t{AdminGroup(page, row.SteamId64) ?? unknown}", "at=detail;group=stat");
 
         if (!history || row.SteamId64 == 0) return;

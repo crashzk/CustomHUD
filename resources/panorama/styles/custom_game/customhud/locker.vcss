@@ -506,12 +506,29 @@
 	white-space: nowrap;
 }
 
-/* Scrolls like the WeaponSkins grid, whose wheel and thumb work in game: a plain 100% of a box
-   that takes the column's leftover height. Squish keeps the 100%-wide items inside the padding,
-   so they stay clear of the scrollbar in the gutter; under clip they ran on over it. */
+/* The list scrolls in game only inside a box of fixed height, as the WeaponSkins grid does: one that
+   fills the column's leftover height drew a scrollbar that neither the wheel nor the thumb moved.
+   576 is the page, 534 under the tabs; a band sharing the column falls back to filling it. Squish
+   keeps the 100%-wide items inside the padding, clear of the scrollbar in the gutter. */
 .lk-listbox
 {
 	width: 100%;
+	height: 576px;
+}
+
+.lk.has-tabs .lk-listbox
+{
+	height: 534px;
+}
+
+.lk.has-strip .lk-listbox,
+.lk.has-banner .lk-listbox,
+.lk.has-head .lk-listbox,
+.lk.has-foot .lk-listbox,
+.lk.view-maps-rtv .lk-listbox,
+.lk.view-admins-votes .lk-listbox,
+.lk.view-mix-control .lk-listbox
+{
 	height: fill-parent-flow( 1.0 );
 }
 
@@ -528,6 +545,17 @@
 {
 	width: 100%;
 	flow-children: right-wrap;
+}
+
+/* The renderer's scroll rewind (LayoutClasses.Rewind), on the shell for three ticks after a new
+   list replaces the last: the content measures 1px and draws past it, so the scroll offset clamps
+   to the top while the new rows already show. A view whose box fits its rows caps them at its own
+   cap instead, or opts out where it never scrolls; either way its box keeps its height. */
+.lk.chud-rewind .lk-items,
+.lk.chud-rewind .lk-detail__items
+{
+	height: 1px;
+	overflow: squish noclip;
 }
 
 .lk-foot
@@ -1469,6 +1497,69 @@
 	color: chudTextFaint;
 }
 
+/* A row's act= buttons over its right end, each sending one menu action to the row. Their
+   colours are the Inset control and Danger looks below. */
+.lk-acts
+{
+	height: 100%;
+	horizontal-align: right;
+	margin-right: 12px;
+	flow-children: right;
+	visibility: collapse;
+}
+
+.lk-slot.has-acts .lk-acts
+{
+	visibility: visible;
+}
+
+.lk-act
+{
+	width: 32px;
+	height: 32px;
+	vertical-align: center;
+	margin-left: 6px;
+	transition-property: background-color, border;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.lk-act.hidden
+{
+	visibility: collapse;
+}
+
+/* The arrowheads are 2:1, so 16 x 8 inside this box; the bin fills it. */
+.lk-act__glyph
+{
+	width: 16px;
+	height: 16px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudTextMuted;
+}
+
+.lk-act:hover .lk-act__glyph
+{
+	wash-color: chudTextMain;
+}
+
+.lk-act.act-danger:hover .lk-act__glyph
+{
+	wash-color: chudDangerStrong;
+}
+
+/* Nowhere to go (the first map can't move up): dimmed, and left out of the click map. */
+.lk-act.act-off
+{
+	opacity: 0.3;
+}
+
+.lk-act.act-off:hover .lk-act__glyph
+{
+	wash-color: chudTextMuted;
+}
+
 /* ==== Looks: one rule each, shared by every view ====
    Every menu draws its surfaces from these, so a card, a button or a chosen row
    looks the same in every plugin. A view joins a look by adding its selector to the
@@ -1545,8 +1636,10 @@
 .lk .lk-detail__bar .lk-hit,
 .lk.view-vip-users .grp-gcard .lk-hit,
 .lk.view-vip-users .grp-gcard .lk-hit:hover,
+.lk.view-vip-users .grp-step .lk-hit,
 .lk .lk-foot .kind-action .lk-hit,
 .lk.view-maps-rows .lk-list .lk-hit,
+.lk.view-maps-cycle .lk-list .lk-hit,
 .lk.view-maps-rtv .grp-more .lk-hit,
 .lk.view-admins-players .lk-detail .grp-action.kind-action .lk-hit,
 .lk.view-admins-player .lk-list .lk-hit,
@@ -1567,6 +1660,7 @@
 .lk .lk-detail__bar .lk-hit:hover,
 .lk .lk-foot .kind-action .lk-hit:hover,
 .lk.view-maps-rows .lk-list .lk-hit:hover,
+.lk.view-maps-cycle .lk-list .lk-hit:hover,
 .lk.view-maps-rtv .grp-more .lk-hit:hover,
 .lk.view-admins-players .lk-detail .grp-action.kind-action .lk-hit:hover,
 .lk.view-admins-player .lk-list .lk-hit:hover,
@@ -1578,7 +1672,8 @@
 .lk.view-mix-draft .lk-list .lk-hit:hover,
 .lk.view-mix-ballot .lk-list .lk-hit:hover,
 .lk.view-mix-control .lk-detail .lk-hit:hover,
-.lk-inline:hover
+.lk-inline:hover,
+.lk-act:hover
 {
 	border: 1px solid chudAccentBase;
 	background-color: chudSurfaceHover;
@@ -1586,6 +1681,8 @@
 
 /* Inset control: a control sitting on a row or card, a step darker than its ground. */
 .lk-inline,
+.lk-act,
+.lk-act.act-off:hover,
 .lk.view-vip-perks .lk-list .kind-submenu .lk-end,
 .lk.view-mix-captains .lk-banner .lk-note
 {
@@ -1599,7 +1696,6 @@
 .lk.view-maps-rtv .lk-list .lk-hit:hover,
 .lk.view-shop-product .grp-badge .lk-hit,
 .lk.view-shop-product .grp-badge .lk-hit:hover,
-.lk.view-vip-users .grp-step .lk-hit,
 .lk.view-vip-grant .lk-detail .lk-slot.grp-pill .lk-hit
 {
 	width: fit-children;
@@ -1671,7 +1767,8 @@
 .lk.view-admins-players .lk-detail .grp-action.kind-action.danger .lk-hit:hover,
 .lk.view-admins-player .lk-list .grp-action.danger .lk-hit:hover,
 .lk.view-mix-control .lk-detail .danger .lk-hit:hover,
-.inline-danger .lk-inline:hover
+.inline-danger .lk-inline:hover,
+.lk-act.act-danger:hover
 {
 	border: 1px solid chudDangerBase;
 	background-color: chudDangerDim;

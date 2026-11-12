@@ -1,16 +1,16 @@
 namespace CustomHUD.Config;
 
-// The list every menu without a page of its own draws in: menu_list.vxml in the
-// keyboard modes, menu_list_mouse.vxml in Mouse mode. A page profile with no
-// sidebar, tabs or side panes, so its rows read the same directives the page
-// lockers do and a plugin that styles its mouse page styles its list too.
-// scripts/generate-list-layout.ps1 declares exactly these panels.
+// The list every menu without a page of its own draws in: menu_list_v2.vxml in the
+// keyboard modes, menu_list_mouse_v2.vxml in Mouse mode (the files without _v2 are the
+// first designs). A page profile with no sidebar, tabs or side panes, so its rows read the
+// same directives the page lockers do and a plugin that styles its mouse page styles its
+// list too. scripts/generate-list-layout.ps1 declares exactly these panels, in every file.
 public static class ListProfiles
 {
-    public const string KeysFile = "menu_list.vxml_c";
-    public const string MouseFile = "menu_list_mouse.vxml_c";
+    public const string KeysFile = "menu_list_v2.vxml_c";
+    public const string MouseFile = "menu_list_mouse_v2.vxml_c";
     // The keyboard list plus econ_stickers.vcss, which no other list loads: sticker art is most of all econ classes.
-    public const string SkinsFile = "menu_list_skins.vxml_c";
+    public const string SkinsFile = "menu_list_skins_v2.vxml_c";
 
     // A keyboard page never holds more (core caps MaxVisibleLines at 32, numbers mode
     // at six keys); the mouse list scrolls through a chunk this long and pages past it.
@@ -67,24 +67,23 @@ public static class ListProfiles
         Panels = new() { Back = "nav_back", Close = "nav_close", Previous = "nav_previous", Next = "nav_next" },
         Variables = new() { PageFormat = "{0}/{1}" },
         Row = Row("option_", MouseParts),
+        Classes = new() { Rewind = MenuLayoutProfile.BuiltInRewind },
         Page = Page("", legend: false),
         ColorIcons = RarityColors(),
     };
 
     // What a plugin's page profile knows that its keyboard list should too: the
     // eyebrow over a menu that is its own root, and MapChooser's map art and leader.
+    // Keyed by BuiltInLayouts' plugin names.
     public static Dictionary<string, MenuLayoutProfile> Plugins() => new(StringComparer.OrdinalIgnoreCase)
     {
-        ["shopcore.*"] = Keys("shop"),
-        ["mapchooser.*"] = Maps(),
-        ["ranks.*"] = Ranks(),
-        ["weaponstats.*"] = Ranks(),
-        ["customcombos.*"] = Ranks(),
-        ["prestige.*"] = Ranks(),
-        ["vipcore.*"] = Keys("vip"),
-        ["admins.*"] = Admins(),
-        ["mixscrims.*"] = Mix(),
-        ["weaponskins.*"] = Skins(),
+        ["ShopCore"] = Keys("shop"),
+        ["MapChooser"] = Maps(),
+        ["Ranks"] = Ranks(),
+        ["VIPCore"] = Keys("vip"),
+        ["Admins"] = Admins(),
+        ["MixScrims"] = Mix(),
+        ["WeaponSkins"] = Skins(),
     };
 
     public static MenuLayoutProfile Skins()

@@ -1,36 +1,73 @@
+using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+using CustomHUD.Navigation;
+
 namespace CustomHUD.Config;
 
 // Bound to the "CustomHUD" section of config.jsonc and reloaded live.
 //
-// Everything a layout can be addressed by is a value in here. A server owner
-// swaps in their own Panorama layout -- different art, same function -- by
-// pointing a profile at another file and naming its panels, variables and
-// classes. Nothing about panel naming is hardcoded; the defaults below merely
-// reproduce the layouts this plugin ships.
+// SW2 writes every serialised property into config.jsonc on first start, its [Description] as a
+// comment above it, and on later starts adds a property a release introduces, though never a
+// dictionary key. So the file holds only names and numbers an operator picks from, and the layouts
+// the names stand for live in code (BuiltInLayouts), where a release can improve them.
+//
+// [JsonIgnore] keeps a setting out of the file while the binder still reads it when an operator adds
+// it by hand: the hooks for Panorama layouts of their own, and the rarely changed rest.
 public sealed class CustomHudConfig
 {
+    public const string SwiftlyS2MenuConfig = "swiftlys2";
+    public const string CustomHudMenuConfig = "customhud";
+
+    [Description("Where players' starting navigation mode and the menu page size come from:\n"
+        + "\"swiftlys2\" = Menus.InputMethod and MenuLayout.MaxVisibleLines in configs/menus/menus.jsonc,\n"
+        + "\"customhud\" = DefaultNavMode and MaxVisibleLines below.")]
+    public string MenuConfig { get; set; } = SwiftlyS2MenuConfig;
+
+    [Description("The mode players start in until they run !setnav: \"buttons\", \"wasd\", \"numbers\" or \"mouse\".\n"
+        + "Used with \"MenuConfig\": \"customhud\".")]
+    public string DefaultNavMode { get; set; } = "buttons";
+
+    // Core's own default and range (SwiftlyS2.Core.Menu.Config.MenuLayoutOptions).
+    [Description("Lines on one page of a keyboard menu, 1-32. Used with \"MenuConfig\": \"customhud\".")]
+    public int MaxVisibleLines { get; set; } = 5;
+
+    [Description("The layout each plugin's menus draw in, for mouse players and for keyboard players (buttons, wasd, numbers).\n"
+        + "Names ending in _v2 are CS2's store look, the rest the first designs. Every layout: https://github.com/shmitzas/CustomHUD/wiki/Layouts")]
+    public MenuChoices Menus { get; set; } = new();
+
+    [Description("The game's own HUD messages: \"game\" leaves a kind to CS2, \"hud_text\" or \"hud_alert\" draws it in that CustomHUD layout.\n"
+        + "\"hud_text_v2\" and \"hud_alert_v2\" are the same in CS2's store look.")]
+    public MessageChoices Messages { get; set; } = new();
+
+    [Description("Layout of each panel other plugins show through CustomHUD.")]
+    public PanelChoices Panels { get; set; } = new();
+
+    // Off by default -- prod servers stay quiet.
+    [Description("Log every menu frame drawn and every message captured.")]
+    public bool DetailedLogging { get; set; } = false;
+
     // Id this plugin registers its renderer under, and the value server owners
     // put in menus.jsonc. Configurable so two builds can coexist on one server
     // during a layout migration.
+    [JsonIgnore]
     public string RendererId { get; set; } = DefaultRendererId;
 
     // Consumers hardcode this id in their raw nodes, so it stays accepted even
     // after RendererId is renamed.
     public const string DefaultRendererId = "customhud.panorama";
 
-    // Logs every compose / diff / apply / input decision at Information with a
-    // [CustomHUD] prefix. Off by default -- prod servers stay quiet.
-    public bool DetailedLogging { get; set; } = false;
-
-    // Nav mode for players who have never chosen one, when Menus.InputMethod in menus.jsonc names
-    // none. "wasd" | "buttons" | "numbers" | "mouse"; anything else falls back to "buttons".
-    public string DefaultNavMode { get; set; } = "buttons";
+    // Prefix every layout File is resolved against, unless the File value
+    // already contains a '/'. Keeps the common case to a bare filename. CS2
+    // refuses addon layouts outside panorama/layout/custom_game/.
+    [JsonIgnore]
+    public string LayoutRoot { get; set; } = "panorama/layout/custom_game/customhud/";
 
     // Footer hint overrides per nav mode, plus "chat" for menus whose input method
     // is Chat. Replaces core's footer outright. {up} {down} {select} {close} expand
     // to the menu's keymap. An entry applies in every language; unset keys come
-    // from the player's translation file (customhud.hint.<key>). Empty for the
-    // same reason as MouseLayouts: a shipped entry would pin this release's text.
+    // from the player's translation file (customhud.hint.<key>).
+    [JsonIgnore]
     public Dictionary<string, string> Hints { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     // The English hints, used when no translation file has a key. Rewording one turns
@@ -50,118 +87,142 @@ public sealed class CustomHudConfig
         ["chat.view"] = "!0 close",
     };
 
-    // Prefix every profile's File is resolved against, unless the File value
-    // already contains a '/'. Keeps the common case to a bare filename. CS2
-    // refuses addon layouts outside panorama/layout/custom_game/.
-    public string LayoutRoot { get; set; } = "panorama/layout/custom_game/customhud/";
-
-    // Layout profile per nav mode. A missing mode falls back to Default; with
-    // Default unset too, a menu draws in the built-in list (ListProfiles), which a
-    // release can improve because nothing of it is written into config.jsonc.
-    // Set Default to `{}` for the classic menu.vxml list.
-    public MenuLayoutProfile? Default { get; set; }
-    public MenuLayoutProfile? Wasd { get; set; }
-    public MenuLayoutProfile? Buttons { get; set; }
-    public MenuLayoutProfile? Numbers { get; set; }
-    // Unset, Mouse players get the built-in mouse list: a keyboard layout would
-    // leave them no visible way out, since their Tab is filtered. The tile grid
-    // is MenuLayoutProfile.MouseGrid(), menu_mouse.vxml.
-    public MenuLayoutProfile? Mouse { get; set; }
-
-    // Per-menu-id overrides, keyed by the id a plugin passed to CreateMenu
-    // ("mapchooser.vote"). Lets one menu use a wider layout without affecting
-    // the rest. Matched case-insensitively; falls through to the nav-mode
-    // profile when absent.
-    public Dictionary<string, MenuLayoutProfile> Overrides { get; set; } = new(StringComparer.OrdinalIgnoreCase);
-
-    // Mouse-only layouts an operator adds; they win over BuiltInMouseLayouts and
-    // Overrides. A trailing * matches a menu-id prefix, the longest pattern winning.
-    // Empty by default: SW2 never back-fills into a dictionary, so a shipped rule
-    // written here would pin that release's layout forever.
-    public Dictionary<string, MenuLayoutProfile> MouseLayouts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
-
-    // Which design a page-locker menu draws as, by menu id or trailing-* prefix
-    // ("mapchooser.eof-vote*": "maps-rows"). Wins over a profile's own Views, so a
-    // shipped variant is one line here instead of a copied MouseLayouts rule.
+    // Which design a page draws as, by menu id or trailing-* prefix
+    // ("mapchooser.eof-vote*": "maps-rows"). Wins over a page's `view=` and its layout's own Views.
+    [JsonIgnore]
     public Dictionary<string, string> PageViews { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // Static, so neither the config binder nor SW2's writer ever sees it.
-    public static IReadOnlyDictionary<string, MenuLayoutProfile> BuiltInMouseLayouts { get; } =
-        new Dictionary<string, MenuLayoutProfile>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["weaponskins.*"] = MenuLayoutProfile.WeaponSkinsLocker(),
-            // menu_locker.vxml: one layout, a profile per plugin (LockerProfiles).
-            ["shopcore.*"] = LockerProfiles.Shop(),
-            ["mapchooser.*"] = LockerProfiles.Maps(),
-            ["ranks.*"] = LockerProfiles.Ranks(),
-            // Ranks' modules open under its Statistics with ids of their own; without these
-            // the page leaves the locker for the mouse list, and back again, mid-navigation.
-            ["weaponstats.*"] = LockerProfiles.Ranks(),
-            ["customcombos.*"] = LockerProfiles.Ranks(),
-            ["prestige.*"] = LockerProfiles.Ranks(),
-            ["vipcore.*"] = LockerProfiles.Vip(),
-            ["admins.*"] = LockerProfiles.Admins(),
-            ["admins.vote"] = LockerProfiles.AdminsBallot(),
-            ["mixscrims.*"] = LockerProfiles.Mix(),
-        };
+    // One menu, by id or trailing-* prefix, in other layouts than its plugin's. Wins over Menus.
+    [JsonIgnore]
+    public Dictionary<string, MenuChoice> MenuOverrides { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // The keyboard list with a plugin's eyebrow and art (ListProfiles.Plugins), used
-    // while no Wasd / Buttons / Numbers / Default profile is set.
-    public static IReadOnlyDictionary<string, MenuLayoutProfile> BuiltInListLayouts { get; } = ListProfiles.Plugins();
+    // Layouts of the operator's own, by the name Menus, MenuOverrides, Messages or Panels then pick;
+    // one named like a built-in replaces it. Merged with nothing: a field left out takes its class
+    // default, unless a menu layout names a Base (MenuLayoutProfile.Base).
+    [JsonIgnore]
+    public Dictionary<string, MenuLayoutProfile> MenuLayouts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public static MenuLayoutProfile BuiltInList { get; } = ListProfiles.Keys();
-    public static MenuLayoutProfile BuiltInMouseList { get; } = ListProfiles.Mouse();
+    [JsonIgnore]
+    public Dictionary<string, NativeTextProfile> MessageLayouts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // Capture of native CS2 HUD text (center / alert / notify ...) so it is
-    // drawn by CustomHUD instead of the game's own HUD. Off by default --
-    // swallowing another plugin's messages is never a safe default.
-    public NativeTextConfig NativeText { get; set; } = new();
+    [JsonIgnore]
+    public Dictionary<string, PanelProfile> PanelLayouts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // Panels other plugins draw through the CustomHUD.Panels.v1 shared
-    // interface, keyed by the profile name they pass. Config entries merge
-    // over the defaults, so a server only lists the ones it restyles.
-    public Dictionary<string, PanelProfile> Panels { get; set; } = PanelProfile.Defaults();
+    // Methods from here on: SW2 would write a getter's value into config.jsonc.
 
-    public string ResolvePanelPath(PanelProfile profile)
-        => profile.File.Contains('/') ? profile.File : LayoutRoot + profile.File;
+    // Anything but "customhud" reads menus.jsonc, as core itself does.
+    public bool OwnMenuSettings() => string.Equals(MenuConfig?.Trim(), CustomHudMenuConfig, StringComparison.OrdinalIgnoreCase);
 
+    // Where a player starts until they run !setnav, and the lines a keyboard page holds.
+    internal NavMode? StartMode(CoreMenuSettings menus)
+        => OwnMenuSettings() ? NavModeResolver.Parse(DefaultNavMode?.Trim()) : menus.DefaultNavMode;
+
+    internal int PageLines(CoreMenuSettings menus)
+        => OwnMenuSettings() ? Math.Clamp(MaxVisibleLines, 1, 32) : menus.MaxVisibleLines;
+
+    // MenuOverrides, then the plugin's entry in Menus, then its built-in default. A name that is no
+    // layout for this plugin in this mode passes to the next.
     public MenuLayoutProfile Resolve(string menuId, NavMode mode)
     {
-        if (mode == NavMode.Mouse)
-            return Match(MouseLayouts, menuId) ?? Match(BuiltInMouseLayouts, menuId)
-                ?? (Overrides.TryGetValue(menuId, out var mouseById) ? mouseById : null)
-                ?? Mouse ?? BuiltInMouseList;
-        if (Overrides.TryGetValue(menuId, out var byId)) return byId;
-        return (mode switch
-        {
-            NavMode.Wasd => Wasd,
-            NavMode.Buttons => Buttons,
-            NavMode.Numbers => Numbers,
-            _ => null,
-        }) ?? Default ?? Match(BuiltInListLayouts, menuId) ?? BuiltInList;
+        var mouse = mode == NavMode.Mouse;
+        var plugin = BuiltInLayouts.PluginOf(menuId);
+        return MenuLayout(Match(MenuOverrides, menuId)?.For(mouse), plugin, menuId, mouse)
+            ?? MenuLayout(Menus.For(plugin).For(mouse), plugin, menuId, mouse)
+            ?? BuiltInLayouts.Menu(BuiltInLayouts.DefaultMenu(plugin, mouse), plugin, menuId, mouse)!;
     }
 
-    // The scale steps !hudscale offers: those of the keyboard profile every menu falls back to.
-    // A method, not a property: the binder would append config.jsonc's values onto a getter's list.
-    public List<int> ScaleSteps() => (Default ?? BuiltInList).Classes.ScaleSteps;
+    private MenuLayoutProfile? MenuLayout(string? name, string plugin, string menuId, bool mouse)
+    {
+        if (name is null) return null;
+        if ((MenuLayouts.GetValueOrDefault(name) ?? MenuLayouts.GetValueOrDefault(BuiltInLayouts.Bare(name))) is not { } own)
+            return BuiltInLayouts.Menu(name, plugin, menuId, mouse);
+        if (own.Base.Trim().Length == 0) return own;
+        return BuiltInLayouts.Menu(own.Base.Trim(), plugin, menuId, mouse) is { } shipped
+            ? _variations.GetOrAdd((shipped, own.File), key => key.Shipped.WithFile(key.File))
+            : null;
+    }
 
-    private static MenuLayoutProfile? Match(IReadOnlyDictionary<string, MenuLayoutProfile> rules, string menuId)
+    // A Base entry's profile per shipped profile, built once: FrameComposer fingerprints a profile per instance.
+    private readonly ConcurrentDictionary<(MenuLayoutProfile Shipped, string File), MenuLayoutProfile> _variations = new();
+
+    // Null while the game draws that kind itself, as it does for a name no layout has.
+    public NativeTextProfile? ResolveMessage(NativeTextKind kind)
+        => Messages.For(kind) is { } name && !name.Equals(BuiltInLayouts.Game, StringComparison.OrdinalIgnoreCase)
+            ? MessageLayouts.GetValueOrDefault(name) ?? BuiltInLayouts.Messages.GetValueOrDefault(BuiltInLayouts.Bare(name))
+            : null;
+
+    public bool CapturesMessages() => Enum.GetValues<NativeTextKind>().Any(kind => ResolveMessage(kind) is not null);
+
+    // The layout Panels names for a panel, else its default. Null for a panel neither the shipped
+    // ones nor PanelLayouts define.
+    public PanelProfile? ResolvePanel(string panel) => PanelLayout(Panels.For(panel)) ?? PanelLayout(PanelChoices.Default(panel));
+
+    private PanelProfile? PanelLayout(string name)
+        => PanelLayouts.GetValueOrDefault(name) ?? BuiltInLayouts.Panels.GetValueOrDefault(BuiltInLayouts.Bare(name));
+
+    // The panel names a plugin can show.
+    public IEnumerable<string> PanelNames() => PanelChoices.Shipped.Union(PanelLayouts.Keys, StringComparer.OrdinalIgnoreCase);
+
+    public string ResolveLayoutPath(MenuLayoutProfile profile) => LayoutPath(profile.File);
+    public string ResolveMessagePath(NativeTextProfile profile) => LayoutPath(profile.File);
+    public string ResolvePanelPath(PanelProfile profile) => LayoutPath(profile.File);
+
+    private string LayoutPath(string file) => file.Contains('/') ? file : LayoutRoot + file;
+
+    // The scale steps !hudscale offers: those of the keyboard layout every other plugin draws in.
+    // A method, not a property: the binder would append config.jsonc's values onto a getter's list.
+    public List<int> ScaleSteps() => Resolve("", NavMode.Buttons).Classes.ScaleSteps;
+
+    // Exact id first, then the longest trailing-* prefix.
+    internal static T? Match<T>(IReadOnlyDictionary<string, T> rules, string menuId) where T : class
     {
         if (rules.TryGetValue(menuId, out var exact)) return exact;
-        MenuLayoutProfile? match = null;
+        T? match = null;
         var longest = -1;
-        foreach (var (pattern, profile) in rules)
+        foreach (var (pattern, value) in rules)
             if (pattern.EndsWith('*') && pattern.Length > longest
                 && menuId.StartsWith(pattern[..^1], StringComparison.OrdinalIgnoreCase))
             {
-                match = profile;
+                match = value;
                 longest = pattern.Length;
             }
         return match;
     }
 
-    public string ResolveLayoutPath(MenuLayoutProfile profile)
-        => profile.File.Contains('/') ? profile.File : LayoutRoot + profile.File;
+    // Settings that name nothing, or do nothing as set: one log line each, saying what applies instead.
+    public IEnumerable<string> Problems()
+    {
+        if (!IsOneOf(MenuConfig, SwiftlyS2MenuConfig, CustomHudMenuConfig))
+            yield return $"MenuConfig \"{MenuConfig}\" is not \"swiftlys2\" or \"customhud\", so configs/menus/menus.jsonc's settings apply.";
+        if (NavModeResolver.Parse(DefaultNavMode?.Trim()) is null)
+            yield return $"DefaultNavMode \"{DefaultNavMode}\" is not buttons, wasd, numbers or mouse, so it counts as buttons.";
+        if (MaxVisibleLines is < 1 or > 32)
+            yield return $"MaxVisibleLines {MaxVisibleLines} is outside 1-32, so it counts as {Math.Clamp(MaxVisibleLines, 1, 32)}.";
+        if (!OwnMenuSettings() && (!IsOneOf(DefaultNavMode, "buttons") || MaxVisibleLines != 5))
+            yield return "DefaultNavMode and MaxVisibleLines apply only with \"MenuConfig\": \"customhud\"; configs/menus/menus.jsonc's are in use.";
+        foreach (var plugin in BuiltInLayouts.PluginNames())
+            foreach (var mouse in new[] { true, false })
+                if (Menus.For(plugin).For(mouse) is { } name && MenuLayout(name, plugin, "", mouse) is null)
+                    yield return $"Menus.{plugin}.{Mode(mouse)} \"{name}\" is no {Mode(mouse).ToLowerInvariant()} layout for {plugin}, so it draws in \"{BuiltInLayouts.DefaultMenu(plugin, mouse)}\".";
+        foreach (var (id, choice) in MenuOverrides)
+            foreach (var mouse in new[] { true, false })
+                if (choice.For(mouse) is { } name && MenuLayout(name, BuiltInLayouts.PluginOf(id.TrimEnd('*')), "", mouse) is null)
+                    yield return $"MenuOverrides.{id}.{Mode(mouse)} \"{name}\" is no {Mode(mouse).ToLowerInvariant()} layout there, so Menus applies.";
+        foreach (var (name, own) in MenuLayouts)
+            if (own.Base.Trim() is { Length: > 0 } shipped && !BuiltInLayouts.IsMenu(shipped))
+                yield return $"MenuLayouts.{name}.Base \"{shipped}\" is no shipped layout, so a menu that picks {name} draws in its default.";
+        foreach (var kind in Enum.GetValues<NativeTextKind>())
+            if (Messages.For(kind) is { } name && !name.Equals(BuiltInLayouts.Game, StringComparison.OrdinalIgnoreCase) && ResolveMessage(kind) is null)
+                yield return $"Messages.{kind} \"{name}\" is not game, hud_text, hud_alert, hud_text_v2, hud_alert_v2 or a MessageLayouts name, so the game draws it.";
+        foreach (var (panel, name) in Panels.All())
+            if (PanelLayout(name) is null)
+                yield return $"Panels.{panel} \"{name}\" is no panel layout, so it draws in \"{PanelChoices.Default(panel)}\".";
+    }
+
+    private static string Mode(bool mouse) => mouse ? "Mouse" : "Keyboard";
+
+    private static bool IsOneOf(string? value, params string[] allowed)
+        => allowed.Any(a => string.Equals(value?.Trim(), a, StringComparison.OrdinalIgnoreCase));
 }
 
 // One Panorama layout and the vocabulary needed to address it.
@@ -170,6 +231,18 @@ public sealed class MenuLayoutProfile
     // Compiled layout Panorama loads at runtime. The `_c` suffix is not
     // optional -- the engine resolves the compiled artifact, not the source.
     public string File { get; set; } = "menu.vxml_c";
+
+    // MenuLayouts only: a shipped layout whose profile, for each plugin it serves, this entry draws
+    // with its own File -- a restyled copy that keeps every panel id. Its other fields are ignored.
+    public string Base { get; set; } = "";
+
+    public MenuLayoutProfile WithFile(string file)
+    {
+        var copy = (MenuLayoutProfile)MemberwiseClone();
+        copy.File = file;
+        copy.Base = "";
+        return copy;
+    }
 
     // Row slots the layout declares. The renderer never draws more than this
     // many rows regardless of what the frame contains, so a layout with 12
@@ -202,6 +275,11 @@ public sealed class MenuLayoutProfile
     public MenuCardProfile? Card { get; set; }
     // Chips, crumb, tabs, regions and views (menu_locker). Null for row layouts.
     public MenuPageProfile? Page { get; set; }
+    // A row layout's views: menu id (or trailing-* prefix) to the name the shell carries as
+    // Classes.View. The operator's PageViews and a header's `view=` win, as on a page.
+    public Dictionary<string, string> Views { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    // The item a row layout's page is about, from its header's `spot` node. Null for none.
+    public MenuSpotProfile? Spot { get; set; }
     public Dictionary<string, string> ColorIcons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     // Variables the layout declares but the renderer has no value for. Panorama
@@ -225,8 +303,11 @@ public sealed class MenuLayoutProfile
             PanelId = "tile_{0}", LabelVar = "tile_{0}", ValueVar = "tile_{0}_value",
             KeyVar = null, IconPanel = "tile_{0}_icon",
         },
-        Classes = new() { RowCount = "hk-tiles-{0}" },
+        Classes = new() { RowCount = "hk-tiles-{0}", Rewind = BuiltInRewind },
     };
+
+    // The class the built-in scrolling layouts style for the renderer's scroll rewind (LayoutClasses.Rewind).
+    public const string BuiltInRewind = "chud-rewind";
 
     // The sidebar stands in for the root page and footer paging: the root opens
     // its first entry, and a list past 128 rows pages through PageTiles. 128
@@ -240,6 +321,7 @@ public sealed class MenuLayoutProfile
         Panels = new() { Back = "nav_back", Close = "nav_close", Previous = "", Next = "" },
         Variables = new() { PageVar = "" },
         Row = new() { KeyVar = null, ThumbPanel = "thumb_{0}", TypeVar = "option_{0}_type" },
+        Classes = new() { Rewind = BuiltInRewind },
         Sidebar = new()
         {
             Slots = 12, RootButton = "", AutoOpen = 0,
@@ -266,6 +348,62 @@ public sealed class MenuLayoutProfile
             ["#e4ae39"] = "7", ["#cf6a32"] = "8", ["#ffd700"] = "9",
         },
     };
+
+    // The default WeaponSkins locker, in CS2's own store look. Unlike the first design it keeps
+    // the categories page, drawn as a mosaic, rather than opening its first tab in its place.
+    public static MenuLayoutProfile WeaponSkinsLockerV2()
+    {
+        var profile = WeaponSkinsLocker();
+        profile.File = "menu_skins_mouse_v2.vxml_c";
+        profile.Variables.CrumbPanel = "nav_back";
+        profile.Variables.CrumbVar = "crumb";
+        profile.Variables.InfoPanel = "info";
+        profile.Variables.InfoVar = "info";
+        profile.Tabs!.AutoOpen = -1;
+        profile.Card!.SlotTiles = 6;
+        // Reached from the spotlight of the item they set up, through its Properties link.
+        profile.Sidebar!.Omit =
+        [
+            "weaponskins.weaponproperties", "weaponskins.knifeproperties",
+            "weaponskins.gloveproperties", "weaponskins.agentproperties",
+        ];
+        profile.Spot = new();
+        profile.Views["weaponskins.weapons"] = "ws-categories";
+        profile.Views["weaponskins.agents"] = "ws-agents";
+        profile.Views["weaponskins.knifes.paintkits"] = "ws-knives";
+        profile.Views["weaponskins.gloves.paintkits"] = "ws-gloves";
+        return profile;
+    }
+}
+
+// The item a row layout's page is about (a weapon's applied finish), drawn over the list from
+// the header node marked `spot`: its text is the name, `type=`, `sub=` and `note=` the lines
+// around it, `image=` and `icon=` its art and rarity, each `fact=Label|Value` one line of a
+// table. Panel carries Classes.Icon, HasThumb, HasType, HasSubClass, HasNoteClass and Chosen.
+public sealed class MenuSpotProfile
+{
+    public string Panel { get; set; } = "spot";
+    public string ThumbPanel { get; set; } = "spot_thumb";
+    public string NameVar { get; set; } = "spot_name";
+    public string TypeVar { get; set; } = "spot_type";
+    public string SubVar { get; set; } = "spot_sub";
+    public string NoteVar { get; set; } = "spot_note";
+    public int FactSlots { get; set; } = 4;
+    public string FactPanel { get; set; } = "spot_fact_{0}";
+    public string FactLabelVar { get; set; } = "spot_fact_{0}";
+    public string FactValueVar { get; set; } = "spot_fact_{0}_value";
+    // On Panels.Shell while a spot is drawn, so the layout can make room for it.
+    public string ShownClass { get; set; } = "has-spot";
+    public string HasSubClass { get; set; } = "has-sub";
+    public string HasNoteClass { get; set; } = "has-note";
+    // The Button a `link=entry|pick|label` draws, and its label: it opens that root entry, then the
+    // entry `pick` names on its page, which then returns here. Hidden without one.
+    public string LinkButton { get; set; } = "spot_link";
+    public string LinkVar { get; set; } = "spot_link";
+
+    public string Fact(int i) => string.Format(FactPanel, i);
+    public string FactLabel(int i) => string.Format(FactLabelVar, i);
+    public string FactValue(int i) => string.Format(FactValueVar, i);
 }
 
 // Panels addressed by class toggles rather than by text.
@@ -313,6 +451,10 @@ public sealed class MenuSidebarProfile
     public string CountClass { get; set; } = "has-count";
     // On the entry whose id a page's header names with `live=` (MapChooser's Vote while a vote runs).
     public string LiveClass { get; set; } = "live";
+    // Root entries left out, by component id or label: pages the layout reaches another way (the
+    // WeaponSkins locker's properties pages, from its spotlight). A divider left at an end, or beside
+    // another, goes with them.
+    public List<string> Omit { get; set; } = new();
 
     public string? Icon(int i) => IconPanel.Length == 0 ? null : string.Format(IconPanel, i);
 }
@@ -370,10 +512,19 @@ public sealed class MenuCardProfile
     public string FillClass { get; set; } = "fill-{0}";
     // `{0}` = the `track=` preset a slider asks for ("wear").
     public string PresetClass { get; set; } = "track-{0}";
+    // Tiles per field for its row's `slot=` entries (a weapon's sticker slots); 0 for a layout
+    // without them. Tile k is the Button "{field}{SlotSuffix}{k}", its picture panel that plus
+    // SlotThumbSuffix, and its name the variable of the Button's own id.
+    public int SlotTiles { get; set; }
+    public string SlotSuffix { get; set; } = "_slot";
+    public string SlotThumbSuffix { get; set; } = "_thumb";
+    // On a field whose row has slots.
+    public string SlotsClass { get; set; } = "has-slots";
 
     public string Field(int i) => string.Format(FieldPanel, i);
     public string Label(int i) => string.Format(LabelVar, i);
     public string Value(int i) => string.Format(ValueVar, i);
+    public string Slot(int field, int tile) => Field(field) + SlotSuffix + tile;
 
     public string FieldPrefix
     {
@@ -400,6 +551,12 @@ public sealed class LayoutVariables
     public string PageVar { get; set; } = "page";
     // {0} = current page, {1} = page count.
     public string PageFormat { get; set; } = "{0} / {1}";
+    // Row layouts: the parent menu's title (the page Back returns to), and the header's
+    // `chip` nodes joined into one line. An empty variable writes nothing.
+    public string CrumbPanel { get; set; } = "title";
+    public string CrumbVar { get; set; } = "";
+    public string InfoPanel { get; set; } = "title";
+    public string InfoVar { get; set; } = "";
 }
 
 // How one body row is addressed. `{0}` is the row index.
@@ -457,6 +614,10 @@ public sealed class LayoutRowSpec
     public string? IncSuffix { get; set; }
     public string? SegmentSuffix { get; set; }
     public int Segments { get; set; }
+    // Page layouts: ActSlots Buttons over the row's right end ({PanelId}{ActSuffix}{n}, its icon
+    // "{...}_glyph"), one per `act=`, each sending the menu action it names to the row.
+    public string? ActSuffix { get; set; }
+    public int ActSlots { get; set; }
 
     public string Panel(int i) => string.Format(PanelId, i);
     public string Label(int i) => string.Format(LabelVar, i);
@@ -484,6 +645,7 @@ public sealed class LayoutRowSpec
     public string? Dec(int i) => DecSuffix is null ? null : Panel(i) + DecSuffix;
     public string? Inc(int i) => IncSuffix is null ? null : Panel(i) + IncSuffix;
     public string? Segment(int i, int n) => SegmentSuffix is null ? null : Panel(i) + SegmentSuffix + n;
+    public string? Act(int i, int n) => ActSuffix is null ? null : Panel(i) + ActSuffix + n;
 
     // Text before `{0}`, used to map a clicked panel id back to a row index.
     public string PanelPrefix
@@ -537,6 +699,12 @@ public sealed class LayoutClasses
     public string Bar { get; set; } = "bar-{0}";
     // A row carrying `chosen`: the player's own pick, such as their vote in a tally.
     public string Chosen { get; set; } = "chosen";
+    // On Panels.Shell: a row layout's view (MenuLayoutProfile.Views), `{0}` = its name.
+    public string View { get; set; } = "view-{0}";
+    // On Panels.Shell for a few ticks when a scrolling layout's list is replaced: the layout's CSS
+    // shortens its scroll content so the offset clamps to the top while the new rows already show.
+    // Empty, as for a layout that does not style it: an empty list is shown for a tick instead.
+    public string Rewind { get; set; } = "";
     // Scale steps offered by !hudscale, and the only values the ladder accepts.
     public List<int> ScaleSteps { get; set; } = new() { 80, 90, 100, 110, 125, 150 };
 }

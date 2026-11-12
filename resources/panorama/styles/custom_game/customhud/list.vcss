@@ -463,6 +463,13 @@
 	font-size: 16px;
 }
 
+/* A page whose avatar rows carry a glyph (a global record's globe) puts it before the avatar, in a column every
+   avatar row keeps, so a row without one (a local record) still lines up. */
+.ls.has-glyph-column .has-mark .lk-mark
+{
+	margin-left: 26px;
+}
+
 /* The CS Rating badge leads a rank's own row and ends a player's (after the avatar). */
 .ls .lk-rating
 {
@@ -1304,6 +1311,14 @@
 .ls-mouse .ls-items
 {
 	padding-right: 8px;
+}
+
+/* The renderer's scroll rewind (LayoutClasses.Rewind): capped at the list's own 390px and drawn
+   past it, so the offset clamps to the top with the list as tall as ever. */
+.ls-mouse.chud-rewind .ls-items
+{
+	max-height: 390px;
+	overflow: squish noclip;
 }
 
 /* No key column: the edge keeps the text off it, and stays at the row's left side as the keyboard cursor's does. */

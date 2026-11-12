@@ -73,6 +73,7 @@
     <Reference Include="MapChooser.Contract" HintPath="lib/MapChooser.Contract.dll" Private="false" />
     <Reference Include="VIPCore.Contract" HintPath="lib/VIPCore.Contract.dll" Private="false" />
     <Reference Include="Admins.Contract" HintPath="lib/Admins.Contract.dll" Private="false" />
+    <Reference Include="MixScrims.Contract" HintPath="lib/MixScrims.Contract.dll" Private="false" />
   </ItemGroup>
 
   <Target Name="CreateZip" AfterTargets="Publish">

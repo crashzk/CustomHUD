@@ -1,0 +1,308 @@
+/*
+	menu_list_v2 (Design "v2"): the list every menu without a page of its own draws in, docked at
+	the left edge, in CS2's store look. A band with the plugin's name and the parent's title (Back,
+	in Mouse mode) over the title's line, which ends in Close in Mouse mode; the rows; then a band
+	for the keys or the pager. The rows are the first design's, read from the v2 copies of its
+	sheets; this sheet comes last and draws only what the store look draws differently.
+*/
+
+/* Docked where the first design is, 460 wide, in a hairline round CS2's navy. */
+.ls.ls2
+{
+	padding: 0px;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 100% 100%, from( chudStoreRaised ), to( chudStoreDeep ) );
+}
+
+/* ---- the head: a band over the title's line ---- */
+
+.ls2-head
+{
+	width: 100%;
+	flow-children: down;
+}
+
+/* Only with something on it, as the first design's path line; Mouse keeps it for Back. */
+.ls2-band
+{
+	width: 100%;
+	height: 34px;
+	padding: 0px 10px 0px 16px;
+	flow-children: right;
+	background-color: chudStoreBar;
+	visibility: collapse;
+}
+
+.ls2-head.has-eyebrow .ls2-band,
+.ls2-head.has-crumb .ls2-band,
+.ls.ls2.has-chips .ls2-band,
+.ls.ls2.ls-mouse .ls2-band
+{
+	visibility: visible;
+}
+
+.ls2-path
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: right;
+}
+
+.ls2-brand
+{
+	max-width: 200px;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 12px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.ls2-crumb
+{
+	max-width: 200px;
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 12px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	visibility: collapse;
+}
+
+.ls2-head.has-crumb .ls2-crumb
+{
+	visibility: visible;
+}
+
+/* A rule between the root's title and the parent's, drawn only when both are there. */
+.ls2-head.has-eyebrow .ls2-crumb
+{
+	margin-left: 12px;
+	padding-left: 12px;
+	border-top: 0px solid chudGlassDim;
+	border-right: 0px solid chudGlassDim;
+	border-bottom: 0px solid chudGlassDim;
+	border-left: 1px solid chudGlassDim;
+}
+
+/* Back: pan_arrow_left on a button of its own, before the path it leads back along. */
+.ls2-back
+{
+	width: 24px;
+	height: 24px;
+	vertical-align: center;
+	margin: 0px 8px 0px -6px;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.ls2-back.hidden
+{
+	visibility: collapse;
+}
+
+.ls2-back:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.ls2-back__icon
+{
+	width: 12px;
+	height: 12px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreText;
+}
+
+.ls2-back:hover .ls2-back__icon { wash-color: chudTextMain; }
+
+.ls.ls2 .ls2-chips
+{
+	height: 100%;
+	margin-left: 10px;
+}
+
+.ls.ls2 .ls2-chips .lk-chip
+{
+	height: 24px;
+	vertical-align: center;
+}
+
+.ls2-line
+{
+	width: 100%;
+	padding: 10px 10px 8px 16px;
+	flow-children: right;
+}
+
+.ls2-title
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 20px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.ls2-close
+{
+	width: 28px;
+	height: 28px;
+	vertical-align: center;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.ls2-close.hidden
+{
+	visibility: collapse;
+}
+
+.ls2-close:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.ls2-close__icon
+{
+	width: 14px;
+	height: 14px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreText;
+}
+
+.ls2-close:hover .ls2-close__icon { wash-color: chudTextMain; }
+
+/* ---- the rows: the first design's, inside the frame's edge ---- */
+
+.ls.ls2 .ls-list,
+.ls.ls2 .ls-foot
+{
+	padding: 0px 10px;
+}
+
+.ls.ls2 .ls-edge
+{
+	width: 2px;
+}
+
+/* The cursor's row: selectedNavColor's light rising from the edge, as on the lockers' rails. */
+.ls.ls2 .selected .ls-hit,
+.ls.ls2 .selected .ls-hit:hover
+{
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudNavSoft ), to( chudNavFade ) );
+}
+
+.ls2.ls-mouse .kind-action .ls-hit:hover, .ls2.ls-mouse .kind-submenu .ls-hit:hover, .ls2.ls-mouse .kind-toggle .ls-hit:hover,
+.ls2.ls-mouse .kind-choice .ls-hit:hover, .ls2.ls-mouse .kind-selector .ls-hit:hover, .ls2.ls-mouse .kind-slider .ls-hit:hover,
+.ls2.ls-mouse .kind-input .ls-hit:hover
+{
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudNavSoft ), to( chudNavFade ) );
+}
+
+/* ---- the band under the rows: the keys and the page, or the hint and the pager ---- */
+
+.ls.ls2.ls-keys .ls-bar,
+.ls2-bar
+{
+	width: 100%;
+	height: 34px;
+	margin-top: 7px;
+	padding: 0px 10px 0px 16px;
+	flow-children: right;
+	border-top: 0px solid transparent;
+	background-color: chudStoreBar;
+}
+
+.ls.ls2 .ls-page__num
+{
+	color: chudNavBase;
+}
+
+.ls2 .page-1 .ls-dot-1, .ls2 .page-2 .ls-dot-2, .ls2 .page-3 .ls-dot-3, .ls2 .page-4 .ls-dot-4,
+.ls2 .page-5 .ls-dot-5, .ls2 .page-6 .ls-dot-6, .ls2 .page-7 .ls-dot-7, .ls2 .page-8 .ls-dot-8
+{
+	background-color: chudNavBase;
+}
+
+.ls2-hint
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 10px;
+	color: chudStoreFaint;
+	letter-spacing: 1.5px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.ls2-pager
+{
+	width: 26px;
+	height: 24px;
+	vertical-align: center;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.ls2-pager.hidden
+{
+	visibility: collapse;
+}
+
+.ls2-pager:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.ls2-pager Label
+{
+	horizontal-align: center;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 16px;
+	font-weight: bold;
+	color: chudStoreText;
+}
+
+.ls2-pager:hover Label
+{
+	color: chudTextMain;
+}
+
+.ls2-bar .ls-page
+{
+	margin: 0px 4px;
+}
+
+/* A heading: grey as CS2 heads its sections, not the first design's gold. */
+.ls.ls2 .section .lk-name
+{
+	color: chudStoreText;
+}

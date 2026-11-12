@@ -1,0 +1,14 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/custom_game/customhud/customhud_tokens.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/customhud/v2/hud_text.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/customhud/hud_text_v2.vcss_c" />
+	</styles>
+	<Panel class="chud-root" hittest="false">
+		<Panel id="shell" class="chud-toast chud-toast2 hidden" hittest="false">
+			<Panel class="chud-toast2__body" hittest="false">
+				<Label id="text" class="chud-toast__text" text="{s:text}" hittest="false" />
+			</Panel>
+		</Panel>
+	</Panel>
+</root>

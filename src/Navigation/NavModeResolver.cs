@@ -32,7 +32,7 @@ internal sealed class NavModeResolver(CustomHudConfigProvider config, PlayerPref
     {
         if (_slotModes.TryGetValue(slot, out var chosen)) return chosen;
         if (Parse(prefs.GetNavMode(steamId)) is { } stored) return stored;
-        return coreMenus.DefaultNavMode ?? Parse(config.Current.DefaultNavMode) ?? NavMode.Buttons;
+        return config.Current.StartMode(coreMenus) ?? NavMode.Buttons;
     }
 
     public int ResolveScale(int slot, ulong steamId, MenuLayoutProfile profile)

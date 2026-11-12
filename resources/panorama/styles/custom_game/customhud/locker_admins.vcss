@@ -31,9 +31,10 @@
 	letter-spacing: 0px;
 }
 
+/* Clear of K / D, which ends the row where locker.vcss puts .lk-end. */
 .lk.view-admins-players .lk-list .lk-tags
 {
-	margin-right: 146px;
+	margin-right: 80px;
 }
 
 .lk.view-admins-players .lk-list .lk-tag,
@@ -44,41 +45,6 @@
 	font-family: chudFontBody;
 	font-size: 9px;
 	font-weight: bold;
-}
-
-/* K / D, then the ping: its bars, then the number. */
-.lk.view-admins-players .lk-list .lk-end
-{
-	margin-right: 80px;
-}
-
-.lk.view-admins-players .lk-list .lk-glyph
-{
-	width: 15px;
-	height: 15px;
-	horizontal-align: right;
-	margin: 0px 50px 0px 0px;
-	wash-color: chudSuccessBase;
-}
-
-.lk.view-admins-players .lk-list .ico-ping-2 { wash-color: chudCautionBase; }
-.lk.view-admins-players .lk-list .ico-ping-1 { wash-color: chudDangerBase; }
-
-.lk.view-admins-players .lk-list .lk-note
-{
-	margin-right: 12px;
-	font-family: chudFontBody;
-	font-size: 12px;
-	font-weight: bold;
-	color: chudTextMuted;
-	letter-spacing: 0px;
-}
-
-.lk.view-admins-players .lk-list .note-faint .lk-note
-{
-	font-size: 10px;
-	color: chudTextFaint;
-	letter-spacing: 1.5px;
 }
 
 /* The sheet: the whole pane is one card, its buttons inside at the foot; its items
@@ -185,11 +151,11 @@
 	color: chudDangerStrong;
 }
 
-/* Three facts in a ruled band, 3 x 122 = 366 of the pane's 382. */
+/* Two facts in a ruled band, 2 x 183 = 366 of the pane's 382. */
 .lk.view-admins-players .grp-stat,
 .lk.view-admins-player .grp-stat
 {
-	width: 122px;
+	width: 183px;
 	height: 52px;
 	margin: 14px 0px 2px 0px;
 }

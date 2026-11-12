@@ -7,8 +7,8 @@ using SwiftlyS2.Shared.Translation;
 namespace CustomHUD.Rendering;
 
 // What one page may hold. Items and Lines are core's two limits (ItemsPerPage,
-// MenuLayout.MaxVisibleLines); Focusables is numbers mode's, whose keys 1-6
-// cannot reach a seventh keyed row.
+// MaxVisibleLines, which "MenuConfig": "customhud" takes from config.jsonc instead);
+// Focusables is numbers mode's, whose keys 1-6 cannot reach a seventh keyed row.
 internal readonly record struct PageBudget(int Items, int Lines, int Focusables)
 {
     // Slots every page gives up once the body runs past one: the PageTiles cards.
@@ -65,6 +65,9 @@ internal sealed record MenuPage(
     // Focusable and enabled entries before this page: where its row numbers continue from.
     public int KeyedBefore { get; init; }
 
+    // Set instead of a page when the cursor sits on a label (PageFrame.LabelSkip): the entry to move it to.
+    public int Retarget { get; init; } = -1;
+
     public static MenuPage Single(int count) => new(0, count, 0, 1, 0, -1, -1);
 }
 
@@ -83,7 +86,8 @@ internal static class PageFrame
         Func<string, string> translate,
         PageBudget budget,
         Action<IMenuComponent, Exception> onRenderError,
-        PageIntegrationContext? integration = null)
+        PageIntegrationContext? integration = null,
+        int? cameFrom = null)
     {
         var menu = context.Menu;
         var session = context.Session;
@@ -102,7 +106,7 @@ internal static class PageFrame
         // Resolved from this expansion, as core does: a row source may hand out
         // new instances per call, so session.FocusedComponent need not be one of them.
         var focusableCount = body.Count(c => c.IsFocusable);
-        var added = integration is null ? 0 : integration.Host.RowsAdded(integration.Integration, menu);
+        var added = integration is null ? 0 : integration.Host.RowsAdded(integration.Integration, menu, integration.Regions);
         if (added > 0)
             budget = budget with { Items = Math.Max(1, Math.Min(budget.Items, integration!.RowSlots - added)) };
         if (budget.Reserve > 0 && body.Count > budget.Items)
@@ -139,6 +143,9 @@ internal static class PageFrame
         }
 
         var page = pages.Count > 0 ? pages[current] : (Start: 0, Count: 0, FocusablesBefore: 0, KeyedBefore: 0, Reachable: false);
+        if (cameFrom is { } from && focusPosition >= 0 && IsLabel(body[focusPosition])
+            && LabelSkip(body, page.Start, page.Count, focusableCount, session.FocusedIndex, from) is { } skip)
+            return (context.Frame, MenuPage.Single(0) with { Retarget = skip });
         var reachable = pages.Where(p => p.Reachable).ToList();
         var index = Math.Max(0, reachable.IndexOf(page));
         var (previous, next) = reachable.Count > 1
@@ -217,6 +224,49 @@ internal static class PageFrame
         return (frame, new MenuPage(page.Start, page.Count, index, Math.Max(1, reachable.Count),
             page.FocusablesBefore, previous, next) { KeyedBefore = page.KeyedBefore });
     }
+
+    private static bool IsLabel(IMenuComponent component)
+        => component.IsFocusable && PanoramaComponentRenderer.IsFact(component.GetType());
+
+    // A label holds core's cursor like an option. On a page that also has something to act on, the
+    // cursor moves on past it, the way it was going; a page of labels alone keeps it, or could never
+    // be reached. The answer is a SetFocus index; null leaves focus where it is.
+    private static int? LabelSkip(List<IMenuComponent> body, int start, int count, int focusables, int focused, int from)
+    {
+        var actionable = false;
+        for (var i = start; i < start + count && !actionable; i++)
+            actionable = body[i].IsFocusable && !IsLabel(body[i]);
+        if (!actionable) return null;
+
+        var labels = body.Where(c => c.IsFocusable).Select(IsLabel).ToArray();
+        var at = Math.Clamp(focused, 0, focusables - 1);
+        // One step back is the only move upward; a page jump or the wrap past the end goes down.
+        var step = from >= 0 && (at - from + focusables) % focusables == focusables - 1 ? -1 : 1;
+        for (var n = 1; n < focusables; n++)
+        {
+            var next = ((at + step * n) % focusables + focusables) % focusables;
+            if (!labels[next]) return next;
+        }
+        return null;
+    }
+
+    // RENDER THREAD. Whether core's frame has its cursor on a label, which PanoramaComponentRenderer marks `info`.
+    public static bool FocusOnLabel(MenuFrame frame, string rendererId)
+    {
+        foreach (var node in frame.Body)
+            if (node is MenuLineNode { Children: [MenuSelectionNode { Focused: true }, ..] } line)
+                return line.Children.Skip(1).Any(child => Marks(child, rendererId, "info"));
+        return false;
+    }
+
+    private static bool Marks(MenuNode node, string rendererId, string token) => node switch
+    {
+        MenuRawNode raw => string.Equals(raw.RendererId, rendererId, StringComparison.OrdinalIgnoreCase)
+            && raw.Payload.Split(';').Any(part => part.Trim().Equals(token, StringComparison.OrdinalIgnoreCase)),
+        MenuLineNode line => line.Children.Any(child => Marks(child, rendererId, token)),
+        MenuStackNode stack => stack.Children.Any(child => Marks(child, rendererId, token)),
+        _ => false,
+    };
 
     // RENDER THREAD. True when core's frame already is the menu's only page --
     // the common case -- so the compose can stay off the game thread.

@@ -44,13 +44,17 @@ internal sealed partial class FrameComposer
         var chips = new List<RowContent>();
         var titleParts = new List<string>();
         var live = new List<string>();
+        var variants = new SortedSet<string>(StringComparer.Ordinal);
         string? view = null;
         string? hint = null;
         foreach (var node in frame.Header)
         {
             var piece = Flatten(node, reportUnsupported);
             view ??= piece.View;
+            if (piece.Variant is { } headerVariant) variants.Add(headerVariant);
             if (piece.Live is { } entry) live.Add(entry);
+            // A spotlight belongs to row layouts (MenuLayoutProfile.Spot); a page has no place for it.
+            if (piece.Spot) continue;
             if (piece.Chip) chips.Add(piece);
             else if (piece.Hint) hint ??= piece.Text.Length > 0 ? piece.Text : null;
             else if (piece.Text.Length > 0) titleParts.Add(piece.Text);
@@ -85,6 +89,7 @@ internal sealed partial class FrameComposer
         {
             var e = entries[k];
             view ??= e.View;
+            if (e.Variant is { } entryVariant) variants.Add(entryVariant);
             // Drawn by another row of a mouse page; still counted, so focus and clicks keep their places.
             if (e.Fold && mode == NavMode.Mouse) continue;
             if (e.Inline && previousHasInline && previous is [.., var owner] && owner == k - 1 && inlineOf[owner] < 0)
@@ -151,6 +156,8 @@ internal sealed partial class FrameComposer
         }
         if (count > 0) classes.Add(new ClassWrite(shell, Format(pc.Region, "main"), true));
         classes.Add(new ClassWrite(profile.Panels.Body, Format(cls.RowCount, count), true));
+        if (main.Take(count).Any(k => entries[k].Glyph is not null && (entries[k].Avatar || entries[k].Mark is not null)))
+            classes.Add(new ClassWrite(shell, pc.GlyphColumn, true));
 
         for (var r = 0; r < regions.Count; r++)
         {
@@ -194,6 +201,8 @@ internal sealed partial class FrameComposer
 
         if (page.ResolveView(context.Menu.Id, view, config.Current.PageViews) is { } resolved && PresetToken().IsMatch(resolved))
             classes.Add(new ClassWrite(shell, Format(pc.View, resolved), true));
+        foreach (var variant in variants)
+            if (PresetToken().IsMatch(variant)) classes.Add(new ClassWrite(shell, Format(pc.Variant, variant), true));
 
         var rows = new RowMap(
             [.. entries.Select(e => e.Selectable)],
@@ -507,6 +516,31 @@ internal sealed partial class FrameComposer
             }
         }
 
+        // One button per `act=`, in order; an off one, or any on a row that can't be acted on, is drawn
+        // but left out of the click map.
+        if (spec.ActSuffix is not null)
+        {
+            var acts = entry.Acts;
+            var actable = target >= 0 && !entry.Info && !entry.Disabled;
+            for (var n = 0; n < spec.ActSlots; n++)
+            {
+                var button = spec.Act(i, n)!;
+                var shown = acts is not null && n < acts.Count;
+                classes.Add(new ClassWrite(button, cls.Hidden, !shown));
+                if (!shown) continue;
+                var act = acts![n];
+                classes.Add(new ClassWrite(button + "_glyph", Format(pc.Glyph, act.Glyph), true));
+                if (act.Off || !actable)
+                {
+                    classes.Add(new ClassWrite(button, Format(pc.ActState, "off"), true));
+                    continue;
+                }
+                if (act.Danger) classes.Add(new ClassWrite(button, Format(pc.ActState, "danger"), true));
+                controls[button] = new RowControl(target, 0, 0, 0, act.Action);
+            }
+            if (acts is { Count: > 0 }) classes.Add(new ClassWrite(panel, pc.HasActs, true));
+        }
+
         if (target >= 0 && !entry.Info)
         {
             targets[spec.Hit(i)] = target;
@@ -790,8 +824,7 @@ internal sealed partial class FrameComposer
     {
         var cls = profile.Classes;
         var slots = Math.Clamp(strip.Slots, 0, MaxTabSlots);
-        var host = slots == 0 ? null : TabHostOf(context.Menu, SidebarRoot(context.Menu));
-        var items = host is null || !strip.IsHost(host) ? [] : TabEntries(host, slots);
+        var (host, items) = TabsOf(context.Menu, strip);
         var onHost = items.Length > 0 && ReferenceEquals(host, context.Menu);
         // The host's own frame is about to open a tab in its place; drawing its tabs would only flash.
         // A page below a tab (a product, a player) is a detail of that tab, and drops the strip.
@@ -814,17 +847,29 @@ internal sealed partial class FrameComposer
         if (strip.Panel.Length > 0) classes.Add(new ClassWrite(strip.Panel, cls.Hidden, !shown));
         if (shown) classes.Add(new ClassWrite(profile.Panels.Shell, strip.HasTabsClass, true));
 
-        var auto = strip.AutoOpen;
+        var (open, index) = TabAutoOpen(context.Menu, host, items, strip.AutoOpen);
         return rows with
         {
             TabHost = items.Length > 0 ? host : null,
             TabPrefix = strip.Prefix,
             TabItems = shown ? [.. items] : [],
-            SkipsTabHost = items.Length > 0 && auto >= 0,
-            TabAutoOpenItem = onHost && auto >= 0 && auto < items.Length ? items[auto] : null,
-            TabAutoOpenIndex = onHost && auto >= 0 && auto < items.Length ? auto : -1,
+            SkipsTabHost = items.Length > 0 && strip.AutoOpen >= 0,
+            TabAutoOpenItem = open,
+            TabAutoOpenIndex = index,
         };
     }
+
+    // The tab host above a menu and the tabs its strip shows; no tabs when the menu has no host.
+    private static (IMenu? Host, SubmenuComponent[] Items) TabsOf(IMenu menu, TabStrip strip)
+    {
+        var slots = Math.Clamp(strip.Slots, 0, MaxTabSlots);
+        var host = slots == 0 ? null : TabHostOf(menu, SidebarRoot(menu));
+        return (host, host is null || !strip.IsHost(host) ? [] : TabEntries(host, slots));
+    }
+
+    // On the host's own frame, the tab it opens in its place (TabAutoOpen) and that tab's index.
+    private static (SubmenuComponent? Item, int Index) TabAutoOpen(IMenu menu, IMenu? host, SubmenuComponent[] items, int auto)
+        => items.Length > 0 && ReferenceEquals(host, menu) && auto >= 0 && auto < items.Length ? (items[auto], auto) : (null, -1);
 
     // The sidebar entry's page: the menu directly under the root that the player is somewhere beneath.
     internal static IMenu? TabHostOf(IMenu menu, IMenu root)
@@ -945,6 +990,7 @@ internal sealed partial class FrameComposer
                 break;
             case "at": if (Plain(value)) content.At = value; break;
             case "view": if (Plain(value)) content.View = value; break;
+            case "variant": if (Plain(value)) content.Variant = value; break;
             case "group": if (Plain(value)) content.Group = value; break;
             case "sub": content.Sub = value; break;
             case "unit": content.Unit = value; break;
@@ -965,6 +1011,7 @@ internal sealed partial class FrameComposer
             case "tagglyph": if (Plain(value)) content.TagGlyph = value; break;
             case "vunit": content.ValueUnit = value; break;
             case "live": if (value is { Length: > 0 }) content.Live = value; break;
+            case "act": if (ParseAct(value) is { } act) (content.Acts ??= []).Add(act); break;
             case "swatch": if (Plain(value)) content.Swatch = value; break;
             case "rating":
                 if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var rating))
@@ -995,4 +1042,16 @@ internal sealed partial class FrameComposer
     }
 
     private static bool Plain(string? value) => value is not null && PresetToken().IsMatch(value);
+
+    // "MoveUp|up|off": the action's name, its glyph token, then danger and off in any order.
+    private static RowAct? ParseAct(string? value)
+    {
+        var parts = value?.Split('|') ?? [];
+        if (parts.Length < 2 || !ActName().IsMatch(parts[0]) || !Plain(parts[1])) return null;
+        var flags = parts.Skip(2).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return new RowAct(parts[0], parts[1], flags.Contains("danger"), flags.Contains("off"));
+    }
+
+    [GeneratedRegex("^[A-Za-z][A-Za-z0-9_.-]{0,47}$")]
+    private static partial Regex ActName();
 }

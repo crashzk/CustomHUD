@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -49,9 +50,7 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         var classes = ImmutableArray.CreateBuilder<ClassWrite>();
         var frame = context.Frame;
 
-        vars.Add(new VarWrite(
-            profile.Variables.TitlePanel, profile.Variables.TitleVar,
-            CleanTitle(FlattenRegion(frame.Header, reportUnsupported))));
+        var headerView = ComposeRowHeader(context, profile, reportUnsupported, vars, classes, out var link);
 
         var entries = frame.Body.Select(node => Flatten(node, reportUnsupported)).Where(e => !e.Divider).ToArray();
 
@@ -97,6 +96,9 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             NextButton = profile.Panels.Next,
             PreviousPageFocus = page?.PreviousFocus ?? -1,
             NextPageFocus = page?.NextFocus ?? -1,
+            LinkButton = link is null ? string.Empty : profile.Spot!.LinkButton,
+            LinkEntry = link?.Entry ?? string.Empty,
+            LinkPick = link?.Pick ?? string.Empty,
         };
         if (mode == NavMode.Mouse && profile.Sidebar is { } sidebar)
             rows = ComposeSidebar(context, profile, sidebar, rows, vars, classes);
@@ -129,6 +131,13 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         if (profile.Classes.ScaleSteps.Contains(scalePercent))
             classes.Add(new ClassWrite(profile.Panels.Shell, Format(profile.Classes.Scale, scalePercent), true));
 
+        var menuId = context.Menu.Id;
+        if ((MenuPageProfile.MatchView(config.Current.PageViews, menuId)
+                ?? headerView ?? entries.Select(e => e.View).FirstOrDefault(v => v is not null)
+                ?? MenuPageProfile.MatchView(profile.Views, menuId)) is { } view
+            && PresetToken().IsMatch(view))
+            classes.Add(new ClassWrite(profile.Panels.Shell, Format(profile.Classes.View, view), true));
+
         // Revealed last, so a player never sees a frame mid-population. The
         // entity spawns with this class set.
         classes.Add(new ClassWrite(profile.Panels.Shell, profile.Classes.Hidden, false));
@@ -139,12 +148,18 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             steamId, rows, CaptureInput: mode == NavMode.Mouse);
     }
 
+    // A profile is never edited after its factory or a config reload builds it, so its fingerprint is
+    // computed once per instance rather than joined from ~150 fields on every compose.
+    private static readonly ConditionalWeakTable<MenuLayoutProfile, string> Fingerprints = new();
+
+    private static string Fingerprint(MenuLayoutProfile p) => Fingerprints.GetValue(p, ComputeFingerprint);
+
     // Identifies everything about a profile that changes the SET of writes a
     // frame produces -- not their values. A live config edit that shrinks
     // RowSlots or renames a panel leaves the dropped keys untouched by the
     // diff, so the apply treats a change here as a respawn and redraws blank.
     // Every field named by a VarWrite or ClassWrite must appear.
-    private static string Fingerprint(MenuLayoutProfile p)
+    private static string ComputeFingerprint(MenuLayoutProfile p)
         => string.Join('|',
             p.RowSlots, p.ShowAllRows, p.PageTiles,
             p.Panels.Shell, p.Panels.Body, p.Panels.Title, p.Panels.Footer,
@@ -154,13 +169,15 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             p.Card?.ModeClass, p.Card?.HeroPanel, p.Card?.HeroThumbPanel, p.Card?.HeroNameVar, p.Card?.HeroTypeVar,
             p.Card?.Slots, p.Card?.FieldPanel, p.Card?.LabelVar, p.Card?.ValueVar, p.Card?.KindClass, p.Card?.AsideClass,
             p.Card?.OnClass, p.Card?.AsideOnClass, p.Card?.TrackClass, p.Card?.FillClass, p.Card?.PresetClass,
+            p.Card?.SlotTiles, p.Card?.SlotSuffix, p.Card?.SlotThumbSuffix, p.Card?.SlotsClass,
             p.Variables.TitlePanel, p.Variables.TitleVar,
             p.Variables.FooterPanel, p.Variables.FooterVar,
             p.Variables.PagePanel, p.Variables.PageVar,
+            p.Variables.CrumbPanel, p.Variables.CrumbVar, p.Variables.InfoPanel, p.Variables.InfoVar,
             p.Row.PanelId, p.Row.LabelVar, p.Row.ValueVar, p.Row.KeyVar, p.Row.IconPanel, p.Row.ThumbPanel, p.Row.TypeVar,
             p.Classes.Hidden, p.Classes.Selected, p.Classes.Disabled,
             p.Classes.Danger, p.Classes.Marquee, p.Classes.Thumb, p.Classes.Tint, p.Classes.HasThumb, p.Classes.HasType, p.Classes.PageTile,
-            p.Classes.HasBar, p.Classes.Bar, p.Classes.Chosen,
+            p.Classes.HasBar, p.Classes.Bar, p.Classes.Chosen, p.Classes.View, p.Classes.Rewind,
             p.Classes.RowCount, p.Classes.Scale, p.Classes.Icon,
             string.Join(',', p.Classes.IconTokens),
             string.Join(',', p.Classes.ScaleSteps),
@@ -169,14 +186,21 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             p.Tabs?.Slots, p.Tabs?.Panel, p.Tabs?.Prefix, p.Tabs?.LabelVar, p.Tabs?.CountVar,
             p.Tabs?.HasTabsClass, p.Tabs?.HasCountClass,
             RowFingerprint(p.Row),
+            p.Spot is { } spot ? SpotFingerprint(spot) : "",
             p.Page is { } page ? PageFingerprint(page) : "");
+
+    private static string SpotFingerprint(MenuSpotProfile s)
+        => string.Join(',',
+            s.Panel, s.ThumbPanel, s.NameVar, s.TypeVar, s.SubVar, s.NoteVar,
+            s.FactSlots, s.FactPanel, s.FactLabelVar, s.FactValueVar, s.ShownClass, s.HasSubClass, s.HasNoteClass,
+            s.LinkButton, s.LinkVar);
 
     private static string RowFingerprint(LayoutRowSpec r)
         => string.Join(',',
             r.PanelId, r.LabelVar, r.ValueVar, r.KeyVar, r.IconPanel, r.ThumbPanel, r.TypeVar,
             r.HitSuffix, r.InlineSuffix, r.SubVar, r.UnitVar, r.BadgeVar, r.TagVar, r.Tag2Var, r.NoteVar, r.MarkVar,
             r.GlyphPanel, r.ValueGlyphPanel, r.LogoPanel, r.TagGlyphPanel, r.ValueUnitVar, r.RatingVar, r.RatingMinorVar,
-            r.DecSuffix, r.IncSuffix, r.SegmentSuffix, r.Segments);
+            r.DecSuffix, r.IncSuffix, r.SegmentSuffix, r.Segments, r.ActSuffix, r.ActSlots);
 
     private static string PageFingerprint(MenuPageProfile p)
     {
@@ -189,12 +213,12 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             string.Join(';', p.Regions.Select(r => r.Name + ':' + r.Slots + ':' + RowFingerprint(r.Row))),
             l is null ? "" : string.Join(',', l.Panel, l.Slots, l.SlotPanel, l.KeyVar, l.Key2Var, l.VerbVar,
                 l.ShownClass, l.HasKey2Class, l.Dots, l.PagesClass, l.PageClass),
-            string.Join(',', c.View, c.Region, c.HasTabs, c.HasHead, c.NoSidebar, c.Mode, c.HasCrumb, c.HasEyebrow, c.Tone, c.SubTone,
+            string.Join(',', c.View, c.Variant, c.Region, c.HasTabs, c.HasHead, c.GlyphColumn, c.NoSidebar, c.Mode, c.HasCrumb, c.HasEyebrow, c.Tone, c.SubTone,
                 c.BadgeTone, c.TagTone, c.Tag2Tone, c.NoteTone, c.MeterTone, c.Swatch, c.Avatar, c.AvatarColors, c.Rarity, c.Kind,
                 c.On, c.Track, c.Rating, c.Pips, c.Lit, c.Yes, c.Section, c.Group, c.Lead, c.Primary, c.HasKey, c.HasSub, c.HasUnit,
                 c.HasBadge, c.HasTag, c.HasTag2, c.HasNote, c.HasValue, c.HasGlyph, c.HasValueGlyph, c.HasTagGlyph, c.HasValueUnit, c.HasMark,
                 c.HasInline, c.HasRating, c.HasPips, c.HasCount,
-                c.Glyph, c.InlineState, c.HasBar2, c.Bar2));
+                c.Glyph, c.InlineState, c.HasBar2, c.Bar2, c.HasActs, c.ActState));
     }
 
     private static void ComposePageCounter(
@@ -262,10 +286,37 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             RootMenu = root, RootButton = sidebar.RootButton, SidebarPrefix = sidebar.ButtonPrefix,
             SidebarItems = [.. items],
             SkipsRoot = sidebar.AutoOpen >= 0,
-            AutoOpenItem = onRoot && sidebar.AutoOpen >= 0
-                ? items.OfType<SubmenuComponent>().ElementAtOrDefault(sidebar.AutoOpen)
-                : null,
+            AutoOpenItem = onRoot ? RootAutoOpen(sidebar, items) : null,
         };
+    }
+
+    private static SubmenuComponent? RootAutoOpen(MenuSidebarProfile sidebar, IMenuComponent[] items)
+        => sidebar.AutoOpen >= 0 ? items.OfType<SubmenuComponent>().ElementAtOrDefault(sidebar.AutoOpen) : null;
+
+    // The skips a frame of this menu would carry, worked out without building its page: the apply
+    // opens a skipped root's entry or a tab host's tab before it renders a single row. Only the
+    // fields PanoramaMenuRenderer's SkipRoot and SkipTabHost read are set.
+    internal static RowMap PlanSkips(IMenu menu, MenuLayoutProfile profile, NavMode mode)
+    {
+        var rows = RowMap.Empty;
+        if (mode == NavMode.Mouse && profile.Sidebar is { } sidebar)
+        {
+            var root = SidebarRoot(menu);
+            var items = SidebarEntries(root, sidebar);
+            rows = rows with
+            {
+                RootMenu = root,
+                SidebarItems = [.. items],
+                SkipsRoot = sidebar.AutoOpen >= 0,
+                AutoOpenItem = ReferenceEquals(root, menu) ? RootAutoOpen(sidebar, items) : null,
+            };
+        }
+        TabStrip? strip = profile.Page is { } page ? TabStrip.Of(page)
+            : mode == NavMode.Mouse && profile.Tabs is { } tabs ? TabStrip.Of(tabs) : null;
+        if (strip is not { } tabStrip) return rows;
+        var (host, entries) = TabsOf(menu, tabStrip);
+        var (open, index) = TabAutoOpen(menu, host, entries, tabStrip.AutoOpen);
+        return rows with { TabHost = entries.Length > 0 ? host : null, TabAutoOpenItem = open, TabAutoOpenIndex = index };
     }
 
     internal static IMenu SidebarRoot(IMenu menu)
@@ -284,14 +335,30 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
     {
         var components = root.GetComponents(MenuRegion.Body);
         var actions = sidebar.AutoOpen >= 0 && components.Any(IsPage);
-        return components
+        var entries = components
             .Where(c => c is DividerComponent { Visible: true, VisibleWhen: null } || IsPage(c)
-                || actions && c is ButtonComponent { Visible: true, VisibleWhen: null, EnabledWhen: null, TextProvider: null })
-            .Take(Math.Clamp(sidebar.Slots, 0, 32))
-            .ToArray();
+                || actions && c is ButtonComponent { Visible: true, VisibleWhen: null, EnabledWhen: null, TextProvider: null });
+        if (sidebar.Omit.Count > 0) entries = WithoutOmitted(entries, sidebar.Omit);
+        return entries.Take(Math.Clamp(sidebar.Slots, 0, 32)).ToArray();
 
         static bool IsPage(IMenuComponent c)
             => c is SubmenuComponent { Visible: true, VisibleWhen: null, EnabledWhen: null, TextProvider: null };
+    }
+
+    private static List<IMenuComponent> WithoutOmitted(IEnumerable<IMenuComponent> entries, List<string> omit)
+    {
+        var kept = new List<IMenuComponent>();
+        foreach (var entry in entries)
+        {
+            if (entry is DividerComponent ? kept is [] or [.., DividerComponent] : Omitted(entry)) continue;
+            kept.Add(entry);
+        }
+        if (kept is [.., DividerComponent]) kept.RemoveAt(kept.Count - 1);
+        return kept;
+
+        bool Omitted(IMenuComponent entry)
+            => omit.Any(o => string.Equals(o, entry.Id, StringComparison.OrdinalIgnoreCase)
+                || entry is TextComponent { Text: { } label } && string.Equals(o, label, StringComparison.OrdinalIgnoreCase));
     }
 
     // The entry's icon token, or null to leave the layout's default icon. The
@@ -576,9 +643,12 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
             if (entry.Kind == "slider") track[field] = k;
         }
 
+        var tiles = Math.Clamp(card.SlotTiles, 0, MaxSlotTiles);
+        var picks = new ImmutableArray<string>[slots];
         for (var i = 0; i < slots; i++)
         {
             var panel = card.Field(i);
+            picks[i] = [];
             if (main[i] < 0)
             {
                 classes.Add(new ClassWrite(panel, cls.Hidden, true));
@@ -613,14 +683,52 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
                 classes.Add(new ClassWrite(panel, Format(card.FillClass, Math.Clamp(slider.Percent, 0, 100)), true));
                 if (slider.Track is { } preset) classes.Add(new ClassWrite(panel, Format(card.PresetClass, preset), true));
             }
+
+            if (tiles > 0) picks[i] = ComposeSlots(profile, card, i, tiles, entry.Slots, vars, classes);
         }
 
         rows = new RowMap([.. entries.Select(e => e.Selectable)], Array.FindIndex(entries, e => e.Focused), focusedIndex, card.FieldPrefix)
         {
             FirstRow = pageOffset,
             Card = new CardMap([.. main], [.. aside], [.. track],
-                card.HitSuffix, card.AsideSuffix, card.SegmentSuffix, card.Segments),
+                card.HitSuffix, card.AsideSuffix, card.SegmentSuffix, card.Segments)
+            {
+                SlotSuffix = tiles > 0 ? card.SlotSuffix : string.Empty,
+                Picks = [.. picks],
+            },
         };
+    }
+
+    private const int MaxSlotTiles = 16;
+
+    // A field's tiles, one per `slot=pick|image|name` of its row, in order; every tile is written on
+    // every frame, so a field that held slots on the last page shows none on this one. Returns each
+    // tile's pick: the entry it opens on the row's page, empty for the page itself.
+    private static ImmutableArray<string> ComposeSlots(
+        MenuLayoutProfile profile, MenuCardProfile card, int field, int tiles, List<string>? slots,
+        ImmutableArray<VarWrite>.Builder vars, ImmutableArray<ClassWrite>.Builder classes)
+    {
+        var cls = profile.Classes;
+        var count = Math.Min(slots?.Count ?? 0, tiles);
+        var picks = new string[count];
+        for (var k = 0; k < tiles; k++)
+        {
+            var panel = card.Slot(field, k);
+            var thumbPanel = panel + card.SlotThumbSuffix;
+            var spec = k < count ? slots![k].Split('|', 3) : null;
+            var image = spec is { Length: > 1 } && spec[1].Trim().Length > 0 ? spec[1] : null;
+            vars.Add(new VarWrite(panel, panel, spec is { Length: > 2 } ? spec[2] : string.Empty));
+            classes.Add(new ClassWrite(panel, cls.Hidden, spec is null));
+            if (spec is not null) picks[k] = spec[0].Trim();
+            if (image is not null)
+            {
+                classes.Add(new ClassWrite(thumbPanel, Format(cls.Thumb, ThumbToken(image)), true));
+                classes.Add(new ClassWrite(panel, cls.HasThumb, true));
+            }
+            classes.Add(new ClassWrite(thumbPanel, cls.Hidden, image is null));
+        }
+        if (count > 0) classes.Add(new ClassWrite(card.Field(field), card.SlotsClass, true));
+        return [.. picks];
     }
 
     private static string KindOf(RowContent entry)
@@ -739,20 +847,89 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
     [GeneratedRegex(@"\s{2,}")]
     private static partial Regex Spaces();
 
-    // A chip or a page hint is a header node with a place of its own on a page; a
-    // plain list has neither, so it keeps them out of the title.
-    private string FlattenRegion(IReadOnlyList<MenuNode> region, Action<MenuNode> reportUnsupported)
+    // A row layout's header: the title, and where the profile names them, the parent's title as
+    // a crumb, the chips as one line and the `spot` node. A chip or a page hint has a place of its
+    // own on a page, so neither joins the title. Returns the header's `view=`, and the spot's link.
+    private string? ComposeRowHeader(
+        IMenuRenderContext context, MenuLayoutProfile profile, Action<MenuNode> reportUnsupported,
+        ImmutableArray<VarWrite>.Builder vars, ImmutableArray<ClassWrite>.Builder classes,
+        out (string Entry, string Pick)? link)
     {
-        if (region.Count == 0) return string.Empty;
-        var sb = new StringBuilder();
-        foreach (var node in region)
+        var v = profile.Variables;
+        var title = new List<string>();
+        var info = new List<string>();
+        RowContent? spot = null;
+        string? view = null;
+        foreach (var node in context.Frame.Header)
         {
-            var flat = Flatten(node, reportUnsupported);
-            if (flat.Chip || flat.Hint || flat.Text.Length == 0) continue;
-            if (sb.Length > 0) sb.Append(' ');
-            sb.Append(flat.Text);
+            var piece = Flatten(node, reportUnsupported);
+            view ??= piece.View;
+            if (piece.Spot) spot ??= piece;
+            else if (piece.Chip && piece.Text.Replace(SegmentSeparator, ' ').Trim() is { Length: > 0 } fact) info.Add(fact);
+            else if (!piece.Chip && !piece.Hint && piece.Text.Length > 0) title.Add(piece.Text);
         }
-        return sb.ToString();
+
+        var crumb = v.CrumbVar.Length > 0 ? CrumbOf(context.Menu) : string.Empty;
+        vars.Add(new VarWrite(v.TitlePanel, v.TitleVar, WithoutCrumb(CleanTitle(string.Join(' ', title)), crumb)));
+        if (v.CrumbVar.Length > 0) vars.Add(new VarWrite(v.CrumbPanel, v.CrumbVar, crumb));
+        if (v.InfoVar.Length > 0) vars.Add(new VarWrite(v.InfoPanel, v.InfoVar, string.Join(" · ", info)));
+        link = profile.Spot is { } spotProfile ? ComposeSpot(profile, spotProfile, spot, vars, classes) : null;
+        return view;
+    }
+
+    private const int MaxSpotFacts = 16;
+
+    // Every variable is written on every frame, blank while there is no spot: a dialog variable
+    // keeps its last value, so a skipped write would leave the previous page's item on screen.
+    private static (string Entry, string Pick)? ComposeSpot(
+        MenuLayoutProfile profile, MenuSpotProfile spot, RowContent? node,
+        ImmutableArray<VarWrite>.Builder vars, ImmutableArray<ClassWrite>.Builder classes)
+    {
+        var cls = profile.Classes;
+        var shown = node is not null;
+        var e = node ?? default;
+        vars.Add(new VarWrite(spot.Panel, spot.NameVar, shown ? e.Text.Split(SegmentSeparator)[0] : string.Empty));
+        vars.Add(new VarWrite(spot.Panel, spot.TypeVar, e.Type ?? string.Empty));
+        vars.Add(new VarWrite(spot.Panel, spot.SubVar, e.Sub ?? string.Empty));
+        vars.Add(new VarWrite(spot.Panel, spot.NoteVar, e.Note ?? string.Empty));
+        classes.Add(new ClassWrite(spot.Panel, cls.Hidden, !shown));
+        if (shown)
+        {
+            classes.Add(new ClassWrite(profile.Panels.Shell, spot.ShownClass, true));
+            if (!string.IsNullOrEmpty(e.Type)) classes.Add(new ClassWrite(spot.Panel, cls.HasType, true));
+            if (!string.IsNullOrEmpty(e.Sub)) classes.Add(new ClassWrite(spot.Panel, spot.HasSubClass, true));
+            if (!string.IsNullOrEmpty(e.Note)) classes.Add(new ClassWrite(spot.Panel, spot.HasNoteClass, true));
+            if (e.Chosen && cls.Chosen.Length > 0) classes.Add(new ClassWrite(spot.Panel, cls.Chosen, true));
+            var icon = e.Icon ?? (e.Color is { } color && profile.ColorIcons.TryGetValue(color, out var mapped) ? mapped : string.Empty);
+            if (cls.IconTokens.Contains(icon)) classes.Add(new ClassWrite(spot.Panel, Format(cls.Icon, icon), true));
+        }
+
+        var thumb = shown && !string.IsNullOrWhiteSpace(e.Image) ? ThumbToken(e.Image) : null;
+        if (thumb is not null)
+        {
+            classes.Add(new ClassWrite(spot.ThumbPanel, Format(cls.Thumb, thumb), true));
+            classes.Add(new ClassWrite(spot.Panel, cls.HasThumb, true));
+        }
+        classes.Add(new ClassWrite(spot.ThumbPanel, cls.Hidden, thumb is null));
+
+        for (var j = 0; j < Math.Clamp(spot.FactSlots, 0, MaxSpotFacts); j++)
+        {
+            var fact = shown && e.Facts is { } facts && j < facts.Count ? facts[j] : null;
+            var bar = fact?.IndexOf('|') ?? -1;
+            vars.Add(new VarWrite(spot.Fact(j), spot.FactLabel(j), fact is null ? string.Empty : bar < 0 ? fact : fact[..bar]));
+            vars.Add(new VarWrite(spot.Fact(j), spot.FactValue(j), bar < 0 ? string.Empty : fact![(bar + 1)..]));
+            classes.Add(new ClassWrite(spot.Fact(j), cls.Hidden, fact is null));
+        }
+
+        var link = shown && spot.LinkButton.Length > 0 && e.Link?.Split('|', 3) is [{ Length: > 0 } entry, var pick, var label]
+            ? (Entry: entry.Trim(), Pick: pick.Trim(), Label: label)
+            : default;
+        if (spot.LinkButton.Length > 0)
+        {
+            vars.Add(new VarWrite(spot.LinkButton, spot.LinkVar, link.Label ?? string.Empty));
+            classes.Add(new ClassWrite(spot.LinkButton, cls.Hidden, link.Entry is null));
+        }
+        return link.Entry is null ? null : (link.Entry, link.Pick);
     }
 
     private RowContent Flatten(MenuNode node, Action<MenuNode> reportUnsupported)
@@ -876,6 +1053,14 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
                 content.Track = token[6..];
             else if (token.StartsWith("tint=", StringComparison.OrdinalIgnoreCase) && PresetToken().IsMatch(token[5..]))
                 content.Tint = token[5..];
+            else if (token.Equals("spot", StringComparison.OrdinalIgnoreCase))
+                content.Spot = true;
+            else if (token.StartsWith("fact=", StringComparison.OrdinalIgnoreCase) && token.Length > 5)
+                (content.Facts ??= []).Add(token[5..]);
+            else if (token.StartsWith("slot=", StringComparison.OrdinalIgnoreCase))
+                (content.Slots ??= []).Add(token[5..]);
+            else if (token.StartsWith("link=", StringComparison.OrdinalIgnoreCase))
+                content.Link = token[5..];
             else
                 ApplyPageDirective(token, ref content);
         }
@@ -913,6 +1098,13 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         public bool HasBar;
         public int Bar;
         public bool Chosen;
+        // A header node drawn as MenuLayoutProfile.Spot (`spot`), and its `fact=Label|Value` lines.
+        public bool Spot;
+        public List<string>? Facts;
+        // A card field's tiles (`slot=pick|image|name`), MenuCardProfile.SlotTiles.
+        public List<string>? Slots;
+        // A spot's `link=entry|pick|label`: MenuSpotProfile.LinkButton.
+        public string? Link;
         // Page directives (FrameComposer.Page.cs); a row layout ignores them all.
         public bool Chip;
         public bool Section;
@@ -924,6 +1116,7 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         public bool Map;
         public string? At;
         public string? View;
+        public string? Variant;
         public string? Group;
         public string? Sub;
         public string? Unit;
@@ -963,5 +1156,10 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         public bool Hint;
         // A header node's `live=<entry id>`: that sidebar entry is happening now.
         public string? Live;
+        // `act=action|glyph`: the row's own action buttons, in order.
+        public List<RowAct>? Acts;
     }
+
+    // Off draws the button dimmed and leaves it out of the click map; a danger one reddens on hover.
+    private readonly record struct RowAct(string Action, string Glyph, bool Danger, bool Off);
 }

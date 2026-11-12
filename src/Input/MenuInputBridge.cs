@@ -17,7 +17,9 @@ namespace CustomHUD.Input;
 //
 // Keyboard input is handled only for players in wasd mode, and only for keys
 // the menu's keymap does not already own -- a key bound in menus.jsonc is
-// dispatched by core, and dispatching it here as well would act twice.
+// dispatched by core, and dispatching it here as well would act twice. Core's
+// traversal binds on any other key are masked for them, so only W S A D E R Tab
+// navigate; mouse and numbers players lose core's binds outright (Masked).
 //
 // MenuActionContext is a public readonly record struct with required init
 // properties, and IMenuComponent.HandleActionAsync is on the public interface,
@@ -38,8 +40,8 @@ internal sealed class MenuInputBridge(
     private EventDelegates.OnTick? _onTick;
 
     private const int MaxSlots = 128;
-    // Slots whose Tab this tick's OnTick removed: a Tab event for one means the mask did not hold.
-    private readonly bool[] _tabMasked = new bool[MaxSlots];
+    // Keys this tick's OnTick removed, per slot: a press of one reaching OnKey means the mask did not hold.
+    private readonly MenuKey[] _masked = new MenuKey[MaxSlots];
 
     public void Subscribe()
     {
@@ -63,38 +65,100 @@ internal sealed class MenuInputBridge(
 
     private void OnTick()
     {
-        Array.Clear(_tabMasked);
+        Array.Clear(_masked);
         foreach (var player in core.PlayerManager.GetAllPlayers())
         {
-            if (!BlocksTab(player)) continue;
+            var keys = Masked(player);
+            if (keys == MenuKey.None) continue;
 
             // SW2's OnGameFramePlayerHook runs OnTick after simulation, BEFORE
             // CPlayer::Think samples ButtonPressed for menu key events.
             // Pawn matches that sampler, including the spectator pawn.
             if (player.Pawn is { IsValid: true, MovementServices: { } movement })
             {
-                movement.Buttons.ButtonPressed &= ~GameButtonFlags.Tab;
-                if ((uint)player.PlayerID < MaxSlots) _tabMasked[player.PlayerID] = true;
+                movement.Buttons.ButtonPressed &= ~ButtonsOf(keys);
+                if ((uint)player.PlayerID < MaxSlots) _masked[player.PlayerID] = keys;
             }
         }
     }
 
-    // Tab is a close key only in wasd and buttons; mouse and numbers have their own.
-    private bool BlocksTab(IPlayer player)
-        => GetOwnSession(player) is { Menu.InputMethod: MenuInputMethod.Buttons }
-           && player is { IsValid: true, IsFakeClient: false }
-           && navModes.Resolve(player.PlayerID, steamIds.Get(player.PlayerID)) is NavMode.Mouse or NavMode.Numbers;
+    // The keys core must not see while this player's own menu takes keyboard input. Mouse and numbers draw
+    // no cursor, yet core's keys act on its focus, the row last clicked or picked: E would activate it again.
+    private MenuKey Masked(IPlayer player)
+    {
+        if (player is not { IsValid: true, IsFakeClient: false }
+            || GetOwnSession(player) is not { Menu.InputMethod: MenuInputMethod.Buttons } session)
+            return MenuKey.None;
+
+        var keymap = session.Menu.Keymap;
+        return navModes.Resolve(player.PlayerID, steamIds.Get(player.PlayerID)) switch
+        {
+            NavMode.Mouse => BoundTo(keymap, Traversal, MenuKey.None),
+            NavMode.Numbers => BoundTo(keymap, ReplacedByNumbers, MenuKey.None),
+            NavMode.Wasd => BoundTo(keymap, Traversal, WasdKeys),
+            _ => MenuKey.None,
+        };
+    }
+
+    private const MenuKey WasdKeys = MenuKey.W | MenuKey.S | MenuKey.A | MenuKey.D | MenuKey.E | MenuKey.R | MenuKey.Tab;
+
+    // Every key the keymap gives one of these actions, except the mode's own. A key the menu binds to an
+    // action of its own is the plugin's feature, not navigation, and stays.
+    private static MenuKey BoundTo(IMenuKeymap keymap, HashSet<string> actions, MenuKey kept)
+    {
+        var keys = MenuKey.None;
+        foreach (var (key, _) in Buttons)
+            if ((key & kept) == MenuKey.None && keymap.TryResolve(key, out var action) && actions.Contains(action.Name))
+                keys |= key;
+        return keys;
+    }
+
+    // By name, as core's router matches them, so a menu's own rebind of one counts too.
+    private static readonly HashSet<string> Traversal = Names(MenuActions.NavigateUp, MenuActions.NavigateDown,
+        MenuActions.NavigateLeft, MenuActions.NavigateRight, MenuActions.Select, MenuActions.Close);
+
+    // Not NavigateLeft / NavigateRight: core ignores Select on a selector, so they are the one way a
+    // numbers player changes the selector they picked.
+    private static readonly HashSet<string> ReplacedByNumbers = Names(MenuActions.NavigateUp, MenuActions.NavigateDown,
+        MenuActions.Select, MenuActions.Close);
+
+    private static HashSet<string> Names(params MenuActionId[] actions)
+        => new(actions.Select(a => a.Name), StringComparer.OrdinalIgnoreCase);
+
+    private static GameButtonFlags ButtonsOf(MenuKey keys)
+    {
+        var buttons = GameButtonFlags.None;
+        foreach (var (key, bits) in Buttons)
+            if ((keys & key) != MenuKey.None) buttons |= bits;
+        return buttons;
+    }
+
+    // Each menu key and the engine bits core reports it from: SwiftlyS2's internal GameButtons.ToKeyKind
+    // and MenuKeys.FromKeyKind, inverted. A and D each arrive on two bits.
+    private static readonly (MenuKey Key, GameButtonFlags Bits)[] Buttons =
+    [
+        (MenuKey.Mouse1, GameButtonFlags.Mouse1), (MenuKey.Mouse2, GameButtonFlags.Mouse2),
+        (MenuKey.Space, GameButtonFlags.Space), (MenuKey.Ctrl, GameButtonFlags.Ctrl),
+        (MenuKey.W, GameButtonFlags.W), (MenuKey.S, GameButtonFlags.S),
+        (MenuKey.A, GameButtonFlags.A | GameButtonFlags.A2), (MenuKey.D, GameButtonFlags.D | GameButtonFlags.D2),
+        (MenuKey.E, GameButtonFlags.E), (MenuKey.Esc, GameButtonFlags.Esc), (MenuKey.R, GameButtonFlags.R),
+        (MenuKey.Alt, GameButtonFlags.Alt), (MenuKey.Shift, GameButtonFlags.Shift),
+        (MenuKey.Weapon1, GameButtonFlags.UnknownKeyWeapon1), (MenuKey.Weapon2, GameButtonFlags.UnknownKeyWeapon2),
+        (MenuKey.Grenade1, GameButtonFlags.UnknownKeyGrenade1), (MenuKey.Grenade2, GameButtonFlags.UnknownKeyGrenade2),
+        (MenuKey.Tab, GameButtonFlags.Tab), (MenuKey.F, GameButtonFlags.F),
+    ];
 
     private void OnKey(IOnClientKeyStateChangedEvent e)
     {
         if (!e.Pressed) return;
-        if (e.Key is not (KeyKind.W or KeyKind.S or KeyKind.E or KeyKind.R or KeyKind.Tab)) return;
 
-        if (e.Key == KeyKind.Tab && (uint)e.PlayerId < MaxSlots && _tabMasked[e.PlayerId])
+        if ((uint)e.PlayerId < MaxSlots && (_masked[e.PlayerId] & MenuKeys.FromKeyKind(e.Key)) != MenuKey.None)
         {
-            logger.LogWarning("Tab reached the menu router for player {PlayerId} although CustomHUD removed it this tick, so core closed their menu. Please report this with your SwiftlyS2 version.", e.PlayerId);
+            logger.LogWarning("{Key} reached the menu router for player {PlayerId} although CustomHUD removed it this tick, so core acted on it. Please report this with your SwiftlyS2 version.", e.Key, e.PlayerId);
             return;
         }
+
+        if (e.Key is not (KeyKind.W or KeyKind.S or KeyKind.A or KeyKind.D or KeyKind.E or KeyKind.R or KeyKind.Tab)) return;
 
         var mode = navModes.Resolve(e.PlayerId, steamIds.Get(e.PlayerId));
         if (mode != NavMode.Wasd) return;
@@ -116,6 +180,13 @@ internal sealed class MenuInputBridge(
                 break;
             case KeyKind.S:
                 session.MoveFocus(1);
+                break;
+            case KeyKind.A:
+            case KeyKind.D:
+                // Only on a Chat menu, or one whose keymap moved NavigateLeft/Right off A and D.
+                if (session.FocusedComponent is { } stepped && stepped.IsVisible(session) && stepped.IsEnabled(session))
+                    MenuActivation.Run(stepped, session, e.Key == KeyKind.A ? MenuActions.NavigateLeft : MenuActions.NavigateRight,
+                        MenuKeys.FromKeyKind(e.Key), translations.For(player.PlayerID), logger);
                 break;
             case KeyKind.E:
                 if (session.FocusedComponent is { } component)
@@ -203,9 +274,16 @@ internal sealed class MenuInputBridge(
             return;
         }
 
+        if (rows.LinkButton.Length > 0 && e.ButtonId == rows.LinkButton)
+        {
+            FollowLink(player, session, rows.LinkEntry, rows.LinkPick);
+            return;
+        }
+
         if (rows.Controls.TryGetValue(e.ButtonId, out var control))
         {
-            if (control.Step != 0) NavigateRow(player, session, rows, control.Row, control.Step);
+            if (control.Action is { } action) SendAction(player, session, rows, control.Row, action);
+            else if (control.Step != 0) NavigateRow(player, session, rows, control.Row, control.Step);
             else SetTrack(session, rows, control.Row, control.Segment, control.Segments);
             return;
         }
@@ -333,6 +411,17 @@ internal sealed class MenuInputBridge(
             MenuKey.Mouse1, translations.For(player.PlayerID), logger);
     }
 
+    // An `act=` button: the menu's own action it names, sent to its row as a key bound to it would be.
+    private void SendAction(IPlayer player, IMenuSession session, RowMap rows, int row, string action)
+    {
+        if (!FocusRow(session, rows, row)) return;
+        if (session.FocusedComponent is not { } component) return;
+        if (!component.IsVisible(session) || !component.IsEnabled(session)) return;
+
+        MenuActivation.Run(component, session, new MenuActionId(session.Menu.Id, action),
+            MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+    }
+
     private static bool FocusRow(IMenuSession session, RowMap rows, int row)
     {
         if (row < 0 || row >= rows.Focusable.Length) return false;
@@ -359,7 +448,7 @@ internal sealed class MenuInputBridge(
         return true;
     }
 
-    // `field_3_hit`, `field_3_aside` or `field_3_seg17`: the field, then which of its targets.
+    // `field_3_hit`, `field_3_aside`, `field_3_seg17` or `field_3_slot2`: the field, then which of its targets.
     private void ClickCard(IPlayer player, IMenuSession session, RowMap rows, CardMap card, string buttonId)
     {
         if (!buttonId.StartsWith(rows.RowPrefix, StringComparison.Ordinal)) return;
@@ -378,7 +467,78 @@ internal sealed class MenuInputBridge(
         else if (target.StartsWith(card.SegmentSuffix, StringComparison.Ordinal)
                  && int.TryParse(target[card.SegmentSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var segment))
             SetTrack(session, rows, card.Track[field], segment, card.Segments);
+        else if (card.SlotSuffix.Length > 0 && target.StartsWith(card.SlotSuffix, StringComparison.Ordinal)
+                 && int.TryParse(target[card.SlotSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var tile)
+                 && field < card.Picks.Length && tile < card.Picks[field].Length)
+            PickSlot(player, session, rows, card.Main[field], card.Picks[field][tile]);
     }
+
+    // A slot tile: its field's row opens its page, then the entry the slot names is picked there, as
+    // two clicks would. Neither page is drawn in between, so the renderer is told what opened them.
+    private void PickSlot(IPlayer player, IMenuSession session, RowMap rows, int row, string pick)
+    {
+        if (!FocusRow(session, rows, row) || session.FocusedComponent is not { } component) return;
+        if (!component.IsVisible(session) || !component.IsEnabled(session)) return;
+
+        MenuActivation.Select(component, session, MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+        if (pick.Length == 0 || OpenedFrom(player, session) is not { } page) return;
+        renderer.RecordOpener(page, component);
+        Pick(player, page, pick);
+    }
+
+    // A spot's link into another branch of the menu (an item's Properties): the root's entry, then the
+    // entry `pick` names on its page. The page reached returns here, not to pages never drawn.
+    private void FollowLink(IPlayer player, IMenuSession session, string entryId, string pick)
+    {
+        var root = FrameComposer.SidebarRoot(session.Menu);
+        var entry = root.GetComponents(MenuRegion.Body).FirstOrDefault(c =>
+            c is SubmenuComponent && string.Equals(c.Id, entryId, StringComparison.OrdinalIgnoreCase));
+        if (entry is null || !entry.IsVisible(session) || !entry.IsEnabled(session)) return;
+
+        var origin = session.Menu;
+        var rootSession = ReferenceEquals(root, origin) ? session : root.Open(player);
+        renderer.KeepRootOpen(player.PlayerID, rootSession, -1);
+        MenuActivation.Select(entry, rootSession, MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+        if (OpenedFrom(player, rootSession) is not { } page) return;
+        renderer.RecordOpener(page, entry);
+        if (pick.Length > 0 && Pick(player, page, pick) is { } picked) page = picked;
+        page.Menu.Parent = origin;
+    }
+
+    // Selects the entry `pick` names on an open page, focused first so Back lands on it, and returns
+    // the page it opened, its opener recorded.
+    private IMenuSession? Pick(IPlayer player, IMenuSession page, string pick)
+    {
+        var position = 0;
+        foreach (var entry in page.Menu.GetComponents(MenuRegion.Body))
+        {
+            if (!entry.IsFocusable || !entry.IsVisible(page)) continue;
+            if (!Names(entry, pick))
+            {
+                position++;
+                continue;
+            }
+            if (!entry.IsEnabled(page)) return null;
+            page.SetFocus(position);
+            MenuActivation.Select(entry, page, MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+            if (OpenedFrom(player, page) is not { } next) return null;
+            renderer.RecordOpener(next, entry);
+            return next;
+        }
+        return null;
+    }
+
+    // The session a plain submenu just opened from `parent`, or null when the activation opened none.
+    private IMenuSession? OpenedFrom(IPlayer player, IMenuSession parent)
+        => core.Menu.GetSession(player) is { } opened && !ReferenceEquals(opened, parent)
+           && ReferenceEquals(opened.Menu.Parent, parent.Menu)
+            ? opened
+            : null;
+
+    // The entry a slot's pick names: the item it stands for, else its Tag, written out.
+    private static bool Names(IMenuComponent entry, string pick)
+        => (Integrations.CollectionItems.Of(entry) ?? (entry as MenuComponentBase)?.Tag) is { } value
+           && string.Equals(Convert.ToString(value, CultureInfo.InvariantCulture), pick, StringComparison.Ordinal);
 
     // Segment n of `segments` is n / (segments - 1) of the way along, snapped
     // to the slider's Step. SetValue runs OnChanged exactly as a key press does.

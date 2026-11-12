@@ -21,6 +21,9 @@ internal sealed class HudSurface(MenuEntityHost entities, ILogger logger)
     {
         public CHandle<CCSCustomHudLayout> Entity;
         public string LayoutPath = string.Empty;
+        // The spawning profile's, so a hide needs no config: a later reload may name another layout.
+        public string ShellPanel = string.Empty;
+        public string HiddenClass = string.Empty;
         public string Text = string.Empty;
         public string KindClass = string.Empty;
         public DateTime ExpiresAt = DateTime.MinValue;
@@ -41,6 +44,8 @@ internal sealed class HudSurface(MenuEntityHost entities, ILogger logger)
                 surface.Entity = entities.Spawn(
                     steamId, slot, layoutPath, profile.ShellPanel, profile.HiddenClass);
                 surface.LayoutPath = layoutPath;
+                surface.ShellPanel = profile.ShellPanel;
+                surface.HiddenClass = profile.HiddenClass;
                 surface.Text = string.Empty;
                 surface.KindClass = string.Empty;
                 surface.Visible = false;
@@ -86,26 +91,24 @@ internal sealed class HudSurface(MenuEntityHost entities, ILogger logger)
 
     // Swept on a timer rather than scheduled per message: a per-message timer
     // would have to be cancelled every time a new message replaced the old one.
-    public void ExpireDue(CustomHudConfig config)
+    public void ExpireDue()
     {
         var now = DateTime.UtcNow;
         foreach (var (slot, surface) in _surfaces)
         {
             if (!surface.Visible || surface.ExpiresAt > now) continue;
-            Hide(slot, config);
+            Hide(slot);
         }
     }
 
-    public void Hide(int slot, CustomHudConfig config)
+    public void Hide(int slot)
     {
         if (!_surfaces.TryGetValue(slot, out var surface)) return;
         if (surface.Entity.Value is not { } entity) return;
 
         try
         {
-            // The hidden class is the same on every profile in practice, but
-            // read it from Default rather than assuming -- it is configurable.
-            SetClass(entity, config.NativeText.Default.ShellPanel, config.NativeText.Default.HiddenClass, true);
+            SetClass(entity, surface.ShellPanel, surface.HiddenClass, true);
             surface.Visible = false;
         }
         catch (Exception ex)

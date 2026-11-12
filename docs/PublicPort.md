@@ -1,6 +1,6 @@
 # CustomHUD — Port to the Core.Menu Renderer Model
 
-How the private Rampage CustomHUD becomes a public, general-purpose SwiftlyS2
+How the private CustomHUD becomes a public, general-purpose SwiftlyS2
 plugin. Read this before changing anything under `src/Rendering` or
 `src/Input` — most of it records constraints that are invisible from the code.
 
@@ -48,7 +48,7 @@ through a small contract DLL instead: `CustomHUD.Contract.dll` in
 (`ICustomHudPanels`). A consumer resolves it in `UseSharedInterface`, calls
 `Show(playerId, profile, vars, classes?, durationSeconds?)` / `Hide` /
 `HideAll` / `HideEverywhere`, and degrades to chat or CenterHTML when the key
-is absent. Profiles live in config `Panels`, so each panel's layout is
+is absent. `Panels` in config names each panel's layout, so it is
 swappable like a menu's. Toasts, countdowns and floaters are not ported.
 
 Intercepting core's own `SendCenter` / `SendCenterHTML` / `SendAlert` /
@@ -145,15 +145,19 @@ game-thread diff is what keeps an unchanged frame free. The cost is one page
 render per invalidation, roughly what core spends on its own window.
 
 The page size comes from `MenuLayout.MaxVisibleLines`, which core keeps in an
-internal class. `CoreMenuSettings` reads it from the same
+internal class, unless `"MenuConfig": "customhud"` takes CustomHUD's own.
+`CoreMenuSettings` reads it from the same
 `configs/menus/menus.jsonc` with the same parsing (clamped `1..32`, default
 `5`), located from `Core.Configuration.BasePath`, and reloads it live.
 
 Panorama keeps a scroll panel's offset when its content changes, so a new list
 would open scrolled. In a `ShowAllRows` layout, when the (menu, first row) pair
-changes without a respawn, the apply sends one frame with no rows and
-invalidates; the content collapses, the offset clamps to the top, and the real
-list follows a tick or two later.
+changes without a respawn, the apply writes the new frame with the profile's
+`Classes.Rewind` on the shell for three ticks. The layout's CSS shortens the
+scroll content under it while the rows still draw, so the offset clamps to the
+top with the new list already up, and the class comes off in a one-write apply.
+A profile with no rewind class gets one frame with no rows from the same build,
+and the real one a tick later.
 
 ### Why one hop instead of the Async setters
 
@@ -241,7 +245,11 @@ hiding reaches them.
 
 Consequences, all load-bearing:
 
-1. **One entity per viewer**, spawned on session open, despawned in `Clear`.
+1. **One entity per viewer**, spawned on session open. `Clear` keeps it until
+   the next tick, and despawns it then unless a session of ours has opened in
+   its place: core's Back clears the renderer and reopens the parent in the same
+   call, so the parent draws as a diff instead of rebuilding the whole layout.
+   Input capture stays on meanwhile, and is released before any despawn.
 2. **Transmit-restricted to the owner** (`HudTransmit.RestrictTo`). This is the
    only bystander guard. A per-slot `hidden` stamp cannot be layered on top: a
    dead or spectating owner binds the panel to the *observed* player's slot, so
@@ -330,7 +338,8 @@ sidebar reads root dividers from the components themselves.
 
 * `MenuLayout.MaxVisibleLines` in `menus.jsonc` caps core's window. It is
   clamped 1–32 and **defaults to 5**, and core exposes it to no plugin.
-  CustomHUD reads the same file (§2) and pages at that size; a `ShowAllRows`
+  CustomHUD reads the same file (§2) and pages at that size, or at its own under
+  `"MenuConfig": "customhud"`; a `ShowAllRows`
   profile renders its rows itself and ignores it.
 * Menu-level `WithAction` handlers are **not reachable from a click**.
   `MenuActionDescriptor` exposes `Id` / `DefaultKey` / `Label` / `Order` /
@@ -341,14 +350,14 @@ sidebar reads root dividers from the components themselves.
   the server. That is an operator configuration concern, not something the
   renderer can defend against.
 
-Mouse-only profiles resolve before ordinary `Overrides`: operator
-`MouseLayouts` first, then the built-in rules, each by exact id, then longest
-trailing-`*` prefix. The built-in `weaponskins.*` profile
-uses `menu_skins_mouse.vxml_c` without changing WeaponSkins' menu construction.
-It is code rather than a `config.jsonc` default because SwiftlyS2 never
-back-fills into a dictionary: the `MouseOverrides` key it replaced held a copy
-generated with whatever row count shipped then, and a server kept paging at
-that count after the layout grew.
+A menu's layout resolves from `MenuOverrides` (exact id, then longest
+trailing-`*` prefix), then its plugin's name in `Menus`, then that plugin's
+built-in default (`CustomHudConfig.Resolve`). WeaponSkins' default `"menu_skins_mouse_v2"`
+uses `menu_skins_mouse_v2.vxml_c` without changing WeaponSkins' menu construction.
+The layouts live in code (`BuiltInLayouts`) and `config.jsonc` holds only their
+names, because SwiftlyS2 never changes a value it once wrote: the `MouseOverrides`
+profiles of earlier builds held a copy generated with whatever row count shipped
+then, and a server kept paging at that count after the layout grew.
 Card thumbnails come from an `image=<econ key>` directive mapped onto classes in
 the generated `econ_thumbs.vcss` and `econ_stickers.vcss`, which reference the
 game's own VPK textures.
@@ -405,19 +414,32 @@ CustomHUD adds only what core has no concept of:
   **both** profiles — Mouse falls back to the Default layout when it has no
   profile of its own.
 
-  For a Mouse or Numbers player on a Buttons-input menu,
-  `MenuInputBridge.OnTick` masks Tab in
-  `player.Pawn.MovementServices.Buttons.ButtonPressed`. SW2 1.5's native
-  `OnGameFramePlayerHook` invokes this after simulation but before
-  `CPlayer::Think` samples those buttons. No Tab event reaches the menu router,
-  so the original session, submenu stack and pending input survive without
-  close callbacks or sounds. The current `Pawn`, not `PlayerPawn`, also covers
-  spectators. Other buttons and client user commands are left untouched.
-  Checked against SW2's source from v1.5.0 to v1.5.1-beta.22: the hook calls
-  the original `GameFrame`, then the managed tick, then `Think`, which reads
-  `m_pButtonStates[0]` — the very field `ButtonPressed` writes. `OnKey` logs a
-  warning when a Tab press still arrives for a slot masked that tick, so a
-  broken assumption shows up in the server log, not only as a closed menu.
+  On a Buttons-input menu, `MenuInputBridge.OnTick` masks, in
+  `player.Pawn.MovementServices.Buttons.ButtonPressed`, every key the menu's
+  keymap resolves to one of core's six traversal actions, matched by name: all
+  six for a Mouse player (Shift F A D E Tab at core's defaults), all but
+  NavigateLeft / NavigateRight for a Numbers player, and for a Wasd player those
+  outside W S A D E R Tab (Shift and F). Mouse and Numbers draw no cursor, yet
+  core dispatches to its focus, which a click or number moves to the row it
+  activates, so E would activate that row again. Numbers keeps Left / Right
+  because core ignores Select on a `SelectorComponent`: A / D after its number
+  are the only way to change one. A key a menu binds to an action of its own is
+  left alone. Masked keys map back to engine bits through an inverted copy of
+  SW2's internal `GameButtons.ToKeyKind`, where A and D each arrive on two
+  bits. Wasd handles A and D itself, as it does W S E R Tab, wherever the
+  keymap leaves them unbound. SW2 1.5's native `OnGameFramePlayerHook` invokes
+  this after simulation but before `CPlayer::Think` samples those buttons. No
+  masked key's event reaches the menu router, so the original session, submenu
+  stack and pending input survive without close callbacks or sounds. The
+  current `Pawn`, not `PlayerPawn`, also covers spectators. Other buttons and
+  client user commands are left untouched, and the mask lasts only until the
+  next user command, which carries all three button states (`CInButtonStatePB`).
+  Checked against SW2's source from v1.5.0 to v1.5.1-beta.22: the
+  hook calls the original `GameFrame`, then the managed tick, then `Think`,
+  which reads `m_pButtonStates[0]` — the very field `ButtonPressed` writes.
+  `OnKey` logs a warning when a masked key's press still arrives for a slot
+  masked that tick, so a broken assumption shows up in the server log, not only
+  as a moved or closed menu.
 
 * **Numbers** — `sw_1`..`sw_9`, plus `css_N` / `ms_N` raw aliases so a config
   migrated from CounterStrikeSharp or MatchZy keeps working. 1–6 select, 7/8
@@ -545,7 +567,7 @@ anyway.
 
 ### Behaviour
 
-Everything is off by default (`NativeText.Enabled`, plus a per-kind `Capture`).
+Everything is off by default: every kind in `Messages` is `"game"`.
 Swallowing another plugin's messages is never a safe default, and a profile
 pointing at a layout the player's addon lacks would make them vanish with
 nothing drawn in their place.
@@ -555,8 +577,10 @@ nothing drawn in their place.
   authoring a layout.
 * Any exception in the handler passes the message through untouched. A capture
   bug must not cost a player their text.
-* The hook is registered **programmatically and only when enabled**, because an
-  installed hook sits on the path of every outbound message for every player.
+* The hook is registered **programmatically and only while a kind is captured**
+  (`NativeTextCapture.Sync`, on the game thread at load and after every config
+  reload), because an installed hook sits on the path of every outbound message
+  for every player.
 * Text is copied out of the message wrapper before anything is deferred — the
   wrapper is temporary and must not outlive the callback.
 * Rendering goes to `HudSurface`, deliberately **not** the menu renderer: a menu
@@ -584,15 +608,18 @@ Two files, different owners:
 
 * `configs/menus/menus.jsonc` — **core's**. Renderer selection, key binds,
   `MaxVisibleLines`, sounds, and `InputMethod`, the nav mode a player starts in
-  until they choose one.
-* `configs/plugins/CustomHUD/config.jsonc` — **ours**. Layout profiles.
+  until they choose one. CustomHUD uses the last two only under
+  `"MenuConfig": "swiftlys2"`, the default.
+* `configs/plugins/CustomHUD/config.jsonc` — **ours**. `MenuConfig`, and layouts
+  by name for each plugin's menus, each message kind and each panel.
 
-Every layout reference is a config value. A server owner swaps in their own
-Panorama layout — different art, same function — by pointing a profile at a
-different file and naming its panels, variables and classes. Nothing about
+Every layout is picked by name. A server owner swaps in their own Panorama
+layout — different art, same function — by defining a profile of that name in
+`MenuLayouts`, `MessageLayouts` or `PanelLayouts` that points at a different
+file and names its panels, variables and classes. Nothing about
 panel naming is hardcoded, which is what makes "hot-swap the look" real rather
-than a slogan. See `src/Config/CustomHudConfig.cs`; defaults reproduce the
-layouts this plugin ships.
+than a slogan. See `src/Config/CustomHudConfig.cs`; the built-in names
+(`BuiltInLayouts`) reproduce the layouts this plugin ships.
 
 Player preferences use the optional `Cookies.Player.v1` shared interface when
 the public SwiftlyS2 Cookies plugin is loaded. CustomHUD stores navigation mode

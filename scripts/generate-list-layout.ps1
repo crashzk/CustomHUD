@@ -2,7 +2,8 @@
 .SYNOPSIS
     Generates the list layouts: menu_list.vxml (Wasd, Buttons, Numbers),
     menu_list_mouse.vxml (Mouse) and menu_list_skins.vxml (WeaponSkins in the
-    keyboard modes), which ListProfiles.Keys(), Mouse() and Skins() point at.
+    keyboard modes), the first designs of ListProfiles.Keys(), Mouse() and Skins(),
+    and their _v2 files, the defaults.
 
 .DESCRIPTION
     The files draw one row anatomy, which ListProfiles.Row names part by part: a
@@ -17,6 +18,10 @@
     keyboard file plus econ_stickers.vcss: sticker art is most of all econ classes,
     so only the list that draws stickers loads it. Slot counts follow
     ListProfiles.KeySlots, MouseSlots, Segments and FootSlots.
+
+    A _v2 file draws the same rows and ids in CS2's store look: a band over the
+    title, Back and Close at the top in Mouse mode, and the v2 copies of the sheets
+    (generate-v2-sheets.ps1) with menu_list_v2.vcss last.
 
     Rerun after changing a count or the anatomy, then rerun watch-panorama.ps1.
 #>
@@ -37,9 +42,64 @@ $Legend = 4
 $Dots = 8
 $n = 'hittest="false"'
 
-function New-Layout([bool] $Mouse, [bool] $Stickers) {
+function New-Layout([bool] $Mouse, [bool] $Stickers, [bool] $V2) {
     $sb = New-Object System.Text.StringBuilder
     function Line([int] $Depth, [string] $Text) { [void] $sb.Append("`t" * $Depth).AppendLine($Text) }
+
+    function Chips([int] $Depth) {
+        for ($i = 0; $i -lt $Chips; $i++) {
+            Line $Depth "<Panel id=""chip_$i"" class=""lk-chip hidden"" $n>"
+            Line ($Depth + 1) "<Panel id=""chip_${i}_glyph"" class=""chud-ico lk-chip__glyph hidden"" $n><Panel class=""chud-ico__badge"" $n /></Panel>"
+            Line ($Depth + 1) "<Panel id=""chip_${i}_thumb"" class=""lk-thumb lk-chip__thumb hidden"" $n />"
+            Line ($Depth + 1) "<Panel class=""lk-rating"" $n><Label class=""lk-rating__major"" text=""{s:chip_${i}_rating}"" $n /><Label class=""lk-rating__minor"" text=""{s:chip_${i}_rating_minor}"" $n /></Panel>"
+            Line ($Depth + 1) "<Label class=""lk-chip__value"" text=""{s:chip_$i}"" $n />"
+            Line ($Depth + 1) "<Label class=""lk-chip__label"" text=""{s:chip_${i}_label}"" $n />"
+            Line $Depth '</Panel>'
+        }
+    }
+
+    function Head([string] $Mode) {
+        Line 2 "<Panel id=""shell"" class=""ls $Mode hidden"">"
+        Line 3 "<Panel id=""title"" class=""ls-head"" $n>"
+        Line 4 "<Panel class=""ls-top"" $n>"
+        Line 5 "<Panel class=""ls-path"" $n>"
+        Line 6 "<Label class=""ls-eyebrow"" text=""{s:eyebrow}"" $n />"
+        Line 6 "<Label class=""ls-crumb-sep"" text=""›"" $n />"
+        Line 6 "<Label class=""ls-crumb"" text=""{s:crumb}"" $n />"
+        Line 5 '</Panel>'
+        Line 5 "<Panel class=""lk-chips ls-chips"" $n>"
+        Chips 6
+        Line 5 '</Panel>'
+        Line 4 '</Panel>'
+        Line 4 "<Label class=""ls-title"" text=""{s:title}"" $n />"
+        Line 3 '</Panel>'
+        Line 3 "<Panel class=""ls-divider"" $n />"
+    }
+
+    # v2: a band (the plugin's name, the parent's title, the chips) over the title's line. In
+    # Mouse mode the parent's title is Back and Close ends the title's line, so #title, whose
+    # variables reach only the labels under it, holds Buttons there and stays hit-testable.
+    function Head2([string] $Mode) {
+        $quiet = if ($Mouse) { '' } else { " $n" }
+        Line 2 "<Panel id=""shell"" class=""ls ls2 $Mode hidden"">"
+        Line 3 "<Panel id=""title"" class=""ls2-head""$quiet>"
+        Line 4 "<Panel class=""ls2-band""$quiet>"
+        # Back leads the path, which names where it goes: the root's title, then the parent's.
+        if ($Mouse) { Line 5 "<Button id=""nav_back"" class=""ls2-back hidden""><Panel class=""chud-ico ico-back ls2-back__icon"" $n /></Button>" }
+        Line 5 "<Panel class=""ls2-path"" $n>"
+        Line 6 "<Label class=""ls2-brand"" text=""{s:eyebrow}"" $n />"
+        Line 6 "<Label class=""ls2-crumb"" text=""{s:crumb}"" $n />"
+        Line 5 '</Panel>'
+        Line 5 "<Panel class=""lk-chips ls-chips ls2-chips"" $n>"
+        Chips 6
+        Line 5 '</Panel>'
+        Line 4 '</Panel>'
+        Line 4 "<Panel class=""ls2-line""$quiet>"
+        Line 5 "<Label class=""ls2-title"" text=""{s:title}"" $n />"
+        if ($Mouse) { Line 5 "<Button id=""nav_close"" class=""ls2-close hidden""><Panel class=""chud-ico ico-exit ls2-close__icon"" $n /></Button>" }
+        Line 4 '</Panel>'
+        Line 3 '</Panel>'
+    }
 
     function Text([int] $Depth, [string] $Id, [bool] $Meter) {
         Line $Depth "<Panel class=""lk-text"" $n>"
@@ -128,7 +188,8 @@ function New-Layout([bool] $Mouse, [bool] $Stickers) {
     }
 
     $econ = if ($Stickers) { @('econ_thumbs', 'econ_stickers') } else { @('econ_thumbs') }
-    $sheets = @('customhud_tokens', 'menu', 'menu_mouse') + $econ + @('locker_art', 'customhud_icons', 'locker', 'list')
+    $sheets = if ($V2) { @('customhud_tokens', 'v2/menu', 'v2/menu_mouse') + $econ + @('locker_art', 'customhud_icons', 'v2/locker', 'v2/list', 'menu_list_v2') }
+              else { @('customhud_tokens', 'menu', 'menu_mouse') + $econ + @('locker_art', 'customhud_icons', 'locker', 'list') }
     Line 0 '<root>'
     Line 1 '<!-- Generated by scripts/generate-list-layout.ps1. Do not edit. -->'
     Line 1 '<styles>'
@@ -136,30 +197,7 @@ function New-Layout([bool] $Mouse, [bool] $Stickers) {
     Line 1 '</styles>'
     Line 1 "<Panel class=""chud-root"" $n>"
     $mode = if ($Mouse) { 'ls-mouse' } else { 'ls-keys' }
-    Line 2 "<Panel id=""shell"" class=""ls $mode hidden"">"
-
-    Line 3 "<Panel id=""title"" class=""ls-head"" $n>"
-    Line 4 "<Panel class=""ls-top"" $n>"
-    Line 5 "<Panel class=""ls-path"" $n>"
-    Line 6 "<Label class=""ls-eyebrow"" text=""{s:eyebrow}"" $n />"
-    Line 6 "<Label class=""ls-crumb-sep"" text=""›"" $n />"
-    Line 6 "<Label class=""ls-crumb"" text=""{s:crumb}"" $n />"
-    Line 5 '</Panel>'
-    Line 5 "<Panel class=""lk-chips ls-chips"" $n>"
-    for ($i = 0; $i -lt $Chips; $i++) {
-        Line 6 "<Panel id=""chip_$i"" class=""lk-chip hidden"" $n>"
-        Line 7 "<Panel id=""chip_${i}_glyph"" class=""chud-ico lk-chip__glyph hidden"" $n><Panel class=""chud-ico__badge"" $n /></Panel>"
-        Line 7 "<Panel id=""chip_${i}_thumb"" class=""lk-thumb lk-chip__thumb hidden"" $n />"
-        Line 7 "<Panel class=""lk-rating"" $n><Label class=""lk-rating__major"" text=""{s:chip_${i}_rating}"" $n /><Label class=""lk-rating__minor"" text=""{s:chip_${i}_rating_minor}"" $n /></Panel>"
-        Line 7 "<Label class=""lk-chip__value"" text=""{s:chip_$i}"" $n />"
-        Line 7 "<Label class=""lk-chip__label"" text=""{s:chip_${i}_label}"" $n />"
-        Line 6 '</Panel>'
-    }
-    Line 5 '</Panel>'
-    Line 4 '</Panel>'
-    Line 4 "<Label class=""ls-title"" text=""{s:title}"" $n />"
-    Line 3 '</Panel>'
-    Line 3 "<Panel class=""ls-divider"" $n />"
+    if ($V2) { Head2 $mode } else { Head $mode }
 
     $scroll = if ($Mouse) { ' chud-scroll' } else { '' }
     Line 3 "<Panel id=""options"" class=""ls-list$scroll"">"
@@ -173,7 +211,15 @@ function New-Layout([bool] $Mouse, [bool] $Stickers) {
     for ($i = 0; $i -lt $FootSlots; $i++) { Foot 4 $i }
     Line 3 '</Panel>'
 
-    if ($Mouse) {
+    if ($Mouse -and $V2) {
+        Line 3 '<Panel class="ls2-bar">'
+        Line 4 "<Label id=""footer"" class=""ls2-hint"" text=""{s:footer}"" $n />"
+        Line 4 "<Button id=""nav_previous"" class=""ls2-pager hidden""><Label text=""‹"" $n /></Button>"
+        Line 4 "<Panel id=""page"" class=""ls-page hidden"" $n><Label class=""ls-page__num"" text=""{s:page}"" $n /></Panel>"
+        Line 4 "<Button id=""nav_next"" class=""ls2-pager hidden""><Label text=""›"" $n /></Button>"
+        Line 3 '</Panel>'
+    }
+    elseif ($Mouse) {
         Line 3 '<Panel class="chud-bar ls-bar">'
         Line 4 "<Button id=""nav_back"" class=""chud-nav chud-nav--back hidden""><Label text=""&lt;"" $n /></Button>"
         Line 4 "<Label id=""footer"" class=""chud-bar__hint ls-hint"" text=""{s:footer}"" $n />"
@@ -186,7 +232,8 @@ function New-Layout([bool] $Mouse, [bool] $Stickers) {
     else {
         # The plain hint sits inside the legend: a sheet can only hide it from an ancestor's
         # class, and #legend carries has-legend while its keycaps show.
-        Line 3 "<Panel class=""ls-bar"" $n>"
+        $bar = if ($V2) { 'ls-bar ls2-bar' } else { 'ls-bar' }
+        Line 3 "<Panel class=""$bar"" $n>"
         Line 4 "<Panel id=""legend"" class=""ls-legend"" $n>"
         for ($i = 0; $i -lt $Legend; $i++) {
             Line 5 "<Panel id=""legend_$i"" class=""ls-lg hidden"" $n>"
@@ -213,10 +260,13 @@ function New-Layout([bool] $Mouse, [bool] $Stickers) {
 }
 
 foreach ($file in @(
-    @{ Name = 'menu_list.vxml'; Mouse = $false; Stickers = $false },
-    @{ Name = 'menu_list_mouse.vxml'; Mouse = $true; Stickers = $false },
-    @{ Name = 'menu_list_skins.vxml'; Mouse = $false; Stickers = $true })) {
-    $text = New-Layout $file.Mouse $file.Stickers
+    @{ Name = 'menu_list.vxml'; Mouse = $false; Stickers = $false; V2 = $false },
+    @{ Name = 'menu_list_mouse.vxml'; Mouse = $true; Stickers = $false; V2 = $false },
+    @{ Name = 'menu_list_skins.vxml'; Mouse = $false; Stickers = $true; V2 = $false },
+    @{ Name = 'menu_list_v2.vxml'; Mouse = $false; Stickers = $false; V2 = $true },
+    @{ Name = 'menu_list_mouse_v2.vxml'; Mouse = $true; Stickers = $false; V2 = $true },
+    @{ Name = 'menu_list_skins_v2.vxml'; Mouse = $false; Stickers = $true; V2 = $true })) {
+    $text = New-Layout $file.Mouse $file.Stickers $file.V2
     $path = Join-Path $OutputDir $file.Name
     [IO.File]::WriteAllText($path, $text.Replace("`r`n", "`n"), (New-Object System.Text.UTF8Encoding $false))
     $panels = ([regex]::Matches($text, '<(Panel|Button|Label)\b')).Count

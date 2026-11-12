@@ -824,6 +824,12 @@
 	flow-children: right;
 }
 
+.lk.view-mix-ballot.chud-rewind .lk-items
+{
+	height: fit-children;
+	overflow: squish squish;
+}
+
 /* Who called it on one line; a kick's target below as a player card. */
 .lk.view-mix-ballot .lk-banner
 {

@@ -166,6 +166,12 @@
 .chud-ico.ico-unready { background-image: url( "s2r://panorama/images/icons/ui/votenotreadyformatch.vsvg" ); }
 .chud-ico.ico-lobby { background-image: url( "s2r://panorama/images/icons/ui/lobby.vsvg" ); }
 
-/* List controls: an input's pencil, a choice's cycle mark */
+/* List controls: an input's pencil, a choice's cycle mark; the store locker's back arrow and close;
+   a row's act= buttons moving it up or down */
 .chud-ico.ico-edit { background-image: url( "s2r://panorama/images/icons/ui/edit.vsvg" ); }
 .chud-ico.ico-cycle { background-image: url( "s2r://panorama/images/icons/ui/refresh_skinny.vsvg" ); }
+.chud-ico.ico-back { background-image: url( "s2r://panorama/images/icons/ui/pan_arrow_left.vsvg" ); }
+.chud-ico.ico-exit { background-image: url( "s2r://panorama/images/icons/ui/exit.vsvg" ); }
+.chud-ico.ico-up { background-image: url( "s2r://panorama/images/icons/ui/arrowhead.vsvg" ); }
+/* The game's own down arrowhead is flatter than its up one, so the pair is one arrow turned over. */
+.chud-ico.ico-down { background-image: url( "s2r://panorama/images/icons/ui/arrowhead.vsvg" ); transform: rotateZ( 180deg ); }

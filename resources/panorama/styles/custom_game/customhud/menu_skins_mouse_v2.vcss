@@ -1,0 +1,1917 @@
+/*
+	WeaponSkins locker v2 (MenuLayoutProfile.WeaponSkinsLockerV2): CS2's store look. A rail of
+	categories on the left; a 48px content bar (Back with the parent's title, the page's title,
+	its counts, Close); under it the tabs, the spotlight, and the tile grid or the inspect card.
+	Colours are the Store, Nav and Equip tokens, copied from CS2's own sheets. Overrides
+	.chud-locker, so it is included after menu_mouse.vcss. Geometry: docs/DesignLanguage.md.
+*/
+
+/* 1184 x 740: a 230px rail and a 952px column inside a 1px frame. Fixed, so no page resizes it. */
+.chud-locker.sk
+{
+	width: 1184px;
+	height: 740px;
+	padding: 0px;
+	flow-children: right;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 100% 100%, from( chudStoreRaised ), to( chudStoreDeep ) );
+}
+
+/* ---- the rail: the root menu's entries ---- */
+
+.sk-side
+{
+	width: 230px;
+	height: 100%;
+	flow-children: down;
+	border-top: 0px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 0px solid chudStoreEdge;
+	border-left: 0px solid chudStoreEdge;
+	background-color: chudShadowSoft;
+}
+
+/* On the content bar's band, so the top reads as one strip. */
+.sk-brand
+{
+	width: 100%;
+	height: 48px;
+	padding-left: 20px;
+	background-color: chudStoreBar;
+}
+
+.sk-brand__text
+{
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 13px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+}
+
+.sk-nav
+{
+	width: 100%;
+	padding: 10px 0px;
+	flow-children: down;
+}
+
+.sk-nav__item
+{
+	width: 100%;
+	height: 44px;
+	flow-children: right;
+	background-color: transparent;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-nav__item.hidden
+{
+	visibility: collapse;
+}
+
+.sk-nav__item:hover
+{
+	background-color: chudGlassWash;
+}
+
+/* selectedNavColor, with the light the main menu's open tab rises from, turned to the rail. */
+.sk-nav__item.selected,
+.sk-nav__item.selected:hover
+{
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudNavSoft ), to( chudNavFade ) );
+}
+
+.sk-nav__item.disabled
+{
+	opacity: 0.4;
+}
+
+/* Crisp: a box-shadow round a 2px line draws as a halo in game. */
+.sk-nav__edge
+{
+	width: 2px;
+	height: 100%;
+	margin-right: 18px;
+	background-color: transparent;
+}
+
+.sk-nav__item.selected .sk-nav__edge
+{
+	background-color: chudNavBase;
+}
+
+.sk-nav__icon
+{
+	width: 20px;
+	height: 20px;
+	vertical-align: center;
+	margin-right: 12px;
+	wash-color: chudStoreText;
+}
+
+.sk-nav__item:hover .sk-nav__icon { wash-color: chudTextMain; }
+.sk-nav__item.selected .sk-nav__icon { wash-color: chudNavBase; }
+
+.sk-nav__label
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	margin-right: 12px;
+	font-family: chudFontMedium;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-nav__item:hover .sk-nav__label { color: chudTextMain; }
+.sk-nav__item.selected .sk-nav__label { color: chudNavBase; }
+
+/* A root DividerComponent: a hairline between groups of entries. */
+.sk-nav__item.divider,
+.sk-nav__item.divider:hover
+{
+	width: 189px;
+	height: 1px;
+	margin: 8px 0px 8px 20px;
+	background-color: chudStoreEdge;
+}
+
+.sk-nav__item.divider .sk-nav__edge,
+.sk-nav__item.divider .sk-nav__icon,
+.sk-nav__item.divider .sk-nav__label
+{
+	visibility: collapse;
+}
+
+/* ---- the content bar: content-navbar, 48px on a quarter black ---- */
+
+.sk-main
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: down;
+}
+
+.sk-bar
+{
+	width: 100%;
+	height: 48px;
+	padding: 0px 10px 0px 20px;
+	flow-children: right;
+	background-color: chudStoreBar;
+}
+
+.sk-back
+{
+	height: 100%;
+	flow-children: right;
+}
+
+.sk-back.hidden
+{
+	visibility: collapse;
+}
+
+.sk-back__icon
+{
+	width: 14px;
+	height: 14px;
+	vertical-align: center;
+	margin-right: 8px;
+	wash-color: chudStoreText;
+}
+
+.sk-back__label
+{
+	max-width: 240px;
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-back:hover .sk-back__icon { wash-color: chudTextMain; }
+.sk-back:hover .sk-back__label { color: chudTextMain; }
+
+.sk-back__rule
+{
+	width: 1px;
+	height: 22px;
+	vertical-align: center;
+	margin: 0px 14px;
+	background-color: chudGlassDim;
+}
+
+.sk-title
+{
+	height: 100%;
+}
+
+.sk-title__text
+{
+	max-width: 440px;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 20px;
+	font-weight: bold;
+	color: chudTextMain;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-info
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	margin: 0px 14px;
+	font-family: chudFontBody;
+	font-size: 14px;
+	color: chudStoreText;
+	text-align: right;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-close
+{
+	width: 32px;
+	height: 32px;
+	vertical-align: center;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-close.hidden
+{
+	visibility: collapse;
+}
+
+.sk-close:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.sk-close__icon
+{
+	width: 16px;
+	height: 16px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreText;
+}
+
+.sk-close:hover .sk-close__icon { wash-color: chudTextMain; }
+
+.sk-hint
+{
+	visibility: collapse;
+}
+
+/* ---- the body: 920 x 662 inside its padding ---- */
+
+.sk-body
+{
+	width: 100%;
+	height: fill-parent-flow( 1.0 );
+	padding: 12px 16px 16px 16px;
+	flow-children: down;
+}
+
+/* content-navbar__tabs__btn: the open tab in selectedNavColor over a tenth of it. */
+.sk-tabs
+{
+	width: 100%;
+	height: 36px;
+	margin-bottom: 10px;
+	flow-children: right;
+	border-top: 0px solid chudStoreEdge;
+	border-right: 0px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 0px solid chudStoreEdge;
+}
+
+.sk-tabs.hidden
+{
+	visibility: collapse;
+}
+
+.sk-tab
+{
+	height: 30px;
+	margin-right: 4px;
+	padding: 0px 12px;
+	flow-children: right;
+	border-radius: 3px;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-tab.hidden
+{
+	visibility: collapse;
+}
+
+.sk-tab:hover
+{
+	background-color: chudGlassWash;
+}
+
+.sk-tab.selected,
+.sk-tab.selected:hover
+{
+	background-color: chudNavWash;
+}
+
+.sk-tab.disabled
+{
+	opacity: 0.4;
+}
+
+.sk-tab__label
+{
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.sk-tab:hover .sk-tab__label { color: chudTextMain; }
+.sk-tab.selected .sk-tab__label { color: chudNavBase; }
+
+.sk-tab__count
+{
+	vertical-align: center;
+	margin-left: 6px;
+	font-family: chudDigitsBold;
+	font-size: 11px;
+	color: chudStoreFaint;
+	visibility: collapse;
+}
+
+.sk-tab.has-count .sk-tab__count
+{
+	visibility: visible;
+}
+
+/* ---- the spotlight: the item a page is about, on a stage, with CS2's inspect text ---- */
+
+.sk-spot
+{
+	width: 100%;
+	height: 258px;
+	margin-bottom: 12px;
+	flow-children: right;
+	background-color: chudStoreBar;
+}
+
+.sk-spot.hidden
+{
+	visibility: collapse;
+}
+
+.sk-spot__stage
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: none;
+	overflow: clip;
+}
+
+.sk-spot__glow
+{
+	width: 100%;
+	height: 100%;
+}
+
+/* A gun's 4:3 render, taller than the stage: a gun fills only its middle, so the clip takes empty
+   canvas. A knife or gloves fill theirs, so their views below fit the whole render instead. */
+.sk-spot__thumb
+{
+	width: 420px;
+	height: 315px;
+	horizontal-align: center;
+	vertical-align: center;
+	background-size: contain;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}
+
+.sk-spot__thumb.hidden
+{
+	visibility: collapse;
+}
+
+/* positiveColor: what the player has on. */
+.sk-status
+{
+	height: 30px;
+	horizontal-align: left;
+	vertical-align: bottom;
+	margin: 0px 0px 14px 14px;
+	padding: 0px 12px;
+	flow-children: right;
+	border-top: 1px solid chudEquipHalf;
+	border-right: 1px solid chudEquipHalf;
+	border-bottom: 1px solid chudEquipHalf;
+	border-left: 1px solid chudEquipHalf;
+	border-radius: 3px;
+	background-color: chudEquipSoft;
+	visibility: collapse;
+}
+
+.sk-spot.has-note .sk-status
+{
+	visibility: visible;
+}
+
+.sk-status__icon
+{
+	width: 12px;
+	height: 12px;
+	vertical-align: center;
+	margin-right: 8px;
+	wash-color: chudEquipStrong;
+}
+
+.sk-status__text
+{
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudEquipStrong;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.sk-spot__info
+{
+	width: 380px;
+	height: 100%;
+	padding: 16px 22px 16px 22px;
+	flow-children: down;
+	border-top: 0px solid chudStoreEdge;
+	border-right: 0px solid chudStoreEdge;
+	border-bottom: 0px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	background-color: chudShadowSoft;
+}
+
+.sk-spot__sub
+{
+	width: 100%;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreText;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	visibility: collapse;
+}
+
+.sk-spot.has-sub .sk-spot__sub
+{
+	visibility: visible;
+}
+
+.sk-spot__name
+{
+	width: 100%;
+	font-family: chudFontBody;
+	font-size: 32px;
+	font-weight: bold;
+	color: chudTextMain;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-spot__type
+{
+	width: 100%;
+	margin-top: 2px;
+	font-family: chudFontMedium;
+	font-size: 15px;
+	color: chudStoreText;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	visibility: collapse;
+}
+
+.sk-spot.has-type .sk-spot__type
+{
+	visibility: visible;
+}
+
+/* popup-inspect-raritybar: 6px, the grade fading out. */
+.sk-spot__bar
+{
+	width: 100%;
+	height: 6px;
+	margin: 8px 0px 6px 0px;
+	visibility: collapse;
+}
+
+.sk-facts
+{
+	width: 100%;
+	flow-children: down;
+}
+
+/* tooltip_inventory_item: grey heads over dark hairlines. Four of them leave room for the link. */
+.sk-fact
+{
+	width: 100%;
+	height: 24px;
+	flow-children: right;
+	border-top: 1px solid chudStoreRule;
+	border-right: 0px solid chudStoreRule;
+	border-bottom: 0px solid chudStoreRule;
+	border-left: 0px solid chudStoreRule;
+}
+
+.sk-fact.hidden
+{
+	visibility: collapse;
+}
+
+.sk-fact__label
+{
+	width: 112px;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 13px;
+	color: chudStoreFaint;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-fact__value
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreText;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* Takes the column's slack, so the link sits at its foot. */
+.sk-spot__room
+{
+	width: 100%;
+	height: fill-parent-flow( 1.0 );
+}
+
+/* PopupButton: the item's Properties, a hairline button under its facts. */
+.sk-link
+{
+	height: 28px;
+	horizontal-align: left;
+	padding: 0px 12px;
+	flow-children: right;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 2px;
+	background-color: chudGlassWash;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-link.hidden
+{
+	visibility: collapse;
+}
+
+.sk-link:hover
+{
+	background-color: chudGlassSoft;
+}
+
+.sk-link__icon
+{
+	width: 13px;
+	height: 13px;
+	vertical-align: center;
+	margin-right: 8px;
+	wash-color: chudStoreText;
+}
+
+.sk-link__label
+{
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.sk-link:hover .sk-link__icon { wash-color: chudTextMain; }
+.sk-link:hover .sk-link__label { color: chudTextMain; }
+
+/* ---- the grid ---- */
+
+/* Fixed heights: a scroll panel needs one. Under the spotlight it holds exactly two lines of tiles.
+   The 16px beside the items holds the scrollbar. */
+.sk-grid
+{
+	width: 100%;
+	height: 662px;
+	overflow: clip scroll;
+}
+
+.sk.has-tabs .sk-grid { height: 616px; }
+.sk.has-spot .sk-grid { height: 392px; }
+.sk.has-tabs.has-spot .sk-grid { height: 346px; }
+
+/* right-wrap with slack: 5 x 178 = 890 of 904, since an exactly full line drops its last tile. */
+.sk-items
+{
+	width: 904px;
+	flow-children: right-wrap;
+}
+
+/* The scroll rewind, as .chud-locker__items in menu_mouse.vcss. */
+.sk.chud-rewind .sk-items
+{
+	height: 1px;
+	overflow: squish noclip;
+}
+
+.sk-lead,
+.sk-lead__col
+{
+	flow-children: right;
+}
+
+/* itemtile-store: a clear tile shaded from the foot, its grade a 2px line along the bottom. */
+.sk-tile
+{
+	width: 170px;
+	height: 188px;
+	margin: 4px;
+	flow-children: none;
+	border-radius: 2px;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudGlassWash ), to( chudStoreFootBase ) );
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-tile.hidden
+{
+	visibility: collapse;
+}
+
+.sk-tile:hover
+{
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudGlassSoft ), to( chudStoreFootBase ) );
+}
+
+/* itemtile-store.selected: green rising from the foot, and the green select circle. */
+.sk-tile.chosen
+{
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudGlassWash ), color-stop( 0.3, chudGlassWash ), to( chudEquipRise ) );
+}
+
+.sk-tile.chosen:hover
+{
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudGlassSoft ), color-stop( 0.3, chudGlassSoft ), to( chudEquipRise ) );
+}
+
+.sk-tile.disabled
+{
+	opacity: 0.4;
+}
+
+/* The rarity layer (icon_N). It stays drawn without a rarity: hidden then only leaves it uncoloured. */
+.sk-tile__art
+{
+	width: 100%;
+	height: 100%;
+	flow-children: none;
+}
+
+.sk-tile__glow
+{
+	width: 100%;
+	height: 100%;
+}
+
+.sk-tile__thumb
+{
+	width: 156px;
+	height: 104px;
+	horizontal-align: center;
+	margin-top: 10px;
+	background-size: contain;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	transform: translateY( 0px );
+	transition-property: transform;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-tile__thumb.hidden
+{
+	visibility: collapse;
+}
+
+.sk-tile:hover .sk-tile__thumb
+{
+	transform: translateY( -4px );
+	brightness: 1.15;
+}
+
+.sk-tile__line
+{
+	width: 100%;
+	height: 2px;
+	vertical-align: bottom;
+}
+
+/* The caption: the item's kind in its grade's colour. Under the name on a card with a picture. */
+.sk-tile__cap
+{
+	max-width: 150px;
+	horizontal-align: center;
+	vertical-align: bottom;
+	margin-bottom: 16px;
+	flow-children: right;
+}
+
+.sk-tile.has-thumb .sk-tile__cap
+{
+	horizontal-align: left;
+	vertical-align: top;
+	margin: 140px 0px 0px 12px;
+}
+
+.sk-tile__dot
+{
+	width: 8px;
+	height: 8px;
+	vertical-align: center;
+	margin-right: 8px;
+	border-radius: 4px;
+	visibility: collapse;
+}
+
+.sk-tile__type
+{
+	max-width: 146px;
+	font-family: chudFontMedium;
+	font-size: 11px;
+	color: chudStoreFaint;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* Centred on a card without a picture (Reset, a switch); under the picture otherwise. */
+.sk-tile__name
+{
+	width: 150px;
+	max-height: 60px;
+	horizontal-align: center;
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 15px;
+	color: chudTextMain;
+	text-align: center;
+	white-space: normal;
+	text-overflow: ellipsis;
+}
+
+.sk-tile.has-thumb .sk-tile__name
+{
+	width: 146px;
+	max-height: 20px;
+	horizontal-align: left;
+	vertical-align: top;
+	margin: 120px 0px 0px 12px;
+	font-size: 14px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.sk-tile.danger .sk-tile__name
+{
+	color: chudDangerBase;
+}
+
+.sk-tile__value
+{
+	width: 150px;
+	horizontal-align: center;
+	vertical-align: center;
+	margin-top: 46px;
+	font-family: chudFontMedium;
+	font-size: 12px;
+	color: chudNavBase;
+	text-align: center;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-tile.has-thumb .sk-tile__value
+{
+	width: 146px;
+	horizontal-align: left;
+	vertical-align: bottom;
+	margin: 0px 0px 12px 12px;
+	font-size: 11px;
+	text-align: left;
+}
+
+/* A PageTiles card: the arrow over the page it leads to. */
+.sk-tile.page-tile .sk-tile__name
+{
+	font-size: 44px;
+	color: chudNavBase;
+}
+
+.sk-tile__check
+{
+	width: 22px;
+	height: 22px;
+	margin: 8px 0px 0px 8px;
+	border-radius: 11px;
+	background-color: chudEquipBase;
+	visibility: collapse;
+}
+
+.sk-tile.chosen .sk-tile__check
+{
+	visibility: visible;
+}
+
+.sk-tile__tick
+{
+	width: 11px;
+	height: 11px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudTextMain;
+}
+
+/* tint=spray-N: the game ships graffiti art untinted and washes it in the chosen colour. */
+.sk-tile__thumb.tint-spray-1 { wash-color: chudSprayTint01; }
+.sk-tile__thumb.tint-spray-2 { wash-color: chudSprayTint02; }
+.sk-tile__thumb.tint-spray-3 { wash-color: chudSprayTint03; }
+.sk-tile__thumb.tint-spray-4 { wash-color: chudSprayTint04; }
+.sk-tile__thumb.tint-spray-5 { wash-color: chudSprayTint05; }
+.sk-tile__thumb.tint-spray-6 { wash-color: chudSprayTint06; }
+.sk-tile__thumb.tint-spray-7 { wash-color: chudSprayTint07; }
+.sk-tile__thumb.tint-spray-8 { wash-color: chudSprayTint08; }
+.sk-tile__thumb.tint-spray-9 { wash-color: chudSprayTint09; }
+.sk-tile__thumb.tint-spray-10 { wash-color: chudSprayTint10; }
+.sk-tile__thumb.tint-spray-11 { wash-color: chudSprayTint11; }
+.sk-tile__thumb.tint-spray-12 { wash-color: chudSprayTint12; }
+.sk-tile__thumb.tint-spray-13 { wash-color: chudSprayTint13; }
+.sk-tile__thumb.tint-spray-14 { wash-color: chudSprayTint14; }
+.sk-tile__thumb.tint-spray-15 { wash-color: chudSprayTint15; }
+.sk-tile__thumb.tint-spray-16 { wash-color: chudSprayTint16; }
+.sk-tile__thumb.tint-spray-17 { wash-color: chudSprayTint17; }
+.sk-tile__thumb.tint-spray-18 { wash-color: chudSprayTint18; }
+.sk-tile__thumb.tint-spray-19 { wash-color: chudSprayTint19; }
+
+/* ---- card mode: the inspect card in place of the grid ---- */
+
+.sk-card
+{
+	width: 100%;
+	height: 662px;
+	flow-children: right;
+	visibility: collapse;
+}
+
+.sk.card-mode .sk-card
+{
+	visibility: visible;
+}
+
+.sk.card-mode .sk-grid
+{
+	visibility: collapse;
+}
+
+.sk-hero
+{
+	width: 360px;
+	height: 100%;
+	flow-children: none;
+	background-color: chudStoreBar;
+}
+
+.sk-hero.hidden
+{
+	visibility: collapse;
+}
+
+.sk-hero__glow
+{
+	width: 100%;
+	height: 100%;
+}
+
+.sk-hero__thumb
+{
+	width: 360px;
+	height: 270px;
+	horizontal-align: center;
+	margin-top: 150px;
+	background-size: contain;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}
+
+.sk-hero__thumb.hidden
+{
+	visibility: collapse;
+}
+
+.sk-hero__text
+{
+	width: 100%;
+	vertical-align: bottom;
+	padding: 0px 22px 24px 22px;
+	flow-children: down;
+}
+
+.sk-hero__type
+{
+	width: 100%;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreText;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	visibility: collapse;
+}
+
+.sk-hero.has-type .sk-hero__type
+{
+	visibility: visible;
+}
+
+.sk-hero__name
+{
+	width: 100%;
+	max-height: 64px;
+	margin-top: 2px;
+	font-family: chudFontBody;
+	font-size: 24px;
+	font-weight: bold;
+	color: chudTextMain;
+	white-space: normal;
+	text-overflow: ellipsis;
+}
+
+.sk-hero__bar
+{
+	width: 100%;
+	height: 6px;
+	margin-top: 12px;
+	visibility: collapse;
+}
+
+.sk-fields
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	padding: 0px 0px 0px 20px;
+	flow-children: down;
+}
+
+.sk-field
+{
+	width: 100%;
+	margin-bottom: 6px;
+	flow-children: down;
+}
+
+.sk-field.hidden
+{
+	visibility: collapse;
+}
+
+.sk-field.disabled
+{
+	opacity: 0.4;
+}
+
+.sk-field__row
+{
+	width: 100%;
+	height: 40px;
+	flow-children: right;
+}
+
+/* PopupButton: near-clear at rest, a twentieth of white on hover. */
+.sk-field__hit
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	padding: 0px 10px 0px 14px;
+	flow-children: right;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 3px;
+	background-color: chudShadowSoft;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-field__hit:hover,
+.sk-field.selected .sk-field__hit
+{
+	background-color: chudGlassWash;
+}
+
+/* A plain line (a notice) is no control. */
+.sk-field.kind-text .sk-field__hit,
+.sk-field.kind-text .sk-field__hit:hover
+{
+	border-top: 1px solid transparent;
+	border-right: 1px solid transparent;
+	border-bottom: 1px solid transparent;
+	border-left: 1px solid transparent;
+	background-color: transparent;
+}
+
+.sk-field__label
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreFaint;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* A value row's labels form one column, so its boxes line up whatever sits beside them. */
+.sk-field.kind-input .sk-field__label,
+.sk-field.kind-choice .sk-field__label,
+.sk-field.kind-selector .sk-field__label,
+.sk-field.kind-slider .sk-field__label
+{
+	width: 180px;
+}
+
+.sk-field__hit:hover .sk-field__label
+{
+	color: chudTextMain;
+}
+
+.sk-field.danger .sk-field__label
+{
+	color: chudDangerBase;
+}
+
+.sk-field__box
+{
+	width: fill-parent-flow( 1.0 );
+	height: 26px;
+	vertical-align: center;
+	padding: 0px 10px;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 3px;
+	background-color: chudShadowDim;
+	visibility: collapse;
+}
+
+.sk-field.kind-input .sk-field__box,
+.sk-field.kind-choice .sk-field__box,
+.sk-field.kind-selector .sk-field__box,
+.sk-field.kind-slider .sk-field__box
+{
+	visibility: visible;
+}
+
+.sk-field__hit:hover .sk-field__box
+{
+	border-top: 1px solid chudNavDim;
+	border-right: 1px solid chudNavDim;
+	border-bottom: 1px solid chudNavDim;
+	border-left: 1px solid chudNavDim;
+}
+
+/* An inline switch qualifies the value beside it: off, the value is dimmed. */
+.sk-field.aside-toggle .sk-field__box
+{
+	opacity: 0.45;
+}
+
+.sk-field.aside-toggle.aside-on .sk-field__box
+{
+	opacity: 1;
+}
+
+.sk-field__value
+{
+	width: 100%;
+	vertical-align: center;
+	font-family: chudFontBody;
+	font-size: 14px;
+	color: chudStoreText;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.sk-field__chevron
+{
+	vertical-align: center;
+	margin-left: 6px;
+	font-family: chudFontMedium;
+	font-size: 18px;
+	color: chudStoreFaint;
+	visibility: collapse;
+}
+
+.sk-field.kind-action .sk-field__chevron
+{
+	visibility: visible;
+}
+
+.sk-field__hit:hover .sk-field__chevron
+{
+	color: chudNavBase;
+}
+
+.sk-switch
+{
+	width: 34px;
+	height: 18px;
+	horizontal-align: center;
+	vertical-align: center;
+	border-radius: 9px;
+	background-color: chudGlassDim;
+	visibility: collapse;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+}
+
+.sk-switch__knob
+{
+	width: 14px;
+	height: 14px;
+	vertical-align: center;
+	margin-left: 2px;
+	border-radius: 7px;
+	background-color: chudStoreText;
+	transform: translateX( 0px );
+	transition-property: transform, background-color;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-field.kind-toggle .sk-field__hit .sk-switch,
+.sk-field.aside-toggle .sk-field__aside .sk-switch
+{
+	visibility: visible;
+}
+
+.sk-field.kind-toggle.is-on .sk-field__hit .sk-switch,
+.sk-field.aside-on .sk-field__aside .sk-switch
+{
+	background-color: chudNavDim;
+}
+
+.sk-field.kind-toggle.is-on .sk-field__hit .sk-switch__knob,
+.sk-field.aside-on .sk-field__aside .sk-switch__knob
+{
+	background-color: chudNavBase;
+	transform: translateX( 16px );
+}
+
+.sk-field__aside
+{
+	width: 46px;
+	height: 100%;
+	margin-left: 6px;
+	flow-children: none;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 3px;
+	background-color: chudShadowSoft;
+	visibility: collapse;
+	transition-property: background-color;
+	transition-duration: 0.12s;
+}
+
+.sk-field.aside-toggle .sk-field__aside,
+.sk-field.aside-action .sk-field__aside
+{
+	visibility: visible;
+}
+
+.sk-field__aside:hover
+{
+	background-color: chudGlassWash;
+}
+
+.sk-field__clear
+{
+	width: 12px;
+	height: 12px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreText;
+	visibility: collapse;
+}
+
+.sk-field.aside-action .sk-field__clear
+{
+	visibility: visible;
+}
+
+.sk-field.aside-action .sk-field__aside:hover
+{
+	background-color: chudDangerSoft;
+}
+
+.sk-field.aside-action .sk-field__aside:hover .sk-field__clear
+{
+	wash-color: chudDangerBase;
+}
+
+/* A field with slots is a heading over its tiles, no longer a button: each tile opens what it shows. */
+.sk-field.has-slots .sk-field__row
+{
+	visibility: collapse;
+}
+
+.sk-field__head
+{
+	width: 100%;
+	margin-top: 8px;
+	flow-children: right;
+	visibility: collapse;
+}
+
+.sk-field.has-slots .sk-field__head
+{
+	visibility: visible;
+}
+
+.sk-field__heading
+{
+	vertical-align: center;
+	font-family: chudFontMedium;
+	font-size: 13px;
+	color: chudStoreText;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.sk-field__rule
+{
+	width: fill-parent-flow( 1.0 );
+	height: 1px;
+	vertical-align: center;
+	margin-left: 12px;
+	background-color: chudStoreEdge;
+}
+
+/* A row's slots (a weapon's stickers, its charm), under its heading. 6 x 84 + 5 x 6 = 534 of the 540px column. */
+.sk-slots
+{
+	width: 100%;
+	height: 64px;
+	margin-top: 6px;
+	flow-children: right;
+	visibility: collapse;
+}
+
+.sk-field.has-slots .sk-slots
+{
+	visibility: visible;
+}
+
+.sk-slot
+{
+	width: 84px;
+	height: 64px;
+	margin-right: 6px;
+	flow-children: none;
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	border-radius: 3px;
+	background-color: chudShadowDim;
+	transition-property: background-color, border;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-in-out;
+}
+
+.sk-slot.hidden
+{
+	visibility: collapse;
+}
+
+.sk-slot:hover
+{
+	border-top: 1px solid chudNavDim;
+	border-right: 1px solid chudNavDim;
+	border-bottom: 1px solid chudNavDim;
+	border-left: 1px solid chudNavDim;
+	background-color: chudGlassWash;
+}
+
+/* A field the player may not open: its tiles still show what is on, and do not react. */
+.sk-field.disabled .sk-slot:hover
+{
+	border-top: 1px solid chudStoreEdge;
+	border-right: 1px solid chudStoreEdge;
+	border-bottom: 1px solid chudStoreEdge;
+	border-left: 1px solid chudStoreEdge;
+	background-color: chudShadowDim;
+}
+
+.sk-slot__add
+{
+	width: 14px;
+	height: 14px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: chudStoreFaint;
+}
+
+.sk-slot:hover .sk-slot__add { wash-color: chudNavBase; }
+.sk-field.disabled .sk-slot:hover .sk-slot__add { wash-color: chudStoreFaint; }
+
+.sk-slot.has-thumb .sk-slot__add
+{
+	visibility: collapse;
+}
+
+.sk-slot__thumb
+{
+	width: 76px;
+	height: 57px;
+	horizontal-align: center;
+	vertical-align: center;
+	background-size: contain;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}
+
+.sk-slot__thumb.hidden
+{
+	visibility: collapse;
+}
+
+/* What is on the slot, named over its foot while the pointer is on it. */
+.sk-slot__name
+{
+	width: 100%;
+	vertical-align: bottom;
+	padding: 2px 4px;
+	font-family: chudFontMedium;
+	font-size: 10px;
+	color: chudTextMain;
+	text-align: center;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	background-color: chudShadowText;
+	visibility: collapse;
+}
+
+.sk-slot.has-thumb:hover .sk-slot__name
+{
+	visibility: visible;
+}
+
+/* A slider is 51 overlapping segments, widest first: docs/PanoramaAuthoring.md, "Card layouts". */
+.sk-track
+{
+	width: 100%;
+	height: 20px;
+	margin-top: 4px;
+	flow-children: none;
+	visibility: collapse;
+}
+
+.sk-field.has-track .sk-track
+{
+	visibility: visible;
+}
+
+.sk-track__base
+{
+	width: 100%;
+	height: 8px;
+	vertical-align: center;
+	flow-children: right;
+	border-radius: 4px;
+	background-color: chudGlassWash;
+}
+
+/* fill-N sets the width; noclip lets the knob sit on the edge at 0%. */
+.sk-track__fill
+{
+	width: 0%;
+	height: 100%;
+	flow-children: none;
+	overflow: noclip;
+}
+
+.sk-track__clip
+{
+	width: 100%;
+	height: 8px;
+	vertical-align: center;
+	overflow: clip;
+	border-radius: 4px 0px 0px 4px;
+}
+
+/* Fixed to the track's width (the card's 540px column) so the clip shows its left part, not a squeezed copy. */
+.sk-track__lit
+{
+	width: 540px;
+	height: 100%;
+	flow-children: right;
+	background-color: gradient( linear, 0% 0%, 100% 0%, from( chudNavDim ), to( chudNavBase ) );
+}
+
+.sk-track__knob
+{
+	width: 4px;
+	height: 18px;
+	horizontal-align: right;
+	vertical-align: center;
+	border-radius: 2px;
+	background-color: chudTextMain;
+	transform: translateX( 2px );
+}
+
+.sk-track__hits
+{
+	width: 100%;
+	height: 100%;
+	flow-children: none;
+}
+
+.sk-seg
+{
+	height: 100%;
+	border-radius: 4px;
+}
+
+.sk-seg:hover
+{
+	background-color: chudGlassDim;
+}
+
+.sk-band
+{
+	height: 100%;
+	visibility: collapse;
+}
+
+.sk-field.track-wear .sk-band
+{
+	visibility: visible;
+}
+
+.sk-track__legend
+{
+	width: 100%;
+	height: 12px;
+	margin-top: 1px;
+	flow-children: right;
+	visibility: collapse;
+}
+
+.sk-field.has-track.track-wear .sk-track__legend
+{
+	visibility: visible;
+}
+
+.sk-legend
+{
+	height: 100%;
+	font-family: chudFontMedium;
+	font-size: 9px;
+	text-align: center;
+	letter-spacing: 1px;
+}
+
+.sk-band--fn { width: 7%; }
+.sk-band--mw { width: 8%; }
+.sk-band--ft { width: 23%; }
+.sk-band--ww { width: 7%; }
+.sk-band--bs { width: 55%; }
+.sk-track__base .sk-band--fn { background-color: chudWearFnDim; }
+.sk-track__base .sk-band--mw { background-color: chudWearMwDim; }
+.sk-track__base .sk-band--ft { background-color: chudWearFtDim; }
+.sk-track__base .sk-band--ww { background-color: chudWearWwDim; }
+.sk-track__base .sk-band--bs { background-color: chudWearBsDim; }
+.sk-track__lit .sk-band--fn { background-color: chudWearFnBase; }
+.sk-track__lit .sk-band--mw { background-color: chudWearMwBase; }
+.sk-track__lit .sk-band--ft { background-color: chudWearFtBase; }
+.sk-track__lit .sk-band--ww { background-color: chudWearWwBase; }
+.sk-track__lit .sk-band--bs { background-color: chudWearBsBase; }
+.sk-legend--fn { width: 7%; color: chudWearFnBase; }
+.sk-legend--mw { width: 8%; color: chudWearMwBase; }
+.sk-legend--ft { width: 23%; color: chudWearFtBase; }
+.sk-legend--ww { width: 7%; color: chudWearWwBase; }
+.sk-legend--bs { width: 55%; color: chudWearBsBase; }
+
+/* ---- rarity, by the lvl-N ladder on a tile's art, the spotlight and the hero ---- */
+
+.sk-tile__art.lvl-1 .sk-tile__line, .sk-tile__art.lvl-1 .sk-tile__dot { background-color: chudRarity01; }
+.sk-tile__art.lvl-2 .sk-tile__line, .sk-tile__art.lvl-2 .sk-tile__dot { background-color: chudRarity02; }
+.sk-tile__art.lvl-3 .sk-tile__line, .sk-tile__art.lvl-3 .sk-tile__dot { background-color: chudRarity03; }
+.sk-tile__art.lvl-4 .sk-tile__line, .sk-tile__art.lvl-4 .sk-tile__dot { background-color: chudRarity04; }
+.sk-tile__art.lvl-5 .sk-tile__line, .sk-tile__art.lvl-5 .sk-tile__dot { background-color: chudRarity05; }
+.sk-tile__art.lvl-6 .sk-tile__line, .sk-tile__art.lvl-6 .sk-tile__dot { background-color: chudRarity06; }
+.sk-tile__art.lvl-7 .sk-tile__line, .sk-tile__art.lvl-7 .sk-tile__dot { background-color: chudRarity07; }
+.sk-tile__art.lvl-8 .sk-tile__line, .sk-tile__art.lvl-8 .sk-tile__dot { background-color: chudRarity08; }
+.sk-tile__art.lvl-9 .sk-tile__line, .sk-tile__art.lvl-9 .sk-tile__dot { background-color: chudRarity09; }
+.sk-tile__art.lvl-10 .sk-tile__line, .sk-tile__art.lvl-10 .sk-tile__dot { background-color: chudRarity10; }
+
+.sk-tile__art.lvl-1 .sk-tile__type, .sk-spot.lvl-1 .sk-spot__type, .sk-hero.lvl-1 .sk-hero__type { color: chudRarity01; }
+.sk-tile__art.lvl-2 .sk-tile__type, .sk-spot.lvl-2 .sk-spot__type, .sk-hero.lvl-2 .sk-hero__type { color: chudRarity02; }
+.sk-tile__art.lvl-3 .sk-tile__type, .sk-spot.lvl-3 .sk-spot__type, .sk-hero.lvl-3 .sk-hero__type { color: chudRarity03; }
+.sk-tile__art.lvl-4 .sk-tile__type, .sk-spot.lvl-4 .sk-spot__type, .sk-hero.lvl-4 .sk-hero__type { color: chudRarity04; }
+.sk-tile__art.lvl-5 .sk-tile__type, .sk-spot.lvl-5 .sk-spot__type, .sk-hero.lvl-5 .sk-hero__type { color: chudRarity05; }
+.sk-tile__art.lvl-6 .sk-tile__type, .sk-spot.lvl-6 .sk-spot__type, .sk-hero.lvl-6 .sk-hero__type { color: chudRarity06; }
+.sk-tile__art.lvl-7 .sk-tile__type, .sk-spot.lvl-7 .sk-spot__type, .sk-hero.lvl-7 .sk-hero__type { color: chudRarity07; }
+.sk-tile__art.lvl-8 .sk-tile__type, .sk-spot.lvl-8 .sk-spot__type, .sk-hero.lvl-8 .sk-hero__type { color: chudRarity08; }
+.sk-tile__art.lvl-9 .sk-tile__type, .sk-spot.lvl-9 .sk-spot__type, .sk-hero.lvl-9 .sk-hero__type { color: chudRarity09; }
+.sk-tile__art.lvl-10 .sk-tile__type, .sk-spot.lvl-10 .sk-spot__type, .sk-hero.lvl-10 .sk-hero__type { color: chudRarity10; }
+
+.sk-spot.lvl-1 .sk-spot__bar, .sk-hero.lvl-1 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity01 ), to( chudTint01 ) ); }
+.sk-spot.lvl-2 .sk-spot__bar, .sk-hero.lvl-2 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity02 ), to( chudTint02 ) ); }
+.sk-spot.lvl-3 .sk-spot__bar, .sk-hero.lvl-3 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity03 ), to( chudTint03 ) ); }
+.sk-spot.lvl-4 .sk-spot__bar, .sk-hero.lvl-4 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity04 ), to( chudTint04 ) ); }
+.sk-spot.lvl-5 .sk-spot__bar, .sk-hero.lvl-5 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity05 ), to( chudTint05 ) ); }
+.sk-spot.lvl-6 .sk-spot__bar, .sk-hero.lvl-6 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity06 ), to( chudTint06 ) ); }
+.sk-spot.lvl-7 .sk-spot__bar, .sk-hero.lvl-7 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity07 ), to( chudTint07 ) ); }
+.sk-spot.lvl-8 .sk-spot__bar, .sk-hero.lvl-8 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity08 ), to( chudTint08 ) ); }
+.sk-spot.lvl-9 .sk-spot__bar, .sk-hero.lvl-9 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity09 ), to( chudTint09 ) ); }
+.sk-spot.lvl-10 .sk-spot__bar, .sk-hero.lvl-10 .sk-hero__bar { visibility: visible; background-color: gradient( linear, 0% 0%, 100% 0%, from( chudRarity10 ), to( chudTint10 ) ); }
+
+.sk-spot.lvl-1 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint01 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-2 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint02 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-3 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint03 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-4 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint04 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-5 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint05 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-6 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint06 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-7 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint07 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-8 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint08 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-9 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint09 ), to( chudShadowFade ) ); }
+.sk-spot.lvl-10 .sk-spot__glow { background-color: gradient( radial, 50% 50%, 0% 0%, 46% 60%, from( chudTint10 ), to( chudShadowFade ) ); }
+
+.sk-hero.lvl-1 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint01 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-2 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint02 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-3 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint03 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-4 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint04 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-5 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint05 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-6 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint06 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-7 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint07 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-8 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint08 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-9 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint09 ), to( chudShadowFade ) ); }
+.sk-hero.lvl-10 .sk-hero__glow { background-color: gradient( radial, 50% 43%, 0% 0%, 70% 34%, from( chudTint10 ), to( chudShadowFade ) ); }
+
+/* ---- view-ws-agents: the agent worn as a bust standing on the stage, right of its status ---- */
+
+.sk.view-ws-agents .sk-spot__thumb
+{
+	width: 344px;
+	height: 258px;
+	horizontal-align: right;
+	vertical-align: bottom;
+	margin-right: 24px;
+}
+
+/* ---- view-ws-knives, view-ws-gloves: the render runs corner to corner, so it all fits the 258px stage ---- */
+
+.sk.view-ws-knives .sk-spot__thumb,
+.sk.view-ws-gloves .sk-spot__thumb
+{
+	width: 312px;
+	height: 234px;
+}
+
+/* ---- view-ws-categories: Weapon Skins' categories as a mosaic, the first one large ---- */
+
+/* 4 x 224 = 896 of 904; three 216px rows (208 + margins) = 648 of 662, so nothing scrolls. */
+.sk.view-ws-categories .sk-tile { width: 216px; height: 208px; }
+.sk.view-ws-categories .sk-tile--lead { width: 440px; height: 424px; }
+.sk.view-ws-categories .sk-tile--wide { width: 440px; height: 208px; }
+.sk.view-ws-categories .sk-lead__col { flow-children: down; }
+
+.sk.view-ws-categories .sk-tile__thumb
+{
+	width: 200px;
+	height: 150px;
+	horizontal-align: right;
+	margin-top: 22px;
+}
+
+.sk.view-ws-categories .sk-tile--wide .sk-tile__thumb
+{
+	width: 264px;
+	height: 198px;
+	margin-top: 0px;
+}
+
+.sk.view-ws-categories .sk-tile--lead .sk-tile__thumb
+{
+	width: 440px;
+	height: 330px;
+	margin-top: 24px;
+}
+
+.sk.view-ws-categories .sk-tile.has-thumb .sk-tile__cap
+{
+	max-width: 190px;
+	margin: 16px 0px 0px 16px;
+}
+
+.sk.view-ws-categories .sk-tile--wide.has-thumb .sk-tile__cap,
+.sk.view-ws-categories .sk-tile--lead.has-thumb .sk-tile__cap
+{
+	max-width: 400px;
+}
+
+.sk.view-ws-categories .sk-tile__type
+{
+	max-width: 380px;
+	font-size: 12px;
+	color: chudStoreText;
+	letter-spacing: 1px;
+}
+
+/* The grade shows as a dot before the gun's name here, not as the name's colour. */
+.sk.view-ws-categories .sk-tile__dot
+{
+	visibility: visible;
+}
+
+.sk.view-ws-categories .sk-tile__art.hidden .sk-tile__dot
+{
+	visibility: collapse;
+}
+
+.sk.view-ws-categories .sk-tile.has-thumb .sk-tile__name
+{
+	width: 184px;
+	max-height: 40px;
+	vertical-align: bottom;
+	margin: 0px 0px 36px 16px;
+	font-family: chudFontBody;
+	font-size: 30px;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-shadow: 1px 1px 4px 1.0 chudShadowText;
+}
+
+.sk.view-ws-categories .sk-tile--wide.has-thumb .sk-tile__name
+{
+	width: 408px;
+}
+
+.sk.view-ws-categories .sk-tile--lead.has-thumb .sk-tile__name
+{
+	width: 408px;
+	max-height: 68px;
+	margin-bottom: 40px;
+	font-size: 56px;
+}
+
+.sk.view-ws-categories .sk-tile.has-thumb .sk-tile__value
+{
+	width: 184px;
+	margin: 0px 0px 14px 16px;
+	font-family: chudFontBody;
+	font-size: 14px;
+	color: chudStoreText;
+	letter-spacing: 0px;
+	text-transform: none;
+}
+
+.sk.view-ws-categories .sk-tile--wide.has-thumb .sk-tile__value,
+.sk.view-ws-categories .sk-tile--lead.has-thumb .sk-tile__value
+{
+	width: 408px;
+}
+
+.sk.view-ws-categories .sk-tile__art.lvl-1 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint01 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-2 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint02 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-3 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint03 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-4 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint04 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-5 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint05 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-6 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint06 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-7 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint07 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-8 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint08 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-9 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint09 ), to( chudShadowFade ) ); }
+.sk.view-ws-categories .sk-tile__art.lvl-10 .sk-tile__glow { background-color: gradient( radial, 66% 44%, 0% 0%, 52% 60%, from( chudTint10 ), to( chudShadowFade ) ); }
+
+/* ---- ladders ---- */
+
+.sk-seg-0 { width: 1%; }
+.sk-seg-1 { width: 3%; }
+.sk-seg-2 { width: 5%; }
+.sk-seg-3 { width: 7%; }
+.sk-seg-4 { width: 9%; }
+.sk-seg-5 { width: 11%; }
+.sk-seg-6 { width: 13%; }
+.sk-seg-7 { width: 15%; }
+.sk-seg-8 { width: 17%; }
+.sk-seg-9 { width: 19%; }
+.sk-seg-10 { width: 21%; }
+.sk-seg-11 { width: 23%; }
+.sk-seg-12 { width: 25%; }
+.sk-seg-13 { width: 27%; }
+.sk-seg-14 { width: 29%; }
+.sk-seg-15 { width: 31%; }
+.sk-seg-16 { width: 33%; }
+.sk-seg-17 { width: 35%; }
+.sk-seg-18 { width: 37%; }
+.sk-seg-19 { width: 39%; }
+.sk-seg-20 { width: 41%; }
+.sk-seg-21 { width: 43%; }
+.sk-seg-22 { width: 45%; }
+.sk-seg-23 { width: 47%; }
+.sk-seg-24 { width: 49%; }
+.sk-seg-25 { width: 51%; }
+.sk-seg-26 { width: 53%; }
+.sk-seg-27 { width: 55%; }
+.sk-seg-28 { width: 57%; }
+.sk-seg-29 { width: 59%; }
+.sk-seg-30 { width: 61%; }
+.sk-seg-31 { width: 63%; }
+.sk-seg-32 { width: 65%; }
+.sk-seg-33 { width: 67%; }
+.sk-seg-34 { width: 69%; }
+.sk-seg-35 { width: 71%; }
+.sk-seg-36 { width: 73%; }
+.sk-seg-37 { width: 75%; }
+.sk-seg-38 { width: 77%; }
+.sk-seg-39 { width: 79%; }
+.sk-seg-40 { width: 81%; }
+.sk-seg-41 { width: 83%; }
+.sk-seg-42 { width: 85%; }
+.sk-seg-43 { width: 87%; }
+.sk-seg-44 { width: 89%; }
+.sk-seg-45 { width: 91%; }
+.sk-seg-46 { width: 93%; }
+.sk-seg-47 { width: 95%; }
+.sk-seg-48 { width: 97%; }
+.sk-seg-49 { width: 99%; }
+.sk-seg-50 { width: 100%; }
+
+.sk-field.fill-0 .sk-track__fill { width: 0%; }
+.sk-field.fill-1 .sk-track__fill { width: 1%; }
+.sk-field.fill-2 .sk-track__fill { width: 2%; }
+.sk-field.fill-3 .sk-track__fill { width: 3%; }
+.sk-field.fill-4 .sk-track__fill { width: 4%; }
+.sk-field.fill-5 .sk-track__fill { width: 5%; }
+.sk-field.fill-6 .sk-track__fill { width: 6%; }
+.sk-field.fill-7 .sk-track__fill { width: 7%; }
+.sk-field.fill-8 .sk-track__fill { width: 8%; }
+.sk-field.fill-9 .sk-track__fill { width: 9%; }
+.sk-field.fill-10 .sk-track__fill { width: 10%; }
+.sk-field.fill-11 .sk-track__fill { width: 11%; }
+.sk-field.fill-12 .sk-track__fill { width: 12%; }
+.sk-field.fill-13 .sk-track__fill { width: 13%; }
+.sk-field.fill-14 .sk-track__fill { width: 14%; }
+.sk-field.fill-15 .sk-track__fill { width: 15%; }
+.sk-field.fill-16 .sk-track__fill { width: 16%; }
+.sk-field.fill-17 .sk-track__fill { width: 17%; }
+.sk-field.fill-18 .sk-track__fill { width: 18%; }
+.sk-field.fill-19 .sk-track__fill { width: 19%; }
+.sk-field.fill-20 .sk-track__fill { width: 20%; }
+.sk-field.fill-21 .sk-track__fill { width: 21%; }
+.sk-field.fill-22 .sk-track__fill { width: 22%; }
+.sk-field.fill-23 .sk-track__fill { width: 23%; }
+.sk-field.fill-24 .sk-track__fill { width: 24%; }
+.sk-field.fill-25 .sk-track__fill { width: 25%; }
+.sk-field.fill-26 .sk-track__fill { width: 26%; }
+.sk-field.fill-27 .sk-track__fill { width: 27%; }
+.sk-field.fill-28 .sk-track__fill { width: 28%; }
+.sk-field.fill-29 .sk-track__fill { width: 29%; }
+.sk-field.fill-30 .sk-track__fill { width: 30%; }
+.sk-field.fill-31 .sk-track__fill { width: 31%; }
+.sk-field.fill-32 .sk-track__fill { width: 32%; }
+.sk-field.fill-33 .sk-track__fill { width: 33%; }
+.sk-field.fill-34 .sk-track__fill { width: 34%; }
+.sk-field.fill-35 .sk-track__fill { width: 35%; }
+.sk-field.fill-36 .sk-track__fill { width: 36%; }
+.sk-field.fill-37 .sk-track__fill { width: 37%; }
+.sk-field.fill-38 .sk-track__fill { width: 38%; }
+.sk-field.fill-39 .sk-track__fill { width: 39%; }
+.sk-field.fill-40 .sk-track__fill { width: 40%; }
+.sk-field.fill-41 .sk-track__fill { width: 41%; }
+.sk-field.fill-42 .sk-track__fill { width: 42%; }
+.sk-field.fill-43 .sk-track__fill { width: 43%; }
+.sk-field.fill-44 .sk-track__fill { width: 44%; }
+.sk-field.fill-45 .sk-track__fill { width: 45%; }
+.sk-field.fill-46 .sk-track__fill { width: 46%; }
+.sk-field.fill-47 .sk-track__fill { width: 47%; }
+.sk-field.fill-48 .sk-track__fill { width: 48%; }
+.sk-field.fill-49 .sk-track__fill { width: 49%; }
+.sk-field.fill-50 .sk-track__fill { width: 50%; }
+.sk-field.fill-51 .sk-track__fill { width: 51%; }
+.sk-field.fill-52 .sk-track__fill { width: 52%; }
+.sk-field.fill-53 .sk-track__fill { width: 53%; }
+.sk-field.fill-54 .sk-track__fill { width: 54%; }
+.sk-field.fill-55 .sk-track__fill { width: 55%; }
+.sk-field.fill-56 .sk-track__fill { width: 56%; }
+.sk-field.fill-57 .sk-track__fill { width: 57%; }
+.sk-field.fill-58 .sk-track__fill { width: 58%; }
+.sk-field.fill-59 .sk-track__fill { width: 59%; }
+.sk-field.fill-60 .sk-track__fill { width: 60%; }
+.sk-field.fill-61 .sk-track__fill { width: 61%; }
+.sk-field.fill-62 .sk-track__fill { width: 62%; }
+.sk-field.fill-63 .sk-track__fill { width: 63%; }
+.sk-field.fill-64 .sk-track__fill { width: 64%; }
+.sk-field.fill-65 .sk-track__fill { width: 65%; }
+.sk-field.fill-66 .sk-track__fill { width: 66%; }
+.sk-field.fill-67 .sk-track__fill { width: 67%; }
+.sk-field.fill-68 .sk-track__fill { width: 68%; }
+.sk-field.fill-69 .sk-track__fill { width: 69%; }
+.sk-field.fill-70 .sk-track__fill { width: 70%; }
+.sk-field.fill-71 .sk-track__fill { width: 71%; }
+.sk-field.fill-72 .sk-track__fill { width: 72%; }
+.sk-field.fill-73 .sk-track__fill { width: 73%; }
+.sk-field.fill-74 .sk-track__fill { width: 74%; }
+.sk-field.fill-75 .sk-track__fill { width: 75%; }
+.sk-field.fill-76 .sk-track__fill { width: 76%; }
+.sk-field.fill-77 .sk-track__fill { width: 77%; }
+.sk-field.fill-78 .sk-track__fill { width: 78%; }
+.sk-field.fill-79 .sk-track__fill { width: 79%; }
+.sk-field.fill-80 .sk-track__fill { width: 80%; }
+.sk-field.fill-81 .sk-track__fill { width: 81%; }
+.sk-field.fill-82 .sk-track__fill { width: 82%; }
+.sk-field.fill-83 .sk-track__fill { width: 83%; }
+.sk-field.fill-84 .sk-track__fill { width: 84%; }
+.sk-field.fill-85 .sk-track__fill { width: 85%; }
+.sk-field.fill-86 .sk-track__fill { width: 86%; }
+.sk-field.fill-87 .sk-track__fill { width: 87%; }
+.sk-field.fill-88 .sk-track__fill { width: 88%; }
+.sk-field.fill-89 .sk-track__fill { width: 89%; }
+.sk-field.fill-90 .sk-track__fill { width: 90%; }
+.sk-field.fill-91 .sk-track__fill { width: 91%; }
+.sk-field.fill-92 .sk-track__fill { width: 92%; }
+.sk-field.fill-93 .sk-track__fill { width: 93%; }
+.sk-field.fill-94 .sk-track__fill { width: 94%; }
+.sk-field.fill-95 .sk-track__fill { width: 95%; }
+.sk-field.fill-96 .sk-track__fill { width: 96%; }
+.sk-field.fill-97 .sk-track__fill { width: 97%; }
+.sk-field.fill-98 .sk-track__fill { width: 98%; }
+.sk-field.fill-99 .sk-track__fill { width: 99%; }
+.sk-field.fill-100 .sk-track__fill { width: 100%; }

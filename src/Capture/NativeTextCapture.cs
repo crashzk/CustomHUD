@@ -28,18 +28,27 @@ internal sealed class NativeTextCapture(
     ILogger logger)
 {
     private Guid? _hook;
+    private bool _stopped;
 
-    public void Subscribe()
+    // GAME THREAD ONLY. Run at load and after every config reload. Installed only while a kind is
+    // captured: an installed hook sits on the path of every outbound message for every player.
+    public void Sync()
     {
-        // Registered programmatically rather than by attribute so the hook is
-        // not installed at all when the feature is off -- an installed hook
-        // sits on the path of every outbound message for every player.
-        if (!config.Current.NativeText.Enabled) return;
-        _hook = core.NetMessage.HookServerMessageInternal<CUserMessageTextMsg>(OnTextMsg);
+        if (_stopped) return;
+        var wanted = config.Current.CapturesMessages();
+        if (wanted && _hook is null)
+            _hook = core.NetMessage.HookServerMessageInternal<CUserMessageTextMsg>(OnTextMsg);
+        else if (!wanted && _hook is { } guid)
+        {
+            core.NetMessage.Unhook(guid);
+            _hook = null;
+        }
     }
 
     public void Unsubscribe()
     {
+        // A Sync queued by a reload must not hook again after unload.
+        _stopped = true;
         if (_hook is not { } guid) return;
         core.NetMessage.Unhook(guid);
         _hook = null;
@@ -50,13 +59,10 @@ internal sealed class NativeTextCapture(
         try
         {
             var cfg = config.Current;
-            if (!cfg.NativeText.Enabled) return HookResult.Continue;
-
             var kind = (NativeTextKind)msg.Dest;
             if (!Enum.IsDefined(kind)) return HookResult.Continue;
 
-            var profile = cfg.NativeText.Resolve(kind);
-            if (!profile.Capture) return HookResult.Continue;
+            if (cfg.ResolveMessage(kind) is not { } profile) return HookResult.Continue;
 
             // The message wrapper is temporary and must not outlive this call,
             // so the text is copied before anything is deferred.
@@ -65,7 +71,7 @@ internal sealed class NativeTextCapture(
             if (string.IsNullOrEmpty(text)) return HookResult.Continue;
 
             var steamId = steamIds.Get(playerId);
-            var layoutPath = profile.File.Contains('/') ? profile.File : cfg.LayoutRoot + profile.File;
+            var layoutPath = cfg.ResolveMessagePath(profile);
 
             // This runs on the engine's send path. Entity writes belong on the
             // game thread, so the render is deferred -- the string is already

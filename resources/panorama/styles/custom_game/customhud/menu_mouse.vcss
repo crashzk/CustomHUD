@@ -103,6 +103,15 @@
 	flow-children: down;
 }
 
+/* The renderer's scroll rewind (LayoutClasses.Rewind): for three ticks after a new list replaces
+   the last, the items measure 1px and draw past it, so the offset clamps to the top with the new
+   tiles already showing. */
+.chud-locker.chud-rewind .chud-locker__items
+{
+	height: 1px;
+	overflow: squish noclip;
+}
+
 /*
 	Lines are explicit panels, not one right-wrap flow: wrap moves a line's last
 	child down on an exact fit like this one (3 x 164px = 492px). A line never
@@ -315,6 +324,7 @@
 
 .chud-tile,
 .ws-card,
+.lk.view-shop-categories .lk-list .lk-hit,
 .lk.view-shop-grid .lk-list .lk-hit,
 .lk.view-maps-board .lk-list .lk-hit,
 .lk.view-maps-pool .lk-list .lk-hit,
@@ -334,6 +344,7 @@
 
 .chud-tile:hover,
 .ws-card:hover,
+.lk.view-shop-categories .lk-list .lk-hit:hover,
 .lk.view-shop-grid .lk-list .lk-hit:hover,
 .lk.view-maps-board .lk-list .lk-hit:hover,
 .lk.view-maps-pool .lk-list .lk-hit:hover,

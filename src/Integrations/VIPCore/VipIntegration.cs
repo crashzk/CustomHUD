@@ -17,8 +17,10 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
     private const string FovKey = "vip.fov";
     private const string TagKey = "vip.tag";
 
-    // Each group's look, by weight; refilled at the start of every Draw (game thread only).
-    private Dictionary<string, (string Glyph, string Tone)> _styles = new(StringComparer.OrdinalIgnoreCase);
+    // Each group's look, by weight (game thread). Re-read every 5 s, not per draw: before VIPCore 1.3.1 GetGroupInfos scanned its whole config.
+    private Dictionary<string, (string Glyph, string Tone)>? _styles;
+    private long _stylesAt;
+    private const long StylesMs = 5000;
 
     public string Provider => "VIPCore";
 
@@ -40,17 +42,20 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         VipGrantRow or VipLengthRow { Extends: not null } => "detail",
         VipActionRow { Action: VipAction.MakePermanent or VipAction.Remove } => "detail",
         VipActionRow { Action: VipAction.AddGroup or VipAction.RemoveAll } => "detailbar",
-        VipGroupRow or VipScopeRow or VipLengthRow => "detail",
+        VipGroupRow or VipScopeRow or VipLengthRow when menu.Id == VipMenuIds.Grant => "detail",
         VipActionRow { Action: VipAction.Summary or VipAction.Submit } => menu.Id == VipMenuIds.Grant ? "detailbar" : "foot",
         _ => null,
     };
 
     public void Draw(PageDraw page)
     {
-        _styles = Styles();
         var id = page.Menu.Id;
         if (id == VipMenuIds.Perks) Perks(page);
-        else if (id == VipMenuIds.Grant) Grant(page);
+        else if (id == VipMenuIds.Grant && page.Components.Any(c => TagOf(c) is VipGroupRow)) Grant(page);
+        else if (id == VipMenuIds.Grant) GrantPlayers(page);
+        else if (id == VipMenuIds.GrantGroup) GrantGroups(page);
+        else if (id == VipMenuIds.GrantLength) GrantLengths(page);
+        else if (id == VipMenuIds.GrantScope) GrantScopes(page);
         else if (id.StartsWith(VipMenuIds.UsersList, StringComparison.Ordinal)) Users(page);
         else if (id != VipMenuIds.Hub && id != VipMenuIds.Users) Choices(page);
     }
@@ -60,7 +65,9 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
     private void Perks(PageDraw page)
     {
         var grants = api.GetClientVipGrants(page.Player);
-        MembershipChips(page, grants);
+        // The locker's membership card has a banner of its own; the list says only what is held, and until when.
+        var card = page.Regions.Contains("banner");
+        if (card) MembershipChips(page, grants);
         page.Hint(T(page, "hint.perks"));
 
         int first = -1, toggles = 0, on = 0;
@@ -83,8 +90,20 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
             page.Draw(k, Directive.Clean(view.Name) + value, (page.Components[k] is SubmenuComponent ? "submenu;" : "") + payload);
         }
 
-        if (grants.Count > 0) Membership(page, grants);
+        if (grants.Count > 0 && card) Membership(page, grants);
+        else if (grants.Count > 0) GroupLines(page, grants);
         if (first >= 0) page.Add($"{T(page, "perks")}\t{T(page, "perks_on", on, toggles)}", "section", first);
+    }
+
+    private void GroupLines(PageDraw page, IReadOnlyList<VipGrant> grants)
+    {
+        foreach (var grant in grants)
+        {
+            var (glyph, tone) = Style(grant.Group);
+            page.Add(Directive.Clean(grant.Group), grant.Permanent
+                ? $"glyph={glyph};tone={tone};sub={T(page, "permanent")}"
+                : $"glyph={glyph};tone={tone};sub={T(page, "until", Date(page, grant.ExpiresAt))};note={T(page, "left", DaysLeft(grant))}", 0);
+        }
     }
 
     // The tier, how long it lasts, then every group held: the active one first, the rest in the order they apply.
@@ -137,15 +156,15 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         var own = T(page, "hint.page." + page.Menu.Id);
         page.Hint(own.Length > 0 ? own : T(page, customize ? "hint.customize" : "hint.picks"));
 
-        var picks = page.Components.Select(TagOf).OfType<VipOptionRow>().Where(o => o.Selected)
-            .Select(o => Directive.Clean(o.Option.Label)).ToList();
+        // From the whole menu: a keyboard page holds only some of the choices.
+        var all = page.Menu.GetComponents(MenuRegion.Body).Select(TagOf).ToList();
+        var picks = all.OfType<VipOptionRow>().Where(o => o.Selected).Select(o => Directive.Clean(o.Option.Label)).ToList();
         for (var k = 0; k < page.Components.Count; k++)
         {
             switch (TagOf(page.Components[k]))
             {
                 case VipSectionRow section:
-                    var count = page.Components.Select(TagOf).OfType<VipOptionRow>()
-                        .Count(o => o.FeatureKey == section.FeatureKey && o.Option.Group == section.Group);
+                    var count = all.OfType<VipOptionRow>().Count(o => o.FeatureKey == section.FeatureKey && o.Option.Group == section.Group);
                     var group = section.Group?.ToLowerInvariant() ?? SectionGroup(section.FeatureKey);
                     // Text, not a pick: a focusable heading would otherwise draw as one of the cards.
                     page.Draw(k, $"{Directive.Clean(TextOf(page.Components[k]))}\t{count}",
@@ -319,7 +338,74 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         if (ending && stats.EndingThisWeek > 0) page.AddHeader($"{stats.EndingThisWeek}\t{T(page, "chip.ending")}", "chip=warn;glyph=hourglass");
     }
 
-    // ---- Grant VIP: the player on the left; group, scope and length beside, spelled out before Grant
+    // ---- Grant VIP from VIPCore 1.4.0: a page per step, the player, the group, how long, then where
+
+    private void GrantPlayers(PageDraw page)
+    {
+        StepHeader(page, "hint.grant");
+        var first = -1;
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            if (TagOf(page.Components[k]) is not VipPlayerRow row) continue;
+            if (first < 0) first = k;
+            page.Draw(k, Directive.Clean(row.Name), $"avatar;sub={row.SteamId}{Badge(row)}");
+        }
+        // Every row of this step is a player, and a keyboard page holds only some of them.
+        if (first >= 0) page.Add($"{T(page, "player")}\t{T(page, "online", page.RowCount)}", "section", first);
+    }
+
+    private void GrantGroups(PageDraw page)
+    {
+        StepHeader(page, "hint.grant_group");
+        var first = -1;
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            if (TagOf(page.Components[k]) is not VipGroupRow row) continue;
+            if (first < 0) first = k;
+            var (glyph, tone) = Style(row.Group.Name);
+            page.Draw(k, Directive.Clean(row.Group.Name), $"submenu;glyph={glyph};tone={tone};sub={T(page, "perks_count", row.Group.FeatureCount)}");
+        }
+        if (first >= 0) page.Add(T(page, "group"), "section", first);
+    }
+
+    private void GrantLengths(PageDraw page)
+    {
+        StepHeader(page, "hint.grant_length");
+        var first = -1;
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            if (TagOf(page.Components[k]) is not VipLengthRow row) continue;
+            if (first < 0) first = k;
+            page.Decorate(k, row.Length is { } span
+                ? $"submenu;glyph=hourglass;sub={T(page, "until", Date(page, DateTimeOffset.UtcNow.Add(span).ToUnixTimeSeconds()))}"
+                : $"submenu;glyph=hourglass;tone=gold;sub={T(page, "never_ends")}");
+        }
+        if (first >= 0) page.Add(T(page, "length"), "section", first);
+    }
+
+    private void GrantScopes(PageDraw page)
+    {
+        StepHeader(page, "hint.grant_scope");
+        var first = -1;
+        for (var k = 0; k < page.Components.Count; k++)
+        {
+            if (TagOf(page.Components[k]) is not VipScopeRow row) continue;
+            if (first < 0) first = k;
+            page.Decorate(k, $"submenu;glyph={(row.Global ? "globe" : "server")};sub={T(page, row.Global ? "scope_short.global" : "scope_short.local")}");
+        }
+        if (first >= 0) page.Add(T(page, "scope"), "section", first);
+    }
+
+    private static void StepHeader(PageDraw page, string hint)
+    {
+        if (page.Menu.Tag is VipUserStats stats) UserChips(page, stats, ending: false);
+        page.Hint(T(page, hint));
+    }
+
+    // ---- Grant VIP before VIPCore 1.4.0: the player on the left; group, scope and length beside, spelled out before Grant
+
+    // What locker_vip.vcss's grant form fits: two lines of large group cards, three of compact ones.
+    private const int RoomyGroups = 6, CompactGroups = 9;
 
     private void Grant(PageDraw page)
     {
@@ -330,7 +416,7 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         VipGroupRow? group = null;
         VipScopeRow? scope = null;
         VipLengthRow? length = null;
-        int top = -1, players = 0, firstGroup = -1, firstScope = -1, firstLength = -1, summary = -1;
+        int top = -1, players = 0, groups = 0, firstGroup = -1, firstScope = -1, firstLength = -1, summary = -1;
         for (var k = 0; k < page.Components.Count; k++)
         {
             switch (TagOf(page.Components[k]))
@@ -348,6 +434,7 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
                     break;
                 case VipGroupRow row:
                     if (firstGroup < 0) firstGroup = k;
+                    groups++;
                     if (row.Selected) group = row;
                     var (glyph, tone) = Style(row.Group.Name);
                     page.Draw(k, Directive.Clean(row.Group.Name),
@@ -373,6 +460,8 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         }
 
         if (top >= 0) page.Add($"{T(page, "player")}\t{T(page, "online", players)}", "section", top);
+        if (groups > RoomyGroups) page.AddHeader(string.Empty, "variant=compact");
+        if (groups > CompactGroups) page.AddHeader(string.Empty, "variant=scroll");
         if (firstGroup >= 0) page.Add(T(page, "group"), "at=detail;section", firstGroup);
         if (firstScope >= 0) page.Add(T(page, "scope"), "at=detail;section", firstScope);
         if (firstLength >= 0)
@@ -423,7 +512,16 @@ internal sealed class VipIntegration(IVipCoreApiV1 api) : IPageIntegration
         return styles;
     }
 
-    private (string Glyph, string Tone) Style(string group) => _styles.TryGetValue(group, out var style) ? style : ("star", "info");
+    private (string Glyph, string Tone) Style(string group)
+    {
+        var now = Environment.TickCount64;
+        if (_styles is null || now - _stylesAt >= StylesMs)
+        {
+            _styles = Styles();
+            _stylesAt = now;
+        }
+        return _styles.TryGetValue(group, out var style) ? style : ("star", "info");
+    }
 
     private static string Glyph(PageDraw page, string featureKey) => page.Icon(featureKey) ?? "star";
 

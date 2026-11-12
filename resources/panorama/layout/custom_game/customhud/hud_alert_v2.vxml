@@ -1,0 +1,14 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/custom_game/customhud/customhud_tokens.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/customhud/v2/hud_alert.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/customhud/hud_alert_v2.vcss_c" />
+	</styles>
+	<Panel class="chud-root" hittest="false">
+		<Panel id="shell" class="chud-alert chud-alert2 hidden" hittest="false">
+			<Panel class="chud-alert2__body" hittest="false">
+				<Label id="text" class="chud-alert__text" text="{s:text}" hittest="false" />
+			</Panel>
+		</Panel>
+	</Panel>
+</root>
