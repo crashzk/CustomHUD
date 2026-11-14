@@ -66,7 +66,7 @@
 
   "customhud.ranks.xp": "XP",
   "customhud.ranks.cs_rating": "Classificação CS",
-  "customhud.ranks.atual_rank": "Patente atual",
+  "customhud.ranks.current_rank": "Patente atual",
   "customhud.ranks.band": "Faixa {0} de {1}",
   "customhud.ranks.position": "Posição {0} de {1}",
   // {0} the XP still needed, {1} the next rank.
