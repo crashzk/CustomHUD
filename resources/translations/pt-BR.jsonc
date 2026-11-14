@@ -21,7 +21,7 @@
   // a key in every language. The footer is one uppercase line, so keep them short.
   "customhud.hint.wasd": "W/S MOVER · E SELECIONAR · R FECHAR",
   "customhud.hint.buttons": "{up}/{down} MOVER · {select} SELECIONAR · {close} FECHAR",
-  "customhud.hint.numbers": "1-6 SELECIONAR · 7/8 página · 9 FECHAR",
+  "customhud.hint.numbers": "1-6 SELECIONAR · 7/8 PÁGINA · 9 FECHAR",
   "customhud.hint.mouse": "Clique para SELECIONAR",
   "customhud.hint.chat": "!N SELECIONAR · !0 FECHAR",
   "customhud.hint.wasd.view": "R FECHAR",
