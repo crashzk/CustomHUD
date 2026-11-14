@@ -45,8 +45,8 @@
   "customhud.lead": "Na liderança",
 
   // O rodapé da lista (menu_list): the word beside each key. Exibida em maiúsculas.
-  "customhud.legend.mover": "Mover",
-  "customhud.legend.selecionar": "Selecionar",
+  "customhud.legend.move": "Mover",
+  "customhud.legend.select": "Selecionar",
   "customhud.legend.pick": "Escolher",
   "customhud.legend.open": "Abrir",
   "customhud.legend.switch": "Alternar",
@@ -56,7 +56,7 @@
   "customhud.legend.apply": "Aplicar",
   "customhud.legend.page": "Página",
   "customhud.legend.back": "Voltar",
-  "customhud.legend.fechar": "Fechar",
+  "customhud.legend.close": "Fechar",
 
   // ---- Páginas dos provedores --------------------------------------------------------------------------
   //
@@ -292,7 +292,7 @@
   "customhud.vip.chip.tier": "sua categoria",
   "customhud.vip.chip.days": "dias restantes",
   "customhud.vip.chip.left": "escolhas restantes",
-  "customhud.vip.chip.fechars": "fechamento do menu",
+  "customhud.vip.chip.closes": "fechamento do menu",
   "customhud.vip.chip.users": "Usuários VIP",
   "customhud.vip.chip.ending": "terminam nesta semana",
   "customhud.vip.tier": "Sua categoria",
