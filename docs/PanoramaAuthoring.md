@@ -477,6 +477,11 @@ A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 * Sections are styled by `.lk .lk-content .lk-slot.section …`, which outweighs
   a view's ordinary-row rules. A view rule that must not reach a section
   qualifies by kind (`.kind-toggle`, `.kind-action`) or group.
+* Keep `.lk-body` flowing right. With it flowless and the rail aligned over a
+  full-width column, CS2 drew no rail at all though the browser preview did.
+  To run a band across the rail's top, let the column overflow
+  (`overflow: noclip squish`) and push the rail down with a margin, as
+  `admins-ban` does.
 * The `_icon` panel (`.lk-rarity`) is a full-size layer under every other part:
   draw a card's background, box or glow on it. Foot slots have none; use
   `.lk-shade` there.

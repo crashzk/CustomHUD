@@ -1119,7 +1119,10 @@ then repeat the first three in wasd.
       as cards with what each holds, History counting the records; a group opens its
       actions as tiles three to a line, all dark with white icons, Kick, Ban and
       Slay included, and a switched-on one (frozen, noclip, beacon) outlined.
-      Unmute appears in place of Mute while they are muted
+      Unmute appears in place of Mute while they are muted. The sheet beside
+      it heads their records `HISTORY` with the count at the line's end;
+      afterwards the reason row of a ban's rail and of a record's sheet
+      looks like the rows round it, the reason in place with no grey band
 - [ ] Sessions (needs `admins.commands.sessions`): `Playtime` as five tiles,
       today, this week and this month on one line, this year beside a total
       two tiles wide on the next, both lines as wide as the rows under them and
@@ -1147,7 +1150,11 @@ then repeat the first three in wasd.
       `<reason>`, `<time>`, `<steamid64>` or `<ip>` only for what was left;
       `Someone else` prints a SteamID and an IP form
 - [ ] from the length step on, a quote shows the message the player will
-      read, for the length picked or, before one is, the first on offer
+      read, for the length picked or, before one is, the first on offer:
+      a short sentence, then the reason, expiry and issuer each on a line of
+      its own. A ban's lines are Admins' kick message; a mute's, gag's or
+      silence's are laid out the same way, the expiry as Admins writes it
+      and `Never` when permanent
 - [ ] Bans and Comms: a table of `#id`, player, reason and time left over a
       meter (red under a fifth left, `Permanent` in red, `Ended` dimmed, and
       `Unbanned`, `Ungagged` or `Unmuted` dimmed on a lifted one), a globe on a

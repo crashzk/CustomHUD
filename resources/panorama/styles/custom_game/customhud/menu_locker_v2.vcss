@@ -607,6 +607,7 @@
 .lk.lk2.view-ranks-rank .lk-banner .lk-type,
 .lk.lk2.view-admins-votes .lk-banner .lk-type,
 .lk.lk2.view-admins-ban .grp-title .lk-name,
+.lk.lk2.view-admins-player .lk-detail .grp-history-head .lk-name,
 .lk.lk2.view-maps-rtv .lk-banner .lk-type,
 .lk.lk2.view-maps-rtv .lk-detail .lk-slot.section .lk-name
 {
