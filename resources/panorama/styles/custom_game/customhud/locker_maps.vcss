@@ -569,11 +569,13 @@
 	margin: 0px;
 }
 
+/* Centred by text-align: .lk-end flows right (locker.vcss), so horizontal-align does nothing. */
 .lk.view-maps-cycle .lk-value
 {
-	horizontal-align: center;
+	width: 100%;
 	font-size: 22px;
 	color: chudTextFaint;
+	text-align: center;
 }
 
 .lk.view-maps-cycle .tag-good .lk-value

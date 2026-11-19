@@ -351,12 +351,12 @@ padded recipe did scroll on `admins-player`, a tile line short, until its
 items got a pixel width, so padding and flow alone do not explain it: items
 that are a share of a filling column can be measured at one width and drawn
 at another. The rebuild gives the items a set width, as the WeaponSkins grids
-and the tile grid have, and drops the padding and flow as well. Whether the
-rebuilt list scrolls and takes clicks is unconfirmed. A view that keeps a filling box
-keeps the scrollbar risk; give it a pixel height before it has to scroll. A
-`max-height` cap (`maps-rows`, `vip-grant`) has not been seen scrolling
-either: it reliably keeps what follows on the page, but keep the content
-under the cap where you can.
+and the tile grid have, and drops the padding and flow as well. Rebuilt, Start
+a vote's overflowing list scrolls and takes clicks in game (19 November). A
+view that keeps a filling box keeps the scrollbar risk; give it a pixel height
+before it has to scroll. A `max-height` cap (`maps-rows`, `vip-grant`) has not
+been seen scrolling either: it reliably keeps what follows on the page, but
+keep the content under the cap where you can.
 
 ### Row meters
 
