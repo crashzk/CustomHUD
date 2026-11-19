@@ -527,6 +527,10 @@ On every page:
 - [ ] no `{s:…}` placeholder anywhere, and no part of one page left on the next
 - [ ] the cards fill each line evenly, with no lone card wrapping onto a line
       of its own; a wrap there means the line ran exactly full
+- [ ] on a page whose cards overflow (Smoke Colors' nine, Start a vote with
+      eight maps or more), a card lights up under the pointer and a click
+      takes it, before and after scrolling; the last card on each line stops
+      short of the scrollbar
 
 Per plugin:
 

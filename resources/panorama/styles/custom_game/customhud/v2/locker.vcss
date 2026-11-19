@@ -398,7 +398,7 @@
 }
 
 /* The box takes the pane's leftover height; the body is a plain 100% of it, for the reason
-   given at .lk-list. */
+   given at .lk-listbox. */
 .lk-detail__box
 {
 	width: 100%;
@@ -533,9 +533,7 @@
 }
 
 /* Built as the WeaponSkins grids and the tile grid, which scroll and take clicks in game: no padding
-   or flow on the scroll panel, one items panel of a set width in it. As a padded squish panel round
-   100%-wide items, an overflowing list showed a scrollbar neither the wheel nor its thumb moved, and
-   its cards lit up under the pointer but took no click. */
+   or flow on the scroll panel, one items panel of a set width in it. */
 .lk-list
 {
 	width: 100%;

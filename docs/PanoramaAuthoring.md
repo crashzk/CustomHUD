@@ -288,10 +288,9 @@ custom HUD does, but lay their lines out explicitly:
   with `layout-position: fixed`, which keeps the bar in place while the content
   scrolls (see `menu_mouse.vcss`).
 * Leave `hittest` at its default on the scroll panel's parent and on every
-  panel between it and its rows, as every grid seen scrolling in game does
-  (see `menu_locker` below). The bar's `z-index: 2` should keep its thumb
-  above the rows for the pointer as it does for painting (unverified in
-  game).
+  panel between it and its rows, as on every grid seen scrolling in game. It
+  is not what stops a list from scrolling: the locker's list behaved the same
+  with those panels `hittest="false"` and without (see `menu_locker` below).
 * Declare exactly `RowSlots` rows, each starting `hidden`, in id order across
   the lines. The composer fills slots from 0 with no gaps, so every line but
   the last visible one is full. It only writes the classes a row actually has;
@@ -329,24 +328,35 @@ has a pixel height only while the list owns its column:
   always fits: a form that outgrew the page squished Grant to a strip. Past
   nine groups, where the form always outgrows it, its `variant-scroll` makes
   the cap a pixel height.
-* Both are `overflow: squish scroll`. Their items are `width: 100%`, which
-  under `clip` keeps the padding and runs over the scrollbar in the gutter.
-* The list's box and items container keep their `hittest`, as above; the
-  detail pane's are still `hittest="false"`. Under `squish` the items stay
-  inside the padding, so only the scrollbar lies in the gutter.
+* The list is built as the grids above: `#options.lk-list` is `overflow: clip
+  scroll` with no padding or flow, and `.lk-items` has a pixel width, the page
+  less the 14px gutter and, when they show, the aside and the detail pane.
+  `locker.vcss` lists every combination; a view with its own geometry sets its
+  own (`.lk.view-<name> .lk-list .lk-items`), and one with no gutter lets its
+  items fill the list. The box and the items container keep their `hittest`.
+* The detail pane is not rebuilt yet: `.lk-detail__body` is still `overflow:
+  squish scroll` round `width: 100%` items, with its box and items
+  `hittest="false"`.
+* `ranks-rank` keeps its padded scroll panel (`padding: 16px 20px`), its items
+  a pixel width inside that padding; Show all ranks overflows it.
 
-A list whose height came from `fill-parent-flow` showed a scrollbar that
-neither the wheel nor its thumb moved in game, both as `fill-parent-flow`
-itself and as `height: 100%` of a filling box (Start a vote, Shop). Every
-panel seen scrolling in game has a pixel height: the WeaponSkins grids and
-the tile grid. A pixel height alone did not do it: in its 576px box, with that
-box and its items `hittest="false"`, the Shop's list (Smoke Colors) still
-showed a scrollbar it would not move. Both are hit-testable now; whether the
-list scrolls is unconfirmed. A view that keeps a filling box keeps the first
-risk; give it a pixel height before it has to scroll. A `max-height` cap
-(`maps-rows`, `vip-grant`) has not been seen scrolling either: it reliably
-keeps what follows on the page, but keep the content under the cap where you
-can.
+Seen in game before the rebuild, while the list was a padded `overflow: squish
+scroll` panel round `width: 100%` items: once Start a vote's nine cards
+overflowed, a card lit up under the pointer but a click on it never reached
+the plugin, and neither the wheel nor the scrollbar's thumb moved the list;
+Smoke Colors' nine did not scroll either. Nominate's eight cards, on the same
+view and layout, fit and took clicks. Neither a pixel height on the box
+(576px) nor making the box and the items hit-testable changed it. The same
+padded recipe did scroll on `admins-player`, a tile line short, until its
+items got a pixel width, so padding and flow alone do not explain it: items
+that are a share of a filling column can be measured at one width and drawn
+at another. The rebuild gives the items a set width, as the WeaponSkins grids
+and the tile grid have, and drops the padding and flow as well. Whether the
+rebuilt list scrolls and takes clicks is unconfirmed. A view that keeps a filling box
+keeps the scrollbar risk; give it a pixel height before it has to scroll. A
+`max-height` cap (`maps-rows`, `vip-grant`) has not been seen scrolling
+either: it reliably keeps what follows on the page, but keep the content
+under the cap where you can.
 
 ### Row meters
 
@@ -636,8 +646,11 @@ parent left at the default `overflow: squish` shrinks the child back inside its
 padding; a `clip` or `scroll` parent lets it keep that width, so the child
 starts after the left padding and ends both paddings past the padded edge
 (measured in game: the Ranks road's count sat 40px past a list padded 20px each
-side). Give a padded scroll panel `overflow: squish scroll`, or put the padding
-on a panel inside it.
+side). Give a scroll panel's content a pixel width, or put the padding on a
+panel inside it: a padded `overflow: squish scroll` panel keeps a `width:
+100%` child inside its padding, but the locker's list built that way stopped
+scrolling and taking clicks once Start a vote's cards overflowed it (see
+[Scrolling grids](#scrolling-grids)).
 
 ### Why Panorama silently eats mistakes
 

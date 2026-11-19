@@ -885,8 +885,10 @@ Valve's sources, not an observed result:
 - whether `max-width` makes a Label wrap inside a fit-children shell;
 - which font is used when csgostyles is not included;
 - which point `ui-scale` scales from;
-- whether the mouse wheel scrolls a grid while Mouse mode captures input
-  (dragging the scrollbar does not depend on it);
+- whether the locker's list, rebuilt as the WeaponSkins grids and the tile
+  grid are (both scroll and take clicks in game), scrolls by the wheel and by
+  its thumb and takes clicks once it overflows: before, on Start a vote, it
+  did none of the three while its cards still lit up under the pointer;
 - whether shortening a scroll panel's content to 1px with `overflow: squish noclip`
   (`chud-rewind`) clamps a scrolled grid back to the top while its rows still
   draw, which is what the renderer's scroll rewind relies on;
