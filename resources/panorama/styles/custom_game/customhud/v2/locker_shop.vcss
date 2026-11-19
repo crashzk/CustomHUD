@@ -90,46 +90,57 @@
 	visibility: visible;
 }
 
-/* A category whose items have no art: its icon as a large, faint mark, cut by the tile's right edge. */
+/* No art: the category's icon on the light at 74% 44%: its box the right 52%, 42 + 32 = 74 of 168 down. */
 .lk.view-shop-categories .lk-glyph
 {
-	width: 168px;
-	height: 168px;
+	width: 52%;
+	height: 64px;
 	horizontal-align: right;
-	vertical-align: center;
-	margin: 0px -34px 0px 0px;
-	opacity: 0.14;
-	wash-color: chudTextMain;
-	transition-property: opacity;
-	transition-duration: 0.12s;
-	transition-timing-function: ease-in-out;
+	vertical-align: top;
+	margin: 42px 0px 0px 0px;
+	wash-color: chudStoreText;
+	background-texture-size: 64px 64px;
 }
 
+/* 73 + 40 = 113, the light's 44% of 256. */
 .lk.view-shop-categories .hk-rows-4 .lk-glyph,
 .lk.view-shop-categories .hk-rows-5 .lk-glyph,
 .lk.view-shop-categories .hk-rows-6 .lk-glyph
 {
-	width: 236px;
-	height: 236px;
-	margin-right: -52px;
+	height: 80px;
+	margin-top: 73px;
+	background-texture-size: 80px 80px;
 }
 
+/* 93 + 48 = 141, the light's 44% of 320. */
 .lk.view-shop-categories .hk-rows-1 .lk-glyph,
 .lk.view-shop-categories .hk-rows-2 .lk-glyph,
 .lk.view-shop-categories .hk-rows-3 .lk-glyph
 {
-	width: 292px;
-	height: 292px;
-	margin-right: -64px;
+	height: 96px;
+	margin-top: 93px;
+	background-texture-size: 96px 96px;
 }
+
+/* Non-square icons keep their SVGs' ratios: bhop and parachute 20:32, healing 44:32, weapons 51:32. */
+.lk.view-shop-categories .lk-glyph.ico-bhop, .lk.view-shop-categories .lk-glyph.ico-parachute { background-texture-size: 40px 64px; }
+.lk.view-shop-categories .lk-glyph.ico-healing { background-texture-size: 88px 64px; }
+.lk.view-shop-categories .lk-glyph.ico-weapons { background-texture-size: 102px 64px; }
+.lk.view-shop-categories .hk-rows-4 .lk-glyph.ico-bhop, .lk.view-shop-categories .hk-rows-5 .lk-glyph.ico-bhop, .lk.view-shop-categories .hk-rows-6 .lk-glyph.ico-bhop,
+.lk.view-shop-categories .hk-rows-4 .lk-glyph.ico-parachute, .lk.view-shop-categories .hk-rows-5 .lk-glyph.ico-parachute, .lk.view-shop-categories .hk-rows-6 .lk-glyph.ico-parachute { background-texture-size: 50px 80px; }
+.lk.view-shop-categories .hk-rows-4 .lk-glyph.ico-healing, .lk.view-shop-categories .hk-rows-5 .lk-glyph.ico-healing, .lk.view-shop-categories .hk-rows-6 .lk-glyph.ico-healing { background-texture-size: 110px 80px; }
+.lk.view-shop-categories .hk-rows-4 .lk-glyph.ico-weapons, .lk.view-shop-categories .hk-rows-5 .lk-glyph.ico-weapons, .lk.view-shop-categories .hk-rows-6 .lk-glyph.ico-weapons { background-texture-size: 127px 80px; }
+.lk.view-shop-categories .hk-rows-1 .lk-glyph.ico-bhop, .lk.view-shop-categories .hk-rows-2 .lk-glyph.ico-bhop, .lk.view-shop-categories .hk-rows-3 .lk-glyph.ico-bhop,
+.lk.view-shop-categories .hk-rows-1 .lk-glyph.ico-parachute, .lk.view-shop-categories .hk-rows-2 .lk-glyph.ico-parachute, .lk.view-shop-categories .hk-rows-3 .lk-glyph.ico-parachute { background-texture-size: 60px 96px; }
+.lk.view-shop-categories .hk-rows-1 .lk-glyph.ico-healing, .lk.view-shop-categories .hk-rows-2 .lk-glyph.ico-healing, .lk.view-shop-categories .hk-rows-3 .lk-glyph.ico-healing { background-texture-size: 132px 96px; }
+.lk.view-shop-categories .hk-rows-1 .lk-glyph.ico-weapons, .lk.view-shop-categories .hk-rows-2 .lk-glyph.ico-weapons, .lk.view-shop-categories .hk-rows-3 .lk-glyph.ico-weapons { background-texture-size: 152px 96px; }
 
 .lk.view-shop-categories .lk-hit:hover .lk-glyph
 {
-	opacity: 0.3;
 	wash-color: chudNavStrong;
 }
 
-/* One with art: the item you have on, else its dearest, standing on the tile's foot. The box is the art's
+/* An agent's art (the item you have on, else its dearest) stands on the tile's foot. The box is the art's
    own 4:3 at 90% of the tile's height, pulled out past the right edge so the figure (13-90% of the frame
    in CS2's renders) ends there, and only the tile ever cuts it. */
 .lk.view-shop-categories .lk-thumb
@@ -156,6 +167,34 @@
 {
 	width: 384px;
 	margin-right: -38px;
+}
+
+/* Any other render (group=object), like the icon: 26 + 48 = 74 of 168 down. Keep after the agent's boxes. */
+.lk.view-shop-categories .grp-object .lk-thumb
+{
+	width: 52%;
+	height: 96px;
+	vertical-align: top;
+	margin: 26px 0px 0px 0px;
+	background-position: 50% 50%;
+}
+
+/* 53 + 60 = 113, the light's 44% of 256. */
+.lk.view-shop-categories .hk-rows-4 .grp-object .lk-thumb,
+.lk.view-shop-categories .hk-rows-5 .grp-object .lk-thumb,
+.lk.view-shop-categories .hk-rows-6 .grp-object .lk-thumb
+{
+	height: 120px;
+	margin-top: 53px;
+}
+
+/* 69 + 72 = 141, the light's 44% of 320. */
+.lk.view-shop-categories .hk-rows-1 .grp-object .lk-thumb,
+.lk.view-shop-categories .hk-rows-2 .grp-object .lk-thumb,
+.lk.view-shop-categories .hk-rows-3 .grp-object .lk-thumb
+{
+	height: 144px;
+	margin-top: 69px;
 }
 /* Top left, as plain words: the cheapest item left to buy, All owned, or in Inventory what runs out first. */
 .lk.view-shop-categories .lk-tags
@@ -486,6 +525,11 @@
 	padding-right: 0px;
 }
 
+.lk.view-shop-product .lk-list .lk-items
+{
+	width: 100%;
+}
+
 .lk.view-shop-product .lk-foot
 {
 	width: 450px;
@@ -525,7 +569,12 @@
 	vertical-align: center;
 	margin: 0px 0px 96px 0px;
 	wash-color: chudStoreText;
+	background-texture-size: 150px 150px;
 }
+
+.lk.view-shop-product .lk-banner .lk-glyph.ico-bhop, .lk.view-shop-product .lk-banner .lk-glyph.ico-parachute { background-texture-size: 94px 150px; }
+.lk.view-shop-product .lk-banner .lk-glyph.ico-healing { background-texture-size: 150px 109px; }
+.lk.view-shop-product .lk-banner .lk-glyph.ico-weapons { background-texture-size: 150px 95px; }
 
 .lk.view-shop-product .lk-banner .lk-slot .lk-text
 {

@@ -5,7 +5,7 @@ contract each one fulfils. Related docs:
 
 - [PanoramaAuthoring.md](PanoramaAuthoring.md): authoring, compiling and hot-reloading.
 - [TestingGuide.md](TestingGuide.md): driving every surface in-game.
-- [PublicPort.md](PublicPort.md): the config model behind the ids.
+- [Architecture.md](Architecture.md): the config model behind the ids.
 
 > These are **starters**: compiled-clean but not yet checked in-game. See
 > [Unverified in-game](#unverified-in-game) before treating any rule here as settled.
@@ -15,8 +15,8 @@ contract each one fulfils. Related docs:
 Three screenshots in `deisng-reference-images/` and a HUD kit mock-up from the
 earlier design research set the direction. They are third-party and Valve UI,
 the folder is gitignored, and nothing in it ships: no assets, no class names and
-no colours copied verbatim. The decompiled `references*/` folders and the
-private CustomHUD's addon styles are not reused either.
+no colours copied verbatim. The decompiled `references*/` folders are not
+reused either.
 
 | Image | What it contributed | Used in |
 |---|---|---|
@@ -28,8 +28,9 @@ private CustomHUD's addon styles are not reused either.
 ## Principles
 
 1. **One accent, a few signal hues.** Interaction (selection, hover edges, the
-   active entry) comes from `chudAccent*`, so re-theming a server means editing
-   the accent defines in `customhud_tokens.vcss`. Every other hue has one job:
+   active entry) comes from `chudAccent*` (`chudNav*` in the `v2` layouts), so
+   re-theming the first designs means editing the accent defines in
+   `customhud_tokens.vcss`. Every other hue has one job:
    gold for captions and values, blue for counters, red and green for state,
    the rarity ladder for item tiers. Surfaces stay a cool near-black and text a
    bright cool white, so the hues carry the colour and the contrast holds over
@@ -40,10 +41,11 @@ private CustomHUD's addon styles are not reused either.
 2. **The layout is a dumb surface.** It styles only what `FrameComposer`
    writes: the ids, `{s:var}` variables and classes its layout profile names
    (`src/Config/`). A UI element with no data behind it, such as an
-   equipped-item preview, is left out rather than faked.
-3. **Keyboard modes get a list; Mouse gets a grid.** List modes show selection
-   through a class. In Mouse mode it is `:hover`, because the composer never
-   sets `selected` there.
+   equipped-item preview on a page that sends no `spot`, is left out rather
+   than faked.
+3. **Keyboard modes get a list; Mouse gets a locker or a scrolling list.**
+   Wasd and Buttons show selection through a class. In Mouse mode it is
+   `:hover`, because the composer never sets `selected` there.
 4. **Everything starts hidden.** The composer reveals panels; a layout never
    assumes a row exists.
 5. **Motion is short.** Transitions cover only shell entry, height changes and
@@ -63,7 +65,7 @@ private CustomHUD's addon styles are not reused either.
 | Source | Compiled include path | Config profile |
 |---|---|---|
 | `styles/custom_game/customhud/customhud_tokens.vcss` | `s2r://panorama/styles/custom_game/customhud/customhud_tokens.vcss_c` | (shared) |
-| `styles/custom_game/customhud/customhud_icons.vcss` | `s2r://panorama/styles/custom_game/customhud/customhud_icons.vcss_c` | `Sidebar.IconClass` tokens (`ico-<token>`), pointing at base-game icons |
+| `styles/custom_game/customhud/customhud_icons.vcss` | `s2r://panorama/styles/custom_game/customhud/customhud_icons.vcss_c` | `Sidebar.IconClass` and `glyph=` tokens (`ico-<token>`), pointing at base-game icons and the addon's FOV dials and mute icon |
 | `layout/custom_game/customhud/menu.vxml` + `styles/custom_game/customhud/menu.vcss` | `panorama/layout/custom_game/customhud/menu.vxml_c` | the classic list: `"menu"`, a `Keyboard` layout in `Menus` |
 | `layout/custom_game/customhud/menu_mouse.vxml` + `styles/custom_game/customhud/menu_mouse.vcss` | `panorama/layout/custom_game/customhud/menu_mouse.vxml_c` | the tile grid: `MenuLayoutProfile.MouseGrid()`, `"menu_mouse"`, a `Mouse` layout in `Menus` (the sheet also holds the mouse layouts' shared chrome) |
 | `layout/custom_game/customhud/menu_list.vxml` (generated) + `styles/custom_game/customhud/list.vcss` | `panorama/layout/custom_game/customhud/menu_list.vxml_c` | the keyboard list in the first design, `"menu_list"` (`ListProfiles.Keys()`, a plugin's flavour from `ListProfiles.Plugins()`) |
@@ -79,7 +81,7 @@ private CustomHUD's addon styles are not reused either.
 | `layout/custom_game/customhud/menu_skins.vxml` + `.vcss` | `panorama/layout/custom_game/customhud/menu_skins.vxml_c` | `"menu_skins"`, a `Keyboard` layout |
 | `layout/custom_game/customhud/menu_skins_mouse.vxml` + `.vcss` | `panorama/layout/custom_game/customhud/menu_skins_mouse.vxml_c` | the first WeaponSkins locker: `MenuLayoutProfile.WeaponSkinsLocker()`, WeaponSkins' `"menu_skins_mouse"` |
 | `layout/custom_game/customhud/menu_skins_mouse_v2.vxml` (generated) + `styles/custom_game/customhud/menu_skins_mouse_v2.vcss` | `panorama/layout/custom_game/customhud/menu_skins_mouse_v2.vxml_c` | WeaponSkins' `"menu_skins_mouse_v2"`, the WeaponSkins locker in CS2's store look (`MenuLayoutProfile.WeaponSkinsLockerV2()`), the default |
-| `layout/custom_game/customhud/menu_locker.vxml` (generated) + `locker.vcss` | `panorama/layout/custom_game/customhud/menu_locker.vxml_c` | the page locker in the first design: `"menu_locker"` for ShopCore, MapChooser, Ranks (with its `weaponstats.*`, `customcombos.*`, `prestige.*` modules), VIPCore, Admins and MixScrims (`LockerProfiles`, through `BuiltInLayouts`); the view per menu from `PageViews` |
+| `layout/custom_game/customhud/menu_locker.vxml` (generated) + `locker.vcss` | `panorama/layout/custom_game/customhud/menu_locker.vxml_c` | the page locker in the first design: `"menu_locker"` for ShopCore, MapChooser, Ranks (with its `weaponstats.*`, `customcombos.*`, `prestige.*` modules), VIPCore, Admins and MixScrims (`LockerProfiles`, through `BuiltInLayouts`); the view per menu from `PageViews`, a page's `view=`, then the profile's `Views` |
 | `layout/custom_game/customhud/menu_locker_v2.vxml` (generated) + `v2/locker.vcss` + `styles/custom_game/customhud/menu_locker_v2.vcss` | `panorama/layout/custom_game/customhud/menu_locker_v2.vxml_c` | the same plugins, the same page, in the store look: `"menu_locker_v2"`, the default |
 | `styles/custom_game/customhud/v2/menu.vcss`, `menu_mouse.vcss`, `locker.vcss`, `locker_<plugin>.vcss`, `list.vcss`, `hud_text.vcss`, `hud_alert.vcss` (generated) | `s2r://panorama/styles/custom_game/customhud/v2/<sheet>.vcss_c` | the `v2` layouts' copies of the shared sheets, in the store palette (`scripts/generate-v2-sheets.ps1`) |
 | `styles/custom_game/customhud/locker_shop.vcss`, `locker_maps.vcss`, `locker_ranks.vcss`, `locker_vip.vcss`, `locker_admins.vcss`, `locker_mix.vcss` | `s2r://panorama/styles/custom_game/customhud/locker_<plugin>.vcss_c` | one plugin's views, each scoped by `view-<name>` on the shell |
@@ -89,8 +91,10 @@ private CustomHUD's addon styles are not reused either.
 | `layout/custom_game/customhud/panel_timeout.vxml` + `.vcss` | `panorama/layout/custom_game/customhud/panel_timeout.vxml_c` | `"panel_timeout"` in `Panels.Timeout`: vars `title team timer detail`, classes `team-ct` / `team-t` |
 | `styles/custom_game/customhud/econ_thumbs.vcss` (generated) | `s2r://panorama/styles/custom_game/customhud/econ_thumbs.vcss_c` | `econ-<token>` classes (hashed keys) for `image=`, pointing at base-game textures |
 | `styles/custom_game/customhud/econ_stickers.vcss` (generated) | `s2r://panorama/styles/custom_game/customhud/econ_stickers.vcss_c` | the same for sticker art; only the two WeaponSkins lockers, `menu_list_skins` and `menu_list_skins_v2` include it |
-| `images/custom_game/customhud/faceit_lvl1..10.svg` | `panorama/images/custom_game/customhud/faceit_lvlN.vsvg_c` | badges for `icon=N` rows in `menu_teampick` |
+| `images/custom_game/customhud/faceit_lvl1..10.svg` | `panorama/images/custom_game/customhud/faceit_lvlN.vsvg_c` | badges for `icon=N` rows in `menu_teampick`, and the level badges in `locker_art.vcss` (`rank/levelN`) |
 | `images/custom_game/customhud/muted.svg` | `panorama/images/custom_game/customhud/muted.vsvg_c` | `ico-mute`: a white copy of the game's muted icon, which is painted red and so ignores `wash-color` |
+| `images/custom_game/customhud/fov_80.svg` … `fov_130.svg` | `panorama/images/custom_game/customhud/fov_N.vsvg_c` | `ico-fov-80` … `ico-fov-130`: a field-of-view dial per ten degrees, for VIPCore's FOV choices |
+| `images/custom_game/customhud/stripes.svg` | `panorama/images/custom_game/customhud/stripes.vsvg_c` | the tile `locker_maps.vcss` repeats over the ground of a map without a picture |
 
 The menu variants share `menu.vxml`'s variable vocabulary (`title`, `footer`,
 `option_N`, `option_N_key`, `option_N_right`), so any menu can be pointed at
@@ -105,7 +109,8 @@ Images go in `images/custom_game/customhud/`. A PNG is referenced as
 
 ### Stylesheet rules
 
-`scripts/audit.ps1` fails a change that breaks any rule below it can check.
+`scripts/audit.ps1` fails a change that breaks any rule below it can check,
+except a box-shadow round a bar 4px or thinner, which it only warns about.
 
 - **Tokens come first** in every layout's `<styles>`. A `@define` is visible
   only to stylesheets included after it, and Panorama has no `@import`.
@@ -130,9 +135,9 @@ Images go in `images/custom_game/customhud/`. A PNG is referenced as
 - **Thin bars take no `box-shadow`.** In-game, a 6px blur round the locker's 2px
   rarity bar drew as a thick, bright halo, far stronger than a browser shows it.
   State and rarity bars stay crisp lines; the colour comes from gradients.
-- **Side menus cast a light shadow.** A shadow is drawn behind the whole panel
-  unless it is `hollow`, so it darkens through the translucent surface as well
-  as below it. The list's `0 16 40` drop in `chudShadowDrop` read as a heavy
+- **Side menus cast a light shadow.** A `fill` shadow, the kind every sheet here
+  writes, is drawn behind the whole panel, so it darkens through the translucent
+  surface as well as below it. The list's `0 16 40` drop in `chudShadowDrop` read as a heavy
   smear in-game; the side shells (`.ls`, `.chud-menu`) take half their geometry
   in `chudShadowDim`, and the centred lockers keep their full drop.
 - **One border colour per panel.** Panorama keeps each side's width but draws
@@ -159,7 +164,7 @@ family's own colour at a lower alpha.
 | Group | Defines |
 |---|---|
 | Fonts | `chudFontBody`, `chudFontMedium`, `chudFontLight`, `chudFontCondensed`, `chudFontMono`, `chudDigitsRegular`, `chudDigitsBold` |
-| Accent | `chudAccentBase #ff8a1f`, `chudAccentStrong #ffb066`, then `Half`, `Dim`, `Soft`, `Wash`, `Fade`: selection, the active entry, hover edges, the player's own pick. Swapping the ladder's colour re-themes every layout (pink alternative: `#f8a8d8`, `Strong #ffc4e6`) |
+| Accent | `chudAccentBase #ff8a1f`, `chudAccentStrong #ffb066`, then `Half`, `Dim`, `Soft`, `Wash`, `Fade`: selection, the active entry, hover edges, the player's own pick. Swapping the ladder's colour re-themes every first-design layout (pink alternative: `#f8a8d8`, `Strong #ffc4e6`) |
 | Gold | `chudGoldBase #f7bd45` with `Half`, `Dim`, `Soft`, `Wash`, `Fade`: captions, values, prices and the leader; `chudGoldDeep #d99a2b` for a table's column heads and a row's type caption |
 | Info | `chudInfoBase #5aaeff`, `chudInfoStrong #8cc4ff`, `Half`, `Dim`, `Soft`, `Wash`, `Fade`: counters and share meters |
 | Success | `chudSuccessBase #8fd14f`, `chudSuccessStrong #a9e07a`, `Half`, `Dim`, `Soft` |
@@ -178,7 +183,7 @@ family's own colour at a lower alpha.
 | Ranks | `chudRating0Base`…`chudRating6Base` for CS Rating's bands and `chudLevel1Base`, `2`, `4`, `8`, `10` for the level bands, each with a `Glow` at alpha `5c` |
 | Swatches | `chudSwatchRed`, `Blue`, `Green`, `Yellow`, `Purple`, `Orange`, `Pink`, `Cyan`, `White`, `Black`: the colours `swatch=<colour>` names |
 | Graffiti | `chudSprayTint01`…`chudSprayTint19`: the game's graffiti tints by id, which `tint=spray-N` washes spray art in. Game data, not part of the palette |
-| Store | CS2's own look, which every `v2` layout draws in. Copied from the game's sheets and never themed: `chudNavBase #82d8ff` (selectedNavColor), `chudNavStrong #b4e8ff` for its text, `Half`, `Dim`, `Soft`, `Wash`, `Fade`; `chudEquipBase #0f9d58` (positiveColor), `chudEquipStrong #46c786` for its text, `Half`, `Soft`, and `chudEquipRise` / `chudEquipFade`, the green a selected store tile rises in; `chudStoreRaised #1e2d3df2` to `chudStoreDeep #14202bf2` for the panel, `chudStoreBar #00000040` for the content bar, `chudStoreEdge` for hairlines, `chudStoreRule #25282b` for a tooltip's rules, `chudStoreText #cccccc` and `chudStoreFaint #7c7c7c` for text, `chudStoreFootBase` / `chudStoreFootFade` for a store tile's foot; `chudStoreRow`, `chudStoreHover`, `chudStoreFade` and `chudStoreTileBase` / `Deep` / `Hover` / `Fade`, white and black glazes standing in for the Surfaces and Tiles in the `v2` sheet copies (see [Design v2](#design-v2)) |
+| Store | CS2's own look, which every `v2` layout draws in. Copied from the game's sheets and never themed: `chudNavBase #82d8ff` (selectedNavColor), `chudNavStrong #b4e8ff` for its text, `Half`, `Dim`, `Soft`, `Wash`, `Fade`; `chudEquipBase #0f9d58` (positiveColor), `chudEquipStrong #46c786` for its text, `Half`, `Soft`, and `chudEquipRise` / `chudEquipFade`, the green a selected store tile rises in; `chudStoreRaised #1e2d3df2` to `chudStoreDeep #14202bf2` for the panel, `chudStoreBar #00000040` for the content bar, `chudStoreEdge` for hairlines, `chudStoreRule #25282b` for a tooltip's rules, `chudStoreText #cccccc` and `chudStoreFaint #7c7c7c` for text, `chudStoreFootBase` / `chudStoreFootFade` for a store tile's foot; `chudStoreRow`, `chudStoreHover`, `chudStoreFade` and `chudStoreTileBase` / `Deep` / `Hover` / `Fade`, white and black glazes standing in for the Surfaces and Tiles in the `v2` sheet copies (see [Design v2](#design-v2-the-default)) |
 
 The rarity ladder follows the `lvl-N` icon classes: grey, light blue, blue,
 purple, pink, red, gold, orange, yellow, green.
@@ -294,11 +299,12 @@ rarity colour.
    └─ Button#nav_next.chud-nav--page    ">>" · hidden
 ```
 
-The grid has no key column, because `Profiles.Mouse.Row.KeyVar` is null.
+The grid has no key column, because `MenuLayoutProfile.MouseGrid()` sets `Row.KeyVar` to null.
 
-All menu layouts end in a `.chud-bar` footer: `nav_back` at the left, the footer
-hint in the middle, then the page counter, `nav_previous` and `nav_next` at the
-right (the WeaponSkins locker instead ends in `nav_close`; see below). Shared
+Every first-design menu layout but the keyboard list ends in a `.chud-bar` footer:
+`nav_back` at the left, the footer hint in the middle, then the page counter,
+`nav_previous` and `nav_next` at the right (the WeaponSkins locker instead ends
+in `nav_close`, which the page locker and the mouse list add last; see below). Shared
 styles in `menu.vcss` give Back a 64×34 hit area (a row's height), an orange
 border, a dim orange fill that deepens on hover, and the counter a
 small blue label that collapses on a single page. The renderer hides the three buttons
@@ -387,11 +393,11 @@ A typed value shows in its box as soon as it is accepted.
    │  ├─ .ws-hero__rarity               {s:hero_type}
    │  └─ .ws-hero__name                 {s:hero_name}
    └─ .ws-fields
-      └─ #field_N.ws-field              N = 0…7 · kind-* · is-on · aside-* · aside-on · has-track · fill-0…100 · track-wear · selected (keyboard modes) · disabled · danger · hidden
+      └─ #field_N.ws-field              N = 0…7 · kind-* · is-on · aside-* · aside-on · has-track · fill-0…100 · track-wear · selected (Wasd, Buttons) · disabled · danger · hidden
          ├─ .ws-field__row
          │  ├─ Button#field_N_hit       the field's row
          │  │  ├─ .ws-field__label      {s:field_N}
-         │  │  ├─ .ws-field__box        {s:field_N_value} · input, choice and slider
+         │  │  ├─ .ws-field__box        {s:field_N_value} · input, choice, selector and slider
          │  │  ├─ .ws-switch            toggle; the knob slides on is-on
          │  │  └─ .ws-field__chevron    "›" · action
          │  └─ Button#field_N_aside     the inline row: a switch (aside-toggle) or "×" (aside-action)
@@ -402,7 +408,7 @@ A typed value shows in its box as soon as it is accepted.
 
 | Class on `field_N` | Draws |
 |---|---|
-| `kind-input`, `kind-choice`, `kind-slider` | the value in a box beside the label |
+| `kind-input`, `kind-choice`, `kind-selector`, `kind-slider` | the value in a box beside the label |
 | `kind-toggle` | a switch at the right, accent while `is-on` |
 | `kind-action` | a `›` chevron; the row opens or runs something |
 | `aside-toggle` | a switch beside the box; without `aside-on` the box dims to 45%, so a StatTrak™ count reads as off |
@@ -509,7 +515,7 @@ the first three.
   its slot or the game's plus on an empty one. Hovering a tile edges it in
   selectedNavColor and names what is on it over its foot; a disabled field's
   tiles still show, and do not react. The first locker declares no tiles, so
-  its Stickers and Charms stay plain fields.
+  its Stickers and Keychains stay plain fields.
 
 ```text
 #field_N.sk-field                        has-slots while its row carries slot= entries
@@ -646,11 +652,12 @@ column so the avatars line up.
 
 ### Design `v2` (the default)
 
-Every built-in layout in the WeaponSkins locker v2's look: CS2's own store,
+Every built-in locker, list and HUD text layout in the WeaponSkins locker v2's look: CS2's own store,
 inventory and main-menu sheets rather than the orange accent. The first designs
 are the same names without `_v2` (`menu_locker`, `menu_list`, `menu_skins_mouse`
 …), picked per plugin in `Menus` and per kind in `Messages`: the same profiles pointing at the
-files before their `_v2`. Each `v2` file draws the same panels, ids and
+files before their `_v2`, except the WeaponSkins locker's, which has its own
+(`MenuLayoutProfile.WeaponSkinsLockerV2()`). Every other `v2` file draws the same panels, ids and
 variables as its first-design file, so one profile, one composer and every
 plugin view serve both; only the frame and the palette differ.
 
@@ -669,7 +676,7 @@ plugin view serve both; only the frame and the palette differ.
   gradient, the rail with selectedNavColor's edge and light on the open
   entry, a 48px content bar on a quarter black with Back as the pan arrow over
   the parent's title, the page's title, its chips and the plain ×. There is
-  no orange anywhere; the open tab is selectedNavColor over a tenth of it.
+  no orange accent anywhere; the open tab is selectedNavColor over a tenth of it.
 - **Words**: a section heading, a row's type caption and a table's column
   heads are CS2's greys; gold stays for values, prices and tiers.
 - **What the player has on** is CS2's green in the shop as in WeaponSkins: an
@@ -748,8 +755,10 @@ inside it.
 ```
 
 Rows and tiles must be `<Button>` elements with **exactly** the row id, because
-`MenuInputBridge` parses the clicked panel's id back into a row index. Every
-child sets `hittest="false"` so the Button receives the click.
+`MenuInputBridge` parses the clicked panel's id back into a row index. In
+`menu_locker` and the lists a slot is a Panel instead, and the composer maps
+each of its Buttons (`_hit`, `_inline`, `_actK`, the steppers and segments) to
+its entry. Every other child sets `hittest="false"` so the Button receives the click.
 
 ## States
 
@@ -773,8 +782,8 @@ its last occupant had (`selected`, `disabled`, `danger`, `marquee`, `has-*`,
 
 | Mode | Profile | Focus shown by | Key column |
 |---|---|---|---|
-| Wasd | the plugin's `Keyboard` layout in `Menus` (a `MenuOverrides` entry first): the list by default | `selected` | absolute item number; none on an `info` fact |
-| Buttons | the same `Keyboard` layout | `selected` | absolute item number; none on an `info` fact |
+| Wasd | the plugin's `Keyboard` layout in `Menus` (a `MenuOverrides` entry first): the list by default | `selected` | absolute item number; none on a disabled row or an `info` fact |
+| Buttons | the same `Keyboard` layout | `selected` | absolute item number; none on a disabled row or an `info` fact |
 | Numbers | the same `Keyboard` layout | nothing, because the key names the target | the key that picks the row on this page; none on a disabled row or an `info` fact |
 | Mouse | the plugin's `Mouse` layout in `Menus` (a `MenuOverrides` entry first): a supported plugin's locker, else the mouse list | `:hover` | none |
 
@@ -790,9 +799,9 @@ A plugin can target CustomHUD directly through
 | Directive | Effect in these layouts |
 |---|---|
 | `icon=N` | rarity dot or tile tint `lvl-N` |
-| `image=key` | econ thumbnail on `thumb_N` in the WeaponSkins lockers; ignored elsewhere |
+| `image=key` | econ thumbnail on `thumb_N` in the WeaponSkins lockers, and on a slot's `_thumb` (a map's `_logo` too) in `menu_locker` and the list; ignored by the classic lists and the tile grid |
 | `tint=token` | `tint-<token>` beside the thumbnail; the WeaponSkins lockers and the list wash `spray-1`…`19` in `chudSprayTint01`…`19` |
-| `type=label` | caption beside the name plus `has-type` in the WeaponSkins lockers; ignored elsewhere |
+| `type=label` | caption beside the name plus `has-type` in the WeaponSkins lockers, and the `.lk-type` caption in `menu_locker` and the list; ignored by the classic lists and the tile grid |
 | `danger` | red bar and label, or red tile name |
 | `disabled` | 40% opacity |
 | `marquee` | scrolling label in `menu` |
@@ -800,8 +809,8 @@ A plugin can target CustomHUD directly through
 | `bar=N` | a share filled to N%: behind the row in the list, a meter in the classic lists and the mouse grid; ignored by the WeaponSkins lockers |
 | `chosen` | the player's own pick, drawn in the accent; a 2px accent outline on the tile or card in the mouse layouts, the store's green in `menu_skins_mouse_v2` |
 | `hero` | on the first row: the inspect card in the WeaponSkins lockers; ignored elsewhere |
-| `inline` | joins the field above in the inspect card; ignored elsewhere |
-| `track=wear` | the five exterior bands on an inline slider's bar |
+| `inline` | joins the field above in the inspect card, and the slot above as its `_inline` Button in `menu_locker`; ignored elsewhere |
+| `track=wear` | the five exterior bands on an inline slider's bar in the inspect card, and on a slider's track in the list |
 | `slot=pick\|image\|name` | a tile under the card field in `menu_skins_mouse_v2`, one per entry; ignored elsewhere |
 | `spot` | on a header line: the spotlight in `menu_skins_mouse_v2`, with `image=`, `icon=`, `type=`, `sub=` (the line over the name), `note=` (the status), `chosen`, up to four `fact=Label\|Value` rows and a `link=entry\|pick\|label` button; left out of the title everywhere else |
 | `chip` | on a header line: joins `{s:info}` in `menu_skins_mouse_v2`, a chip in `menu_locker` and the list, and is kept out of every other layout's title |
@@ -894,7 +903,7 @@ Valve's sources, not an observed result:
 - whether chat input reaches a text field while Mouse mode captures input;
 - whether the `bar=` meter's fill animates its percentage `width` over 0.2s,
   the way the list's height does;
-- whether `menu_locker`'s ~3 200 panels spawn and diff without a visible
+- whether `menu_locker`'s ~4 200 panels spawn and diff without a visible
   hitch: each page writes every variable its slots declare;
 - whether `right-wrap` breaks the locker's card lines where the sheets expect,
   given the slack they keep below an exactly full line, and whether the list's

@@ -133,11 +133,9 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
             sp.GetRequiredService<HudSurface>(),
             sp.GetRequiredService<ILogger<NativeTextCapture>>()));
         collection.AddSingleton(sp => new NumbersNavCommands(
-            Core,
             sp.GetRequiredService<MenuInputBridge>(),
             sp.GetRequiredService<NavModeResolver>(),
-            sp.GetRequiredService<SteamIdCache>(),
-            sp.GetRequiredService<ILogger<NumbersNavCommands>>()));
+            sp.GetRequiredService<SteamIdCache>()));
         collection.AddSingleton<SettingsCommands>();
         collection.AddSingleton<TestCommands>();
 
@@ -193,7 +191,6 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         _retryTimer = Core.Scheduler.RepeatBySeconds(5f, entityHost.DrainRetries);
 
         var numbers = _services.GetRequiredService<NumbersNavCommands>();
-        numbers.RegisterAliases();
         Core.Registrator.Register(numbers);
         Core.Registrator.Register(_services.GetRequiredService<SettingsCommands>());
         Core.Registrator.Register(_services.GetRequiredService<TestCommands>());

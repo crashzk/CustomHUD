@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using MixScrims.Contract;
 using SwiftlyS2.Shared.Menu;
 using SwiftlyS2.Shared.Menu.Components;
@@ -66,7 +67,8 @@ internal sealed partial class MixScrimsIntegration
 
     // The phases this match goes through, in order, each done, current or still to come. Which ones
     // there are follows MixScrims' settings: no map vote skips the vote, the map change and the second
-    // ready-up; no captains skips them and the team pick.
+    // ready-up; no captains skips them and the team pick; a match MixScrims starts without a knife
+    // round skips that.
     private List<(string Text, string Payload)> Steps(PageDraw page)
     {
         var at = Position(_api.GetCurrentMatchState());
@@ -93,11 +95,20 @@ internal sealed partial class MixScrimsIntegration
         if (captains) CaptainsStep(page, steps, at);
         if (picking) Step("team_pick", 5, at == 5 && _api.GetPickOrder() is { Count: > 0 } order
             ? T(page, "draft.pick_of", Math.Min(order.Count, PicksMade(order, _api.GetPickedCtPlayerSlots(), _api.GetPickedTPlayerSlots()) + 1), order.Count) : null);
-        Step("knife_round", 6, at == 6 && _api.GetKnifeRoundWinner() is { } winner && winner is Team.CT or Team.T
-            ? T(page, "side.won", TeamName(winner)) : null);
+        if (KnifeRound())
+            Step("knife_round", 6, at == 6 && _api.GetKnifeRoundWinner() is { } winner && winner is Team.CT or Team.T
+                ? T(page, "side.won", TeamName(winner)) : null);
         Step("match", 7, MatchLine(page, at));
         return steps;
     }
+
+    // Whether the match has a knife round, read live from MixScrims' config. A MixScrims that cannot say
+    // (contract 2.10.0) keeps the step.
+    private bool KnifeRound() => !_knifeKnown || KnifeRoundEnabled();
+
+    // The JIT resolves the member when it first compiles this method, which runs only once it exists.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool KnifeRoundEnabled() => _api.GetKnifeRoundEnabled();
 
     // Captains are set by hand at any point before the pick, so the step is done once both are set and
     // otherwise names the ones there are.
@@ -105,7 +116,7 @@ internal sealed partial class MixScrimsIntegration
     {
         var names = new List<string>(2);
         foreach (var slot in new[] { _api.GetCtCaptainSlot(), _api.GetTCaptainSlot() })
-            if (slot is { } s && _core.PlayerManager.GetPlayer(s) is { IsValid: true } player) names.Add(Directive.Clean(player.Name));
+            if (slot is { } s && PlayerAt(s) is { } player) names.Add(Directive.Clean(player.Name));
         var mark = steps.Count + 1;
         var state = names.Count == 2 || at > 4 ? "group=done;glyph=check" : $"mark={mark}";
         var sub = names.Count > 0 ? string.Join(" · ", names) : "";

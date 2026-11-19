@@ -63,7 +63,7 @@
       "Ready": "panel_ready",
       "Timeout": "panel_timeout"
     },
-    // Log every menu frame drawn and every message captured.
+    // Log every menu frame drawn, every message captured and every mouse click.
     "DetailedLogging": false
   }
 }

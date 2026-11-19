@@ -88,7 +88,7 @@ foreach ($f in Get-ChildItem $WikiPath -Filter *.md) {
 # Keys the operator names (eyebrow examples, a layout of their own) and keys of other plugins' files
 # (SwiftlyS2's menus.jsonc) are exempt. Translation keys are checked against the shipped en.jsonc.
 
-$exempt = @('Menus', 'Renderer', 'customhud.eyebrow.default', 'customhud.eyebrow.missions', 'customhud.eyebrow.arenas', 'my-list',
+$exempt = @('Menus', 'Renderer', 'customhud.eyebrow.default', 'customhud.eyebrow.weaponskins', 'customhud.eyebrow.prestige', 'my-list',
             'menu_list_myserver', 'hud_text_myserver')
 
 $declared = New-Object System.Collections.Generic.HashSet[string]

@@ -56,7 +56,7 @@ internal sealed class IntegrationHost(
                 Create("MapChooser", "MapChooser.Api.v1", interfaces, i => MapChooserIntegration.TryCreate(i, core, this)),
                 Create("VIPCore", "VIPCore.Api.v1", interfaces, VipIntegration.TryCreate),
                 Create("Admins", "Admins.Menu.V2", interfaces, i => AdminsIntegration.TryCreate(i, core)),
-                Create("MixScrims", "MixScrims.API", interfaces, i => MixScrimsIntegration.TryCreate(i, core, chips)),
+                Create("MixScrims", "MixScrims.API", interfaces, i => MixScrimsIntegration.TryCreate(i, core, chips, this)),
             ];
             Replace([.. next.OfType<IPageIntegration>()]);
         }
@@ -187,6 +187,13 @@ internal sealed class IntegrationHost(
         var before = previous.Select(i => i.Provider).ToHashSet();
         foreach (var added in next.Where(i => !before.Contains(i.Provider)))
             logger.LogInformation("[CustomHUD] Drawing {Provider}'s menus from its API.", added.Provider);
+    }
+
+    // A provider's page clock that threw, logged once per provider and exception type as a failed draw is.
+    public void ReportTick(string provider, Exception ex)
+    {
+        if (_reported.TryAdd("tick:" + provider + ":" + ex.GetType().FullName, 0))
+            logger.LogError(ex, "[CustomHUD] Refreshing {Provider}'s open pages on their clock failed; it tries again each second.", provider);
     }
 
     private void Report(string provider, Exception ex)

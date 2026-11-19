@@ -1242,6 +1242,26 @@
 	margin-left: 20px;
 }
 
+/* The list beside the form, less its gutter: 322 + 14 + 560 = 896, 532 + 14 + 560 = 1106 with no
+   sidebar, 552 + 14 + 560 = 1126 in v2. */
+.lk.view-vip-grant.has-detail .lk-list .lk-items,
+.lk.view-vip-grant.has-detailbar .lk-list .lk-items
+{
+	width: 322px;
+}
+
+.no-sidebar.view-vip-grant.has-detail .lk-list .lk-items,
+.no-sidebar.view-vip-grant.has-detailbar .lk-list .lk-items
+{
+	width: 532px;
+}
+
+.lk2.no-sidebar.view-vip-grant.has-detail .lk-list .lk-items,
+.lk2.no-sidebar.view-vip-grant.has-detailbar .lk-list .lk-items
+{
+	width: 552px;
+}
+
 /* 488 = the page's 576 less the bar's 88: a taller form squished the bar to a strip in game. */
 .lk.view-vip-grant .lk-detail__box,
 .lk.view-vip-grant .lk-detail__body

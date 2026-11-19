@@ -1,15 +1,9 @@
-# CustomHUD — Port to the Core.Menu Renderer Model
+# Architecture
 
-How the private CustomHUD becomes a public, general-purpose SwiftlyS2
-plugin. Read this before changing anything under `src/Rendering` or
-`src/Input` — most of it records constraints that are invisible from the code.
+Read this before changing anything under `src/Rendering` or `src/Input` — most
+of it records constraints that are invisible from the code.
 
-## 1. What changes, and why
-
-The private plugin owns the whole menu stack: consumers call
-`ICustomHudMenuApi`, CustomHUD builds the model, paginates, tracks the cursor,
-dispatches input and draws Panorama. Every consumer therefore has to take a
-compile-time dependency on `CustomHUD.Contract.dll` and be rewritten against it.
+## 1. The renderer model
 
 SwiftlyS2 1.5.0 shipped `Core.Menu`, a component-based menu framework where
 renderers are pluggable. Components emit a tree of `MenuNode` values rather
@@ -21,23 +15,14 @@ plugins it has never seen**. A server owner switches renderer in
 { "Menus": { "Renderer": "customhud.panorama" } }
 ```
 
-So the public plugin inverts the dependency. CustomHUD becomes a **renderer**,
-not a menu API. Consumers depend on nothing; they keep using `Core.Menu` and
-get Panorama output for free.
-
-| | Private (today) | Public (this port) |
-|---|---|---|
-| Consumer dependency | `CustomHUD.Contract.dll` | none |
-| Consumer code change | full rewrite | none |
-| Who owns the model | CustomHUD | `Core.Menu` |
-| Who owns pixels | CustomHUD | CustomHUD |
-| Opt-in | per call site | one config line |
+CustomHUD is a **renderer**, not a menu API. Consumers depend on nothing; they
+build menus with `Core.Menu` and get Panorama output for free.
 
 ### Requires SwiftlyS2 ≥ 1.5.0
 
 `IMenuRenderer` / `IMenuService` / `MenuActionContext` do not exist in 1.4.x.
-The published docs still describe the menu system as "beta branch only" — that
-is **stale**; the API is in the 1.5.0 stable package.
+The published SwiftlyS2 docs cover only the older `Core.MenusAPI`; `Core.Menu`
+ships in the 1.5.0 stable package.
 
 ### Scope
 
@@ -49,19 +34,7 @@ through a small contract DLL instead: `CustomHUD.Contract.dll` in
 `Show(playerId, profile, vars, classes?, durationSeconds?)` / `Hide` /
 `HideAll` / `HideEverywhere`, and degrades to chat or CenterHTML when the key
 is absent. `Panels` in config names each panel's layout, so it is
-swappable like a menu's. Toasts, countdowns and floaters are not ported.
-
-Intercepting core's own `SendCenter` / `SendCenterHTML` / `SendAlert` /
-`SendNotify` to take them over for free — the menu trick, applied to HUD — does
-not work, and the reason is not visible from the managed API. In
-`src/server/players/player.cpp`, `CPlayer::SendMsg` wraps its
-`PostEventAbstract` call in `bypassPostEventAbstractHook = true`, so
-`HookServerMessage<CUserMessageTextMsg>` never sees it; `CenterHTML` emits no
-user message at all, storing `centerMessageText` + `centerMessageEndTime` and
-re-firing a game event on a timer. A renderer hook keyed on `MessageType` would
-have to come from upstream — `CPlayer::SendMsg` is a single choke point, and
-`CenterHTML` is the best first candidate because it is already modelled as
-state rather than a one-shot.
+swappable like a menu's.
 
 ## 2. Architecture
 
@@ -69,17 +42,17 @@ state rather than a one-shot.
 Core.Menu  ──Render(ctx)──▶  PanoramaMenuRenderer      [background thread]
                                    │
                                    ├─ FrameComposer     pure: MenuFrame → FrameSnapshot
-                                   │                    (more than one page: deferred, see below)
-                                   ├─ diff vs shadow    no delta ⇒ return
+                                   │                    (paged or provider-drawn: deferred, see below)
+                                   ├─ vs LastComposed   unchanged ⇒ return
                                    └─ Scheduler.NextTick(Action)
                                                │
                                                ▼
-                                        MenuEntityHost  [game thread]
+                                        ApplyOnGameThread  [game thread]
                                         PageFrame + FrameComposer (deferred frames)
-                                        writes CCSCustomHudLayout
+                                        diff vs Shadow → MenuEntityHost writes CCSCustomHudLayout
 
-OnCustomHudClicked ──▶ MenuClickBridge ──▶ session.SetFocus(i)
-                                        └▶ component.HandleActionAsync(ctx)
+OnCustomHudClicked ──▶ MenuInputBridge.OnClicked ──▶ session.MoveFocus(steps)
+                                                  └▶ component.HandleActionAsync(ctx)
 ```
 
 ### Thread contract
@@ -103,10 +76,10 @@ Therefore:
 
 `PlayerRenderState` documents per-field thread ownership. The short version:
 `Shadow`, `Entity` and `ScrollKey` are game-thread-only, `LastComposed` is
-render-thread-only, `Pending` (a snapshot, or a deferred compose for a menu
-that has to be paged) and `Rows` are published render→game, `Queued` is
-interlocked. Nothing may be added outside those rules without re-reasoning the
-coalescer.
+render-thread-only, `Pending` (a snapshot, or a deferred compose the game
+thread has to build) is published render→game, `Rows` is published by the
+apply for the input bridge, and `Queued` is interlocked. Nothing may be added
+outside those rules without re-reasoning the coalescer.
 
 ### Why paged menus compose on the game thread
 
@@ -134,11 +107,14 @@ that translator, as core's router does — components read core's keys through i
 (`menu.input.chat_hint`) — and a new one re-resolves the player's CustomHUD
 strings, since core keeps one per language.
 
-Most menus never take this path. When core's frame starts at row 0 and already
-holds every choice within the page budget (`PageFrame.FitsOnePage`), it *is*
-the only page, and it is composed on the render thread as before. A Chat-input
-menu always is: core resolves `!N` against its own window
-(`session.PageSelectables`), so a different page would make the numbers lie.
+A frame skips this path when core's frame starts at row 0 and already holds
+every choice within the page budget (`PageFrame.FitsOnePage`): it *is* the only
+page, and it is composed on the render thread as before. It takes the path
+anyway when its layout is `ShowAllRows` (every built-in mouse layout is), when
+a provider integration draws the menu, or when a keyboard cursor sits on a
+label. A Chat-input menu skips it unless its layout is `ShowAllRows`: core
+resolves `!N` against its own window (`session.PageSelectables`), so a
+different page would make the numbers lie.
 
 The render-thread `SameContent` check does not apply on the deferred path; the
 game-thread diff is what keeps an unchanged frame free. The cost is one page
@@ -184,8 +160,8 @@ apply that was supposed to draw it failed — a failed spawn, or a throw
 mid-write. The game thread sets the flag **and invalidates the session** on
 either failure: the flag alone is not enough, because a static menu may never
 be invalidated again and so would never call `Render` to consume it. `Shadow`
-only advances after a clean apply, so it always describes what is really on
-screen.
+only advances after a clean apply, so it always describes the last frame
+written in full.
 
 ### Entity cleanup must be recoverable, not just logged
 
@@ -220,7 +196,9 @@ invalidation that changes nothing cost one node walk and zero engine calls.
 `(panel, class, on)` entries; an empty delta writes nothing.
 
 With a fixed row ladder, the most common interaction — moving the selection —
-diffs to exactly **two class toggles**.
+diffs to exactly **two class toggles** in Wasd and Buttons modes (a page
+layout's key legend can change with it), and to nothing in Mouse and Numbers,
+which draw no cursor.
 
 ### What forces a respawn rather than an update
 
@@ -235,7 +213,11 @@ covers all three cases:
 | profile fingerprint changed | a live config edit shrank `RowSlots` or renamed panels, so rows the new frame never mentions would keep their last content |
 | SteamID changed | slots are recycled; a new occupant must not inherit the previous player's shadow |
 
-## 3. Entity model (carried over unchanged)
+The apply also respawns once an entity has been given `ClassNameBudget` (2048)
+distinct class names and the list changes, since nothing shrinks the networked
+class-name table.
+
+## 3. Entity model
 
 A client binds its HUD panel to a player slot when the panel is **created**,
 using whatever its HUD follows at that moment — the observed player while
@@ -284,16 +266,16 @@ Consequences, all load-bearing:
 
 `Frame.Body` arrives focus-resolved, with invisible components already removed,
 holding core's sliding window. Unless that window is already the menu's only
-page or the menu takes Chat input, it is replaced by the fixed page holding
-focus (§2); core still owns focus itself. A frame wider than `RowSlots` (core's
-window on a Chat menu) is walked with a focus-following viewport of
-`RowSlots` rows.
+page or the menu takes Chat input in a layout that is not `ShowAllRows`, it is
+replaced by the fixed page holding focus (§2); core still owns focus itself. A
+frame wider than `RowSlots` (core's window on a Chat menu) is walked with a
+focus-following viewport of `RowSlots` rows.
 
 Each body entry is flattened to one row:
 
 | From | To |
 |---|---|
-| `MenuSelectionNode.Focused` | `selected` class on the row panel |
+| `MenuSelectionNode.Focused` | `selected` class on the row panel, in Wasd and Buttons modes |
 | `MenuSelectionNode.Number` | key-hint variable (`!n` under Chat input) |
 | `MenuTextNode` runs | row label text |
 | first `MenuTextNode.Style.Color` | optional `ColorIcons` lookup for the row's rarity class; explicit icon tokens win |
@@ -312,8 +294,7 @@ write, and the entity's networked class-name table, which sends each distinct
 name once, stays small. Thumbnail classes are a 12-hex SHA-256 token of the
 image key for the same reason.
 
-The tab convention is carried over from the private plugin so existing
-shop-style labels keep working, and it costs a consumer nothing to adopt.
+The tab convention costs a consumer nothing to adopt.
 
 A profile with a `Card` flattens one kind of page differently. When the first
 body entry carries a `hero` raw node, the composer hides every row slot, sets
@@ -321,8 +302,9 @@ body entry carries a `hero` raw node, the composer hides every row slot, sets
 name, rarity line, picture and `lvl-N`, then one field per entry, where an
 entry marked `inline` joins the field before it (a slider as that field's bar,
 anything else as its aside control). Value components need no raw node of
-their own: `PanoramaComponentRenderer` appends `kind=`, `on=`, `pct=` and
-`num=` to every one, which is what lets a field draw a switch or fill a bar.
+their own: `PanoramaComponentRenderer` appends `kind=` to every one, `on=` to a
+toggle and `pct=` and `num=` to a slider, which is what lets a field draw a
+switch or fill a bar.
 An `inline` entry with nothing to join (no field before it, or that field
 already holding one of its kind) starts a field of its own instead of
 vanishing, a slider that starts a field gets its own bar, and entries past
@@ -343,8 +325,9 @@ sidebar reads root dividers from the components themselves.
   profile renders its rows itself and ignores it.
 * Menu-level `WithAction` handlers are **not reachable from a click**.
   `MenuActionDescriptor` exposes `Id` / `DefaultKey` / `Label` / `Order` /
-  `ShowInFooter` and no handler. Footer action chips are therefore decorative
-  in mouse mode; component rows are fully clickable. Upstream feature request.
+  `ShowInFooter` and no handler. CustomHUD draws its own hint or key legend in
+  place of core's footer, so no action chips appear; component rows are fully
+  clickable. Upstream feature request.
 * An unregistered renderer id makes a menu **fail in `Build()`**. A server-wide
   `"Renderer"` pointing at a CustomHUD that failed to load breaks every menu on
   the server. That is an operator configuration concern, not something the
@@ -362,25 +345,28 @@ Card thumbnails come from an `image=<econ key>` directive mapped onto classes in
 the generated `econ_thumbs.vcss` and `econ_stickers.vcss`, which reference the
 game's own VPK textures.
 Its optional sidebar reads only static root `SubmenuComponent` labels and
-visibility flags plus root `DividerComponent`s, never `TextProvider`,
+`Visible` / `Enabled` flags, root `DividerComponent`s and, while `AutoOpen`
+skips the root page, static root `ButtonComponent`s; never `TextProvider`,
 `EnabledWhen` or `VisibleWhen`. Activation goes through the component's public
 action pipeline using a root-menu session, so a lazily built child adopts the
-correct parent. The active entry is the one whose component id equals the id
-of the root's child the player is under (WeaponSkins sets them equal), else
-whose label equals that menu's title: neither menus nor sessions record which
-component opened them.
+correct parent. The active entry is the one whose component id, shared by no
+other entry, equals the id of the root's child the player is under
+(WeaponSkins sets them equal), else whose label matches that menu's title,
+else the one the player last opened through the sidebar: neither menus nor
+sessions record which component opened them.
 
 `Sidebar.AutoOpen` skips the root page in mouse mode. `ApplyOnGameThread`
-composes the root's frame, sees `RowMap.AutoOpenItem`, and dispatches that
-entry instead of drawing; a synchronous factory has opened the child before
-the call returns, so the root never reaches the screen. Each root session is
-opened past once (`PlayerRenderState.RootHandled`), and the input bridge marks
-a root it opens to reach another entry so the two do not race. Core's
-`Close()` reopens the parent, which for a top-level page is the skipped root:
-`Drop` sees that page closing (core clears the renderer before reopening the
-parent) and the root's next frame closes the root rather than reopening the
-page the player just left. The footer Close button walks `Close()` up the
-stack, one level per parent, bounded at 32.
+reads the root's `RowMap.AutoOpenItem`, from `FrameComposer.PlanSkips` before
+any row is built or from a frame the render thread composed, and dispatches
+that entry instead of drawing; a synchronous factory has opened the child
+before the call returns, so the root never reaches the screen. Each root
+session is opened past once (`PlayerRenderState.RootHandled`), and the input
+bridge marks a root it opens to reach another entry so the two do not race.
+Core's `Close()` reopens the parent, which for a top-level page is the skipped
+root: `Clear` sees that page closing (core clears the renderer before
+reopening the parent) and the root's next frame closes the root rather than
+reopening the page the player just left. The footer Close button walks
+`Close()` up the stack, one level per parent, bounded at 32.
 
 ## 5. Input
 
@@ -402,17 +388,19 @@ CustomHUD adds only what core has no concept of:
   `MenuActionContext` is a public `readonly record struct` with `required` init
   properties; `IMenuComponent.HandleActionAsync` is on the public interface.
   This is a supported seam, not a trick.
+  `DetailedLogging` logs each click: the branch it took, or the check that dropped it.
 
   `OnCustomHudClicked` only fires while the layout entity has **input capture**
   enabled (`CCSCustomHudLayout.SetInputCaptureEnabledForPlayer`), which is also what
   puts a cursor on screen. Capture is part of `FrameSnapshot` (`CaptureInput`,
-  true only in mouse mode) and diffed like any other frame field, so it is
-  switched on the game thread when the mode changes rather than at spawn: a
-  mode switch with no Mouse profile keeps the same entity, and a spawn-time flag
-  would never be set. A respawn resets the shadow to `Empty`, which re-applies
-  it. Only `<Button>` panels report clicks, so clickable rows must be buttons in
-  **both** profiles — Mouse falls back to the Default layout when it has no
-  profile of its own.
+  true only in mouse mode), and every apply sets it while the old or the new
+  frame has it on, so it is switched on the game thread when the mode changes
+  rather than at spawn: a mode switch that keeps the same layout keeps the same
+  entity, and a spawn-time flag would never be set. Reasserting it on every
+  apply also restores it on a fresh entity. Only `<Button>` panels report
+  clicks, so clickable rows must be buttons in every layout a Mouse player can
+  get: each built-in name serves one mode, but an operator's own `MenuLayouts`
+  entry can be named for both.
 
   On a Buttons-input menu, `MenuInputBridge.OnTick` masks, in
   `player.Pawn.MovementServices.Buttons.ButtonPressed`, every key the menu's
@@ -432,27 +420,44 @@ CustomHUD adds only what core has no concept of:
   masked key's event reaches the menu router, so the original session, submenu
   stack and pending input survive without close callbacks or sounds. The
   current `Pawn`, not `PlayerPawn`, also covers spectators. Other buttons and
-  client user commands are left untouched, and the mask lasts only until the
-  next user command, which carries all three button states (`CInButtonStatePB`).
-  Checked against SW2's source from v1.5.0 to v1.5.1-beta.22: the
+  client user commands are left untouched. The mask must be lifted before the
+  player's commands run: CS2's movement reads held keys from the same field,
+  so a key still masked then reads as up, and mouse players could not strafe.
+  `OnSimulate`, on SW2's `GameHooks.Controller.SimulateUserCommands` pre hook,
+  so just before that player's buffered commands run, puts back the bits
+  `OnTick` cleared, and only onto the pawn they came off (its raw handle).
+  Masked keys are therefore expected to keep their game action (Shift walks,
+  E uses, F inspects, A and D strafe), pending the held-keys check in
+  TestingGuide. `ProcessUsercmds` is not that point: the SDK has it only
+  buffer commands, and one host frame can run several ticks with no receive
+  between them. If SW2 cannot install the hook, the log says so and the keys
+  stay masked from the game as well.
+  Checked against SW2's source from v1.5.0 to v1.5.3-beta.14: the
   hook calls the original `GameFrame`, then the managed tick, then `Think`,
   which reads `m_pButtonStates[0]` — the very field `ButtonPressed` writes.
+  That the restore runs inside that original `GameFrame` is inferred from the
+  SDK's description of player simulation, not shown by SW2's source; either
+  way it cannot fall between `OnTick` and `Think`, which run back to back in
+  one native call.
   `OnKey` logs a warning when a masked key's press still arrives for a slot
   masked that tick, so a broken assumption shows up in the server log, not only
   as a moved or closed menu.
 
-* **Numbers** — `sw_1`..`sw_9`, plus `css_N` / `ms_N` raw aliases so a config
-  migrated from CounterStrikeSharp or MatchZy keeps working. 1–6 select, 7/8
-  page, 9 closes, so a numbers page holds at most six choices. Core's own
-  `Chat` input method (`!1`, `!0`) is chosen per *menu*, so it cannot serve a
-  per-*player* preference.
-* **Page keys and buttons** — 7/8, the mouse `<<` / `>>` and a `PageTiles`
-  `«` / `»` card call `SetFocus` on
+* **Numbers** — `sw_1`..`sw_9`. The bind line `!setnav numbers` prints also
+  sends `css_N` and `ms_N`, so the same binds work on CounterStrikeSharp and
+  ModSharp servers; registering those names here would act on one press once
+  per name. 1–6 select, 7/8 page, 9 closes, so a numbers page holds at most
+  six choices. Core's own `Chat` input method (`!1`, `!0`) is chosen per
+  *menu*, so it cannot serve a per-*player* preference.
+* **Page keys and buttons** — 7/8, the mouse `nav_previous` / `nav_next`
+  buttons and a `PageTiles` `«` / `»` card call `SetFocus` on
   the first choice of the neighbouring page, which the composer records in the
   row map (`PreviousPageFocus` / `NextPageFocus`, wrapping at both ends). Core
   has no page API; the renderer simply draws whichever page now holds focus.
   Stepping by the page's choice count instead lands mid-page on a short last
   page and, through `MoveFocus`'s wrap, on the wrong page from the first one.
+  Only a Chat menu drawn in core's own window records no pages; there they call
+  `MoveFocus` by the window's choice count.
 
 Both paths bail when the session belongs to a different renderer, or a click
 lands on a CenterHTML menu.
@@ -516,7 +521,8 @@ see yet, because the frame describing them has not been drawn.
 
 `MenuSounds` is played by core's input dispatcher. Synthesized activations
 bypass it, and no public API exposes the configured sound names. Mouse and
-numbers input is silent for now. Deferred deliberately.
+numbers input is silent for now, and so are the keys Wasd handles itself: W, S
+and R at core's default binds. Deferred deliberately.
 
 ## 6. Capturing native HUD text
 
@@ -538,7 +544,7 @@ therefore covers every one of them:
 
 `CPlayer::SendMsg` wraps its send in `bypassPostEventAbstractHook = true`, and
 `PostEventAbstractHook` — the hook behind `[ServerNetMessageHandler]` /
-`HookServerMessage<T>` — begins with `if (!bypassPostEventAbstractHook && …)`.
+`HookServerMessage<T>` — skips its handlers while that flag is set.
 
 **So the ordinary server hook sees none of SwiftlyS2's own HUD text**, which is
 precisely the traffic worth capturing. It would catch a `TextMsg` from the game
@@ -552,18 +558,19 @@ non-internal one silently disables the whole feature.
 
 ### `SendCenterHTML` is not a TextMsg at all
 
-`MessageType.CenterHTML` (100) never reaches `PostTextMsg`. `SendMsg`
-short-circuits, buffers the string with an expiry, and `CPlayer::UpdateCenterMessage`
-re-sends it **every tick** as the `show_survival_respawn_status` game event
+`MessageType.CenterHTML` (100) never reaches the `TextMsg` send (`PostTextMsg`
+since v1.5.1). `SendMsg` short-circuits, buffers the string with an expiry, and
+`CPlayer::Think` (through `UpdateCenterMessage` since v1.5.1) re-sends it
+**every tick** as the `show_survival_respawn_status` game event
 (`loc_token`), serialised into `CMsgSource1LegacyGameEvent` — also behind the
 bypass flag.
 
 Capturing it would mean hooking `CMsgSource1LegacyGameEvent` on the internal
 pipeline and filtering by event id, then tolerating a per-tick re-send. It is
-deliberately **out of scope**: the same buffer also carries the legacy
-`Core.MenusAPI` centre-HTML menu text, so a naive filter would eat those menus
-too — and plugins on that API are the ones this port is asking to migrate
-anyway.
+deliberately **out of scope**: the same event also carries the centre-HTML
+menus of the legacy `Core.MenusAPI` and of `Core.Menu`'s own `centerhtml`
+renderer, so a naive filter would eat those menus too — and a plugin on
+`Core.MenusAPI` has to move to `Core.Menu` before CustomHUD can draw it anyway.
 
 ### Behaviour
 
@@ -594,8 +601,10 @@ exists, `IMenuSession.Renderer` does not. Per-player variation therefore lives
 *inside* the renderer: `Render` receives `context.Player`, resolves that
 player's nav mode, and picks a layout profile for it.
 
-So one registered renderer id serves every mode, and a mode change is a
-despawn + respawn of that player's entity with a different `StrLayout`.
+So one registered renderer id serves every mode. A mode change that changes the
+layout (Mouse to a keyboard mode or back) is a despawn + respawn of that
+player's entity with a different `StrLayout`; the keyboard modes share a
+layout, so a change among them is an ordinary diff.
 
 Mouse-mode layouts are free to be a completely different shape (grid of tiles
 rather than a list) because only *presentation* is per-player. A renderer
@@ -608,8 +617,8 @@ Two files, different owners:
 
 * `configs/menus/menus.jsonc` — **core's**. Renderer selection, key binds,
   `MaxVisibleLines`, sounds, and `InputMethod`, the nav mode a player starts in
-  until they choose one. CustomHUD uses the last two only under
-  `"MenuConfig": "swiftlys2"`, the default.
+  until they choose one. CustomHUD uses `MaxVisibleLines` and `InputMethod` only
+  under `"MenuConfig": "swiftlys2"`, the default.
 * `configs/plugins/CustomHUD/config.jsonc` — **ours**. `MenuConfig`, and layouts
   by name for each plugin's menus, each message kind and each panel.
 
@@ -638,31 +647,29 @@ the player's addon actually contains. A profile pointing at a file the addon
 does not ship renders **nothing**, and the server cannot detect it. Ship a
 generous versioned catalog in one addon, and document the failure mode.
 
-## 10. Migration for consumers
+## 10. For plugin authors
 
-1. Port from `Core.MenusAPI` to `Core.Menu`. The old API is a separate pipeline
-   that never reaches `IMenuRenderer`, so a plugin left on it is unaffected by
-   the renderer — and the two do not share the "one menu per player" rule.
-2. Drop any `CustomHUD.Contract` reference and its `OnSharedInterfaceInjected`
-   wiring.
-3. Nothing else. Do not reference CustomHUD.
+Build menus with `Core.Menu`. `Core.MenusAPI` is a separate pipeline that never
+reaches `IMenuRenderer`, so a plugin on it is unaffected by the renderer —
+and the two do not share the "one menu per player" rule.
 
-Optional richness, for plugins that want it: emit
-`new MenuRawNode("customhud.panorama", payload)` from a component for rows that
-deserve custom treatment, and generic nodes otherwise. Three lines, no
-dependency, degrades cleanly on every other renderer. ShopCore, MapChooser,
-Ranks, VIPCore and Admins have page views in Mouse mode;
-[What a Page Sends](PluginIntegration.md#what-a-page-sends) lists the directives those views read. A plugin with a
-public API needs neither: CustomHUD draws Ranks, ShopCore, MapChooser,
-WeaponSkins, VIPCore and Admins from their APIs and leaves their menus plain
-([Provider Integrations](PluginIntegration.md#provider-integrations)).
+A menu needs no reference to CustomHUD. Optional richness, for plugins that
+want it: emit `new MenuRawNode("customhud.panorama", payload)` from a component
+for rows that deserve custom treatment, and generic nodes otherwise. Three
+lines, no dependency, degrades cleanly on every other renderer.
+[Plugin Integration](PluginIntegration.md) covers the
+[row directives](PluginIntegration.md#richer-rows-optional-no-dependency), the
+[page directives](PluginIntegration.md#what-a-page-sends), the
+[providers drawn from their APIs](PluginIntegration.md#provider-integrations)
+and the [Panels API](PluginIntegration.md#panels-api), the one part that needs a
+reference.
 
-## 11. Deliberately not ported
+## 11. Deliberately not handled
 
-| Dropped | Why |
+| Not handled | Why |
 |---|---|
-| `ICustomHudMenuApi` + builder | replaced by `Core.Menu`; its existence is the problem this port solves |
-| Pagination, cursor, submenu stack | core owns them now |
-| `AddInput` chat capture | core owns it via `IMenuSession.CaptureChat` |
+| A menu API of its own | `Core.Menu` is the API |
+| Pagination, cursor, submenu stack | core owns them; the fixed page drawn is the one holding core's focus (§2) |
+| Chat capture | core owns it via `IMenuSession.CaptureChat` |
 | Freeze-on-open, close-on-death | not expressible through `IMenuRenderer`; revisit if core grows session hooks |
-| Old HUD element API (toasts, countdowns, floaters) | out of scope; the narrower `CustomHUD.Panels.v1` replaces the parts consumers used, see §1 |
+| Toasts, countdowns, floaters | out of scope; `CustomHUD.Panels.v1` covers standalone panels, see §1 |

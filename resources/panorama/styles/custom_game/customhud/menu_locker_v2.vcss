@@ -533,6 +533,63 @@
 	visibility: visible;
 }
 
+/* ---- MapChooser's cards on a page with no sidebar (variant-wide): v2's list is 1112 ---- */
+
+/* The board: 4 x 268 + 4 x 8 = 1104 of the list's 1112, the shot 268 / 285 of 158, 149, so the
+   card and all under the shot rise 9px. */
+.lk.lk2.view-maps-board.variant-wide .lk-slot
+{
+	width: 268px;
+	height: 267px;
+}
+
+.lk.lk2.view-maps-board.variant-wide .lk-thumb,
+.lk.lk2.view-maps-board.variant-wide .lk-mark,
+.lk.lk2.view-maps-board.variant-wide .lk-shade
+{
+	height: 149px;
+}
+
+.lk.lk2.view-maps-board.variant-wide .lk-slot .lk-text
+{
+	width: 240px;
+	margin-top: 115px;
+}
+
+.lk.lk2.view-maps-board.variant-wide .lk-note
+{
+	margin-top: 185px;
+}
+
+.lk.lk2.view-maps-board.variant-wide .lk-end
+{
+	margin-top: 162px;
+}
+
+.lk.lk2.view-maps-board.variant-wide .lk-meter
+{
+	width: 240px;
+}
+
+/* The pool keeps its own card: 5 x 212 + 5 x 8 = 1100 of the list's 1112. */
+.lk.lk2.view-maps-pool.variant-wide .lk-slot
+{
+	width: 212px;
+	height: 196px;
+}
+
+.lk.lk2.view-maps-pool.variant-wide .lk-thumb,
+.lk.lk2.view-maps-pool.variant-wide .lk-mark
+{
+	height: 118px;
+}
+
+.lk.lk2.view-maps-pool.variant-wide .lk-slot .lk-text
+{
+	width: 188px;
+	margin-top: 126px;
+}
+
 /* ---- words: CS2 heads its sections in grey; gold stays for values, prices and tiers ---- */
 
 .lk2 .lk-type

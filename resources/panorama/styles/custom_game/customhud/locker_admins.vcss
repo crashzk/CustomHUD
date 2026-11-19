@@ -12,6 +12,26 @@
 	width: 416px;
 }
 
+/* The list beside the sheet, less its gutter: 452 + 14 + 430 = 896, 662 + 14 + 430 = 1106 with no
+   sidebar, 682 + 14 + 430 = 1126 in v2. */
+.lk.view-admins-players.has-detail .lk-list .lk-items,
+.lk.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 452px;
+}
+
+.no-sidebar.view-admins-players.has-detail .lk-list .lk-items,
+.no-sidebar.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 662px;
+}
+
+.lk2.no-sidebar.view-admins-players.has-detail .lk-list .lk-items,
+.lk2.no-sidebar.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 682px;
+}
+
 .lk.view-admins-players .lk-list .lk-slot.disabled
 {
 	opacity: 0.55;
@@ -417,7 +437,7 @@
 
 /* 466 less the gutter, set rather than 100% so tile lines wrap the same when the list is measured
    as when drawn: at 100% the Sessions page scrolled a tile line short of its last row. */
-.lk.view-admins-player .lk-items
+.lk.view-admins-player .lk-list .lk-items
 {
 	width: 452px;
 }
@@ -610,6 +630,12 @@
 .lk.view-admins-ban .lk-list
 {
 	width: 548px;
+}
+
+/* 534 + 14 = 548: the list less its gutter. */
+.lk.view-admins-ban .lk-list .lk-items
+{
+	width: 534px;
 }
 
 .lk.view-admins-ban .lk-detail
@@ -1326,6 +1352,11 @@
 .lk.view-admins-votes .lk-list
 {
 	padding-right: 0px;
+}
+
+.lk.view-admins-votes .lk-list .lk-items
+{
+	width: 100%;
 }
 
 .lk.view-admins-votes .lk-list .lk-slot

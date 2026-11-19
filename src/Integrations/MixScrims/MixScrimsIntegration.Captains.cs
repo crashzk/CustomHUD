@@ -20,7 +20,7 @@ internal sealed partial class MixScrimsIntegration
         // Readiness counts only while players ready up; in a later phase every row would read "Not ready".
         var readying = _api.GetCurrentMatchState() is MatchState.Warmup or MatchState.MapChosen;
         var banner = page.Regions.Contains("banner");
-        var headed = false;
+        var candidates = new List<(int Index, IPlayer Player, PlayerRank? Rank)>(page.Components.Count);
         for (var k = 0; k < page.Components.Count; k++)
         {
             switch ((page.Components[k] as MenuComponentBase)?.Tag)
@@ -28,16 +28,25 @@ internal sealed partial class MixScrimsIntegration
                 case Team side when side is Team.CT or Team.T:
                     DrawCaptainSlot(page, k, side, side == filling, banner);
                     break;
-                case int slot when _core.PlayerManager.GetPlayer(slot) is { IsValid: true } player:
-                    if (!headed && banner)
-                    {
-                        page.Add(T(page, _ranks is null ? "captains.head_kd" : "captains.head"), "head", k);
-                        headed = true;
-                    }
-                    DrawCandidate(page, k, player, filling, readying);
+                case int slot when PlayerAt(slot) is { } player:
+                    candidates.Add((k, player, _ranks?.RankOf(player.SteamID)));
                     break;
             }
         }
+        if (candidates.Count == 0) return;
+
+        if (banner) page.Add(Head(page, candidates), "head", candidates[0].Index);
+        foreach (var (k, player, rank) in candidates) DrawCandidate(page, k, player, rank, filling, readying);
+    }
+
+    // The table head names only the columns some row fills, decided as Figures decides each row's:
+    // K/D always, the headshot rate with Ranks' snapshot, a CS Rating only in Premier mode.
+    private static string Head(PageDraw page, List<(int Index, IPlayer Player, PlayerRank? Rank)> candidates)
+    {
+        if (!candidates.Exists(static c => c.Rank is not null)) return page.Columns("customhud.mix.captains.head_kd");
+        var titles = page.Columns("customhud.mix.captains.head").Split('\t');
+        if (titles.Length > 1 && !candidates.Exists(static c => c.Rank is { } rank && Rated(rank))) titles[1] = string.Empty;
+        return string.Join('\t', titles);
     }
 
     // A slot as a card: who holds it, or the instruction to click a player while it is the side being
@@ -54,11 +63,9 @@ internal sealed partial class MixScrimsIntegration
 
         parts.Insert(0, "at=banner");
         parts.Add("type=" + T(page, side == Team.CT ? "captains.ct" : "captains.t"));
-        var holder = (side == Team.CT ? _api.GetCtCaptainSlot() : _api.GetTCaptainSlot()) is { } slot
-            ? _core.PlayerManager.GetPlayer(slot)
-            : null;
+        var holder = (side == Team.CT ? _api.GetCtCaptainSlot() : _api.GetTCaptainSlot()) is { } slot ? PlayerAt(slot) : null;
         if (filling) parts.AddRange(["tag=" + T(page, "captains.picking"), "tagtone=accent", "chosen"]);
-        if (holder is { IsValid: true })
+        if (holder is not null)
         {
             parts.Add("avatar");
             if (holder.SteamID == page.Player.SteamID && holder.SteamID != 0) parts.Add("unit=" + T(page, "you"));
@@ -70,9 +77,9 @@ internal sealed partial class MixScrimsIntegration
 
     // "name  K/D" with the rating badge and headshot rate beside it: Ranks' figures where it holds the
     // player's snapshot, this map's kills and deaths otherwise.
-    private void DrawCandidate(PageDraw page, int k, IPlayer player, Team? filling, bool readying)
+    private void DrawCandidate(PageDraw page, int k, IPlayer player, PlayerRank? rank, Team? filling, bool readying)
     {
-        var (kd, rest) = Figures(player);
+        var (kd, rest) = Figures(player, rank);
         var parts = new List<string>(8) { "avatar", rest };
         if (filling is Team.CT or Team.T)
             parts.AddRange(["tag2=" + T(page, filling == Team.CT ? "captains.make_ct" : "captains.make_t"), "tag2tone=accent"]);
@@ -83,9 +90,11 @@ internal sealed partial class MixScrimsIntegration
     }
 
     // A player's K/D as text, and the payload that carries their rating badge and headshot rate.
-    private (string Kd, string Payload) Figures(IPlayer player)
+    private (string Kd, string Payload) Figures(IPlayer player) => Figures(player, _ranks?.RankOf(player.SteamID));
+
+    private static (string Kd, string Payload) Figures(IPlayer player, PlayerRank? rank)
     {
-        if (_ranks?.RankOf(player.SteamID) is { } rank)
+        if (rank is not null)
             return (rank.KillDeath, Rating(rank) + $"note={Directive.Decimal(Math.Round(rank.HeadshotRate))}%");
         var (_, kills, deaths) = Facts(player);
         return (Directive.Decimal(deaths == 0 ? kills : Math.Round((double)kills / deaths, 2)), "");

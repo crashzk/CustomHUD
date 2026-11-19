@@ -8,6 +8,7 @@ namespace CustomHUD.Integrations.MixPages;
 internal sealed partial class MixScrimsIntegration
 {
     private const string BoardView = "maps-board";
+    private const string PoolView = "maps-pool";
     private const int MaxPips = 20;
 
     // ---- the map vote: MapChooser's board, each map's share of the votes cast
@@ -70,13 +71,16 @@ internal sealed partial class MixScrimsIntegration
     // ---- the panel's Change map and Map pool: every configured map as MapChooser's pool card
 
     // Rows carry their MapPoolEntry. Map pool's text is "name (id)"; the card shows the name and puts
-    // the id under it, as Change map's does.
+    // the id under it, as Change map's does. Map pool's rows are read-only, so its cards stay facts.
     private static void DrawMapPool(PageDraw page)
     {
+        // maps-pool, like the board, is sized to sit beside MapChooser's sidebar.
+        if (page.View == PoolView) page.AddHeader(string.Empty, "variant=wide");
         for (var k = 0; k < page.Components.Count; k++)
         {
             if (page.Components[k] is not MenuComponentBase { Tag: MapPoolEntry map }) continue;
-            var parts = new List<string>(4) { Badge(page, map) };
+            var parts = new List<string>(5) { Badge(page, map) };
+            if (page.IsFact(k)) parts.Add("info");
             if (!string.Equals(map.Name, map.Id, StringComparison.Ordinal)) parts.Add("sub=" + Directive.Clean(map.Id));
             if (Art(map) is { } art) parts.Add(art);
             page.Draw(k, Directive.Clean(map.Name), string.Join(';', parts));
@@ -210,7 +214,8 @@ internal sealed partial class MixScrimsIntegration
         page.Add(Directive.Clean(player.Name), "at=banner;avatar;sub=" + sub, 0);
     }
 
-    // Whom a kick is about, as a card: K/D and side from the game, the rank from Ranks when it has them.
+    // Whom a kick is about: K/D and side from the game, the rank from Ranks when it has them. A CS
+    // Rating makes the line a card (has-rating); without one it reads like the caller's.
     private void Target(PageDraw page, Team side, bool serverWide)
     {
         var target = side switch
@@ -224,7 +229,7 @@ internal sealed partial class MixScrimsIntegration
         var (team, kills, deaths) = Facts(player);
         var kd = T(page, "ballot.target", Directive.Decimal(deaths == 0 ? kills : (double)kills / deaths));
         var where = !serverWide ? T(page, "ballot.target_team") : team is Team.CT or Team.T ? TeamTag(page, team) : "";
-        var payload = $"at=banner;group=target;avatar;sub={(where.Length > 0 ? $"{kd} · {where}" : kd)}";
+        var payload = $"at=banner;avatar;sub={(where.Length > 0 ? $"{kd} · {where}" : kd)}";
         if (_ranks?.RankOf(steamId) is { } rank) payload += ";" + rank.Art.Payload;
         page.Add(Directive.Clean(player.Name), payload, 0);
     }

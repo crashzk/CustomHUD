@@ -2,6 +2,8 @@
   "customhud.prefix": "[green][CustomHUD][default]",
   "customhud.nav.usage": "Naudojimas: !setnav wasd | buttons | numbers | mouse (dabar: {0})",
   "customhud.nav.set": "Navigacija nustatyta į [green]{0}[default].",
+  "customhud.nav.binds": "Klavišų 1-9 bind eilutė įrašyta į konsolę ([green]~[default]): nukopijuok ją ir įklijuok ten.",
+  "customhud.nav.binds_header": "Įklijuok šią eilutę į konsolę, kad pririštum klavišus 1-9:",
   "customhud.scale.usage": "Naudojimas: !hudscale {0}",
   "customhud.scale.set": "Meniu mastelis nustatytas į [green]{0}%[default].",
 
@@ -600,7 +602,7 @@
   "customhud.mix.you": "Tu",
   "customhud.mix.not_ready": "Nepasiruošęs",
   "customhud.mix.captains.head": "Žaidėjas\tReitingas\tK/D\tHS",
-  "customhud.mix.captains.head_kd": "Žaidėjas\tK/D",
+  "customhud.mix.captains.head_kd": "Žaidėjas\t\tK/D",
   "customhud.mix.captains.ct": "CT kapitonas",
   "customhud.mix.captains.t": "T kapitonas",
   "customhud.mix.captains.picking": "Renkamas",

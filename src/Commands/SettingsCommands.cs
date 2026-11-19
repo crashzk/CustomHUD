@@ -17,6 +17,10 @@ internal sealed class SettingsCommands(
     PanoramaMenuRenderer renderer,
     HudTranslations strings)
 {
+    // css_N and ms_N make the same line work on CounterStrikeSharp and ModSharp servers; CS2 prints at most 511 bytes of it (313 now).
+    private static readonly string NumberBinds = string.Join("; ",
+        Enumerable.Range(1, 9).Select(n => $"bind {n} \"slot{n}; css_{n}; ms_{n}; sw_{n}\""));
+
     [Command("setnav", permission: "", HelpText = "Choose menu navigation: wasd | buttons | numbers | mouse.")]
     public void OnSetNav(ICommandContext ctx)
     {
@@ -38,6 +42,11 @@ internal sealed class SettingsCommands(
         prefs.SetNavMode(player.SteamID, NavModeResolver.Name(mode));
         renderer.InvalidateSlot(player.PlayerID);
         Reply(ctx, localizer, "customhud.nav.set", NavModeResolver.Name(mode));
+        if (mode != NavMode.Numbers) return;
+
+        player.SendConsole($"{localizer["customhud.prefix"]} {localizer["customhud.nav.binds_header"]}");
+        player.SendConsole(NumberBinds);
+        Reply(ctx, localizer, "customhud.nav.binds");
     }
 
     [Command("hudscale", permission: "", HelpText = "Set CustomHUD menu scale, e.g. !hudscale 110.")]
@@ -63,6 +72,6 @@ internal sealed class SettingsCommands(
         Reply(ctx, localizer, "customhud.scale.set", snapped);
     }
 
-    private static void Reply(ICommandContext ctx, ILocalizer localizer, string key, object value)
-        => ctx.Reply($"{localizer["customhud.prefix"]} {localizer[key, value]}");
+    private static void Reply(ICommandContext ctx, ILocalizer localizer, string key, params object[] args)
+        => ctx.Reply($"{localizer["customhud.prefix"]} {localizer[key, args]}");
 }

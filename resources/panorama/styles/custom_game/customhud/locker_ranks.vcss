@@ -147,6 +147,23 @@
 	padding: 16px 20px 16px 20px;
 }
 
+/* Inside the panel's 1px border and 20px padding: 854 + 2 + 40 = 896, 1064 + 42 = 1106 with no
+   sidebar, 1084 + 42 = 1126 in v2. */
+.lk.view-ranks-rank .lk-list .lk-items
+{
+	width: 854px;
+}
+
+.lk.no-sidebar.view-ranks-rank .lk-list .lk-items
+{
+	width: 1064px;
+}
+
+.lk2.no-sidebar.view-ranks-rank .lk-list .lk-items
+{
+	width: 1084px;
+}
+
 .lk.view-ranks-rank .lk-content .lk-slot.section
 {
 	width: 100%;
@@ -899,6 +916,11 @@
 	width: 668px;
 	horizontal-align: center;
 	padding-right: 0px;
+}
+
+.lk.view-ranks-settings .lk-list .lk-items
+{
+	width: 100%;
 }
 
 .lk.view-ranks-settings .lk-content .lk-slot.section

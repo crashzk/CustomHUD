@@ -6,6 +6,7 @@ using CustomHUD.Services;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Menu;
 using SwiftlyS2.Shared.Menu.Components;
 using SwiftlyS2.Shared.Players;
@@ -38,10 +39,14 @@ internal sealed class MenuInputBridge(
     private EventDelegates.OnCustomHudClicked? _onClicked;
     private EventDelegates.OnClientKeyStateChanged? _onKey;
     private EventDelegates.OnTick? _onTick;
+    private OnSimulateUserCommandsPreDelegate? _onSimulate;
 
     private const int MaxSlots = 128;
     // Keys this tick's OnTick removed, per slot: a press of one reaching OnKey means the mask did not hold.
     private readonly MenuKey[] _masked = new MenuKey[MaxSlots];
+    // Held bits OnTick cleared that the engine has not had back yet, per slot, and the pawn's raw handle they came off.
+    private readonly GameButtonFlags[] _held = new GameButtonFlags[MaxSlots];
+    private readonly uint[] _heldPawn = new uint[MaxSlots];
 
     public void Subscribe()
     {
@@ -51,6 +56,17 @@ internal sealed class MenuInputBridge(
         core.Event.OnClientKeyStateChanged += _onKey;
         _onTick = OnTick;
         core.Event.OnTick += _onTick;
+        try
+        {
+            _onSimulate = OnSimulate;
+            core.GameHooks.Controller.SimulateUserCommands.Pre += _onSimulate;
+        }
+        catch (Exception e)
+        {
+            // SW2 installs the hook on its first subscriber and throws when the gamedata lacks its signature.
+            _onSimulate = null;
+            logger.LogWarning(e, "CustomHUD could not hook SimulateUserCommands, so while a menu is open the keys it hides from core's menu stop working in game too (mouse players cannot strafe). Update SwiftlyS2.");
+        }
     }
 
     public void Unsubscribe()
@@ -58,9 +74,11 @@ internal sealed class MenuInputBridge(
         if (_onClicked is not null) core.Event.OnCustomHudClicked -= _onClicked;
         if (_onKey is not null) core.Event.OnClientKeyStateChanged -= _onKey;
         if (_onTick is not null) core.Event.OnTick -= _onTick;
+        if (_onSimulate is not null) core.GameHooks.Controller.SimulateUserCommands.Pre -= _onSimulate;
         _onClicked = null;
         _onKey = null;
         _onTick = null;
+        _onSimulate = null;
     }
 
     private void OnTick()
@@ -76,10 +94,35 @@ internal sealed class MenuInputBridge(
             // Pawn matches that sampler, including the spectator pawn.
             if (player.Pawn is { IsValid: true, MovementServices: { } movement })
             {
-                movement.Buttons.ButtonPressed &= ~ButtonsOf(keys);
-                if ((uint)player.PlayerID < MaxSlots) _masked[player.PlayerID] = keys;
+                var buttons = movement.Buttons;
+                var cleared = buttons.ButtonPressed & ButtonsOf(keys);
+                if (cleared != GameButtonFlags.None) buttons.ButtonPressed &= ~cleared;
+                var slot = player.PlayerID;
+                if ((uint)slot < MaxSlots)
+                {
+                    _masked[slot] = keys;
+                    // Kept until a simulation takes them back, so a tick that runs no command loses none.
+                    var pawn = player.Controller.Pawn.Raw;
+                    _held[slot] = (_heldPawn[slot] == pawn ? _held[slot] : GameButtonFlags.None) | cleared;
+                    _heldPawn[slot] = pawn;
+                }
             }
         }
+    }
+
+    // CS2's movement reads held keys from ButtonPressed, so the mask must end before this player's buffered commands run.
+    private void OnSimulate(ref SimulateUserCommandsPreContext ctx)
+    {
+        var player = ctx.Params.Player;
+        var slot = player.PlayerID;
+        if ((uint)slot >= MaxSlots || _held[slot] == GameButtonFlags.None) return;
+
+        var bits = _held[slot];
+        _held[slot] = GameButtonFlags.None;
+        // Only onto the pawn they came off: once commands drive another (death's observer pawn), bits put back would stick.
+        if (player.Controller is { IsValid: true } controller && controller.Pawn.Raw == _heldPawn[slot]
+            && controller.Pawn.Value is { IsValid: true, MovementServices: { } movement })
+            movement.Buttons.ButtonPressed |= bits;
     }
 
     // The keys core must not see while this player's own menu takes keyboard input. Mouse and numbers draw
@@ -201,43 +244,70 @@ internal sealed class MenuInputBridge(
 
     private void OnClicked(IOnCustomHudClickedEvent e)
     {
+        var trace = config.Current.DetailedLogging;
         var player = core.PlayerManager.GetPlayer(e.PlayerId);
-        if (player is null || player.IsFakeClient) return;
+        if (player is null || player.IsFakeClient)
+        {
+            if (trace) LogClick(e, null, player is null ? "dropped: unknown player" : "dropped: fake player");
+            return;
+        }
 
         var session = GetOwnSession(player);
-        if (session is null) return;
-        if (navModes.Resolve(player.PlayerID, steamIds.Get(player.PlayerID)) != NavMode.Mouse) return;
+        if (session is null)
+        {
+            if (trace) LogNoSession(e, player);
+            return;
+        }
+        var mode = navModes.Resolve(player.PlayerID, steamIds.Get(player.PlayerID));
+        if (mode != NavMode.Mouse)
+        {
+            if (trace) LogClick(e, session.Menu.Id, $"dropped: not Mouse mode: {mode}");
+            return;
+        }
 
         // The prefix comes off the frame the renderer actually composed, never
         // from a fresh profile lookup here: this code cannot know which
         // nav-mode profile or per-menu override the renderer resolved, and
         // guessing rejects every click against the wrong prefix.
         var rows = renderer.GetRows(player.PlayerID);
-        if (rows is null || !ReferenceEquals(rows.Session, session)) return;
+        if (rows is null || !ReferenceEquals(rows.Session, session))
+        {
+            if (trace) LogClick(e, session.Menu.Id, rows is null ? "dropped: no rows" : Stale(rows, session));
+            return;
+        }
 
+        var outcome = Route(e, player, session, rows, trace);
+        if (trace) LogClick(e, session.Menu.Id, outcome);
+    }
+
+    // What the click did, for the trace: a constant, or text formatted only while tracing, so off it costs nothing.
+    private string? Route(IOnCustomHudClickedEvent e, IPlayer player, IMenuSession session, RowMap rows, bool trace)
+    {
         // Hidden on a menu without Close, but a click can be a tick older than the frame.
         var closable = FrameComposer.Closable(session.Menu);
         if (rows.BackButton.Length > 0 && e.ButtonId == rows.BackButton)
         {
             if (closable) session.Close();
-            return;
+            return closable ? "back" : "back ignored: menu not closable";
         }
         if (rows.CloseButton.Length > 0 && e.ButtonId == rows.CloseButton)
         {
             if (closable) CloseStack(player, session);
-            return;
+            return closable ? "close" : "close ignored: menu not closable";
         }
         if (e.ButtonId == rows.PreviousButton || e.ButtonId == rows.NextButton)
         {
-            MovePage(player, e.ButtonId == rows.PreviousButton ? -1 : 1);
-            return;
+            var previous = e.ButtonId == rows.PreviousButton;
+            MovePage(player, previous ? -1 : 1);
+            return previous ? "page -1" : "page +1";
         }
         if (rows.RootMenu is { } root)
         {
             if (e.ButtonId == rows.RootButton)
             {
-                if (!ReferenceEquals(root, session.Menu)) root.Open(player);
-                return;
+                if (ReferenceEquals(root, session.Menu)) return "root ignored: already on it";
+                root.Open(player);
+                return "root";
             }
             if (e.ButtonId.StartsWith(rows.SidebarPrefix, StringComparison.Ordinal)
                 && int.TryParse(e.ButtonId.AsSpan(rows.SidebarPrefix.Length), out var category)
@@ -250,13 +320,14 @@ internal sealed class MenuInputBridge(
                         { Visible: true, Enabled: true, VisibleWhen: null, EnabledWhen: null, TextProvider: null }
                     or SwiftlyS2.Shared.Menu.Components.ButtonComponent
                         { Visible: true, Enabled: true, VisibleWhen: null, EnabledWhen: null, TextProvider: null }))
-                    return;
+                    return trace ? $"sidebar {category} ignored: {target.GetType().Name} is not a plain entry" : null;
                 var rootSession = ReferenceEquals(root, session.Menu) ? session : root.Open(player);
                 renderer.KeepRootOpen(player.PlayerID, rootSession,
                     target is SwiftlyS2.Shared.Menu.Components.SubmenuComponent ? category : -1);
-                if (target.IsVisible(rootSession) && target.IsEnabled(rootSession))
+                var selected = target.IsVisible(rootSession) && target.IsEnabled(rootSession);
+                if (selected)
                     MenuActivation.Select(target, rootSession, MenuKey.Mouse1, translations.For(player.PlayerID), logger);
-                return;
+                return trace ? $"sidebar {category} -> {target.GetType().Name}{(selected ? "" : " not selected: hidden or disabled")}" : null;
             }
         }
 
@@ -269,51 +340,82 @@ internal sealed class MenuInputBridge(
             var item = rows.TabItems[tab];
             var hostSession = ReferenceEquals(host, session.Menu) ? session : host.Open(player);
             renderer.KeepTabOpen(player.PlayerID, hostSession, tab);
-            if (item.IsVisible(hostSession) && item.IsEnabled(hostSession))
+            var picked = item.IsVisible(hostSession) && item.IsEnabled(hostSession);
+            if (picked)
                 MenuActivation.Select(item, hostSession, MenuKey.Mouse1, translations.For(player.PlayerID), logger);
-            return;
+            return trace ? $"tab {tab} -> {item.GetType().Name}{(picked ? "" : " not selected: hidden or disabled")}" : null;
         }
 
         if (rows.LinkButton.Length > 0 && e.ButtonId == rows.LinkButton)
         {
             FollowLink(player, session, rows.LinkEntry, rows.LinkPick);
-            return;
+            return trace ? $"link to {rows.LinkEntry}" : null;
         }
 
         if (rows.Controls.TryGetValue(e.ButtonId, out var control))
         {
-            if (control.Action is { } action) SendAction(player, session, rows, control.Row, action);
-            else if (control.Step != 0) NavigateRow(player, session, rows, control.Row, control.Step);
-            else SetTrack(session, rows, control.Row, control.Segment, control.Segments);
-            return;
+            if (control.Action is { } action)
+            {
+                var sent = SendAction(player, session, rows, control.Row, action, trace);
+                return trace ? $"control action {action} row {control.Row} -> {sent}" : null;
+            }
+            if (control.Step != 0)
+            {
+                var stepped = NavigateRow(player, session, rows, control.Row, control.Step, trace);
+                return trace ? $"control step {control.Step} row {control.Row} -> {stepped}" : null;
+            }
+            SetTrack(session, rows, control.Row, control.Segment, control.Segments);
+            return trace ? $"control segment {control.Segment}/{control.Segments} row {control.Row}" : null;
         }
 
         if (rows.Targets.TryGetValue(e.ButtonId, out var targetRow))
         {
             if (targetRow is RowMap.PreviousPageTarget or RowMap.NextPageTarget)
+            {
                 MovePage(player, targetRow == RowMap.PreviousPageTarget ? -1 : 1);
-            else
-                ActivateRow(player, session, rows, targetRow, MenuKey.Mouse1);
-            return;
+                return targetRow == RowMap.PreviousPageTarget ? "target page -1" : "target page +1";
+            }
+            var reached = ActivateRow(player, session, rows, targetRow, MenuKey.Mouse1, trace);
+            return trace ? $"target row {targetRow} -> {reached}" : null;
         }
 
         if (rows.Card is { } card)
-        {
-            ClickCard(player, session, rows, card, e.ButtonId);
-            return;
-        }
+            return ClickCard(player, session, rows, card, e.ButtonId, trace);
 
-        if (rows.RowPrefix.Length == 0) return;
-        if (!e.ButtonId.StartsWith(rows.RowPrefix, StringComparison.Ordinal)) return;
-        if (!int.TryParse(e.ButtonId.AsSpan(rows.RowPrefix.Length), out var row)) return;
+        if (rows.RowPrefix.Length == 0
+            || !e.ButtonId.StartsWith(rows.RowPrefix, StringComparison.Ordinal)
+            || !int.TryParse(e.ButtonId.AsSpan(rows.RowPrefix.Length), out var row))
+            return trace
+                ? $"unmatched: no branch takes it (targets={rows.Targets.Count} controls={rows.Controls.Count} row prefix '{rows.RowPrefix}')"
+                : null;
         if (row == rows.PreviousTileRow || row == rows.NextTileRow)
         {
             MovePage(player, row == rows.PreviousTileRow ? -1 : 1);
-            return;
+            return trace ? $"row {row}: page tile {(row == rows.PreviousTileRow ? "-1" : "+1")}" : null;
         }
 
-        ActivateRow(player, session, rows, row, MenuKey.Mouse1);
+        var activated = ActivateRow(player, session, rows, row, MenuKey.Mouse1, trace);
+        return trace ? $"row {row} -> {activated}" : null;
     }
+
+    private void LogClick(IOnCustomHudClickedEvent e, string? menu, string? outcome)
+        => logger.LogInformation("[CustomHUD] click slot={Slot} button={Button} menu={Menu} -> {Outcome}",
+            e.PlayerId, e.ButtonId, menu, outcome);
+
+    // What GetOwnSession turned away: no session, a closed one, or one another renderer draws.
+    private void LogNoSession(IOnCustomHudClickedEvent e, IPlayer player)
+    {
+        var any = core.Menu.GetSession(player);
+        LogClick(e, any?.Menu.Id, any is null ? "dropped: no own session: core has none"
+            : !any.IsOpen ? "dropped: no own session: core's is closed"
+            : $"dropped: no own session: renderer {any.Menu.Renderer.Id} draws it");
+    }
+
+    private static string Stale(RowMap rows, IMenuSession session)
+        => rows.Session is not { } drawn
+            ? $"dropped: stale rows: drawn=none current={session.Menu.Id}, no session drawn"
+            : $"dropped: stale rows: drawn={drawn.Menu.Id} current={session.Menu.Id}, sessions differ "
+              + $"({(ReferenceEquals(drawn.Menu, session.Menu) ? "same" : "other")} menu, drawn one {(drawn.IsOpen ? "open" : "closed")})";
 
     // Core's Close() returns to the parent menu, so leaving a stack of
     // submenus takes one Close per level; each reopens the next one up.
@@ -390,43 +492,50 @@ internal sealed class MenuInputBridge(
             : null;
     }
 
-    private void ActivateRow(IPlayer player, IMenuSession session, RowMap rows, int row, MenuKey key)
+    private string? ActivateRow(IPlayer player, IMenuSession session, RowMap rows, int row, MenuKey key, bool trace = false)
     {
-        if (!FocusRow(session, rows, row)) return;
+        if (!FocusRow(session, rows, row)) return trace ? "FocusRow refused: " + FocusRefusal(rows, row) : null;
 
         var component = session.FocusedComponent;
-        if (component is null) return;
+        if (component is null) return "nothing focused";
 
+        // Read first: the activation can change it, and core refuses a disabled or busy component inside it.
+        var enabled = trace && component.IsEnabled(session);
         MenuActivation.Select(component, session, key, translations.For(player.PlayerID), logger);
+        return trace ? $"{component.GetType().Name} enabled={enabled}" : null;
     }
 
     // A stepper beside a slider's or selector's value: the same NavigateLeft / NavigateRight A and D send.
-    private void NavigateRow(IPlayer player, IMenuSession session, RowMap rows, int row, int step)
+    private string? NavigateRow(IPlayer player, IMenuSession session, RowMap rows, int row, int step, bool trace)
     {
-        if (!FocusRow(session, rows, row)) return;
-        if (session.FocusedComponent is not { } component) return;
-        if (!component.IsVisible(session) || !component.IsEnabled(session)) return;
+        if (!FocusRow(session, rows, row)) return trace ? "FocusRow refused: " + FocusRefusal(rows, row) : null;
+        if (session.FocusedComponent is not { } component) return "nothing focused";
+        var visible = component.IsVisible(session);
+        if (!visible || !component.IsEnabled(session))
+            return trace ? $"{component.GetType().Name} {(visible ? "enabled=False" : "hidden")}: not sent" : null;
 
         MenuActivation.Run(component, session, step < 0 ? MenuActions.NavigateLeft : MenuActions.NavigateRight,
             MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+        return trace ? $"{component.GetType().Name} enabled=True" : null;
     }
 
     // An `act=` button: the menu's own action it names, sent to its row as a key bound to it would be.
-    private void SendAction(IPlayer player, IMenuSession session, RowMap rows, int row, string action)
+    private string? SendAction(IPlayer player, IMenuSession session, RowMap rows, int row, string action, bool trace)
     {
-        if (!FocusRow(session, rows, row)) return;
-        if (session.FocusedComponent is not { } component) return;
-        if (!component.IsVisible(session) || !component.IsEnabled(session)) return;
+        if (!FocusRow(session, rows, row)) return trace ? "FocusRow refused: " + FocusRefusal(rows, row) : null;
+        if (session.FocusedComponent is not { } component) return "nothing focused";
+        var visible = component.IsVisible(session);
+        if (!visible || !component.IsEnabled(session))
+            return trace ? $"{component.GetType().Name} {(visible ? "enabled=False" : "hidden")}: not sent" : null;
 
         MenuActivation.Run(component, session, new MenuActionId(session.Menu.Id, action),
             MenuKey.Mouse1, translations.For(player.PlayerID), logger);
+        return trace ? $"{component.GetType().Name} enabled=True" : null;
     }
 
     private static bool FocusRow(IMenuSession session, RowMap rows, int row)
     {
-        if (row < 0 || row >= rows.Focusable.Length) return false;
-        if (!rows.Focusable[row]) return false;   // a spacer or plain label
-        if (rows.FocusedRow < 0) return false;
+        if (FocusRefusal(rows, row) is not null) return false;
 
         // SetFocus indexes the visible FOCUSABLE components, while a click
         // reports a PHYSICAL row -- and body rows include non-focusable
@@ -448,29 +557,51 @@ internal sealed class MenuInputBridge(
         return true;
     }
 
-    // `field_3_hit`, `field_3_aside`, `field_3_seg17` or `field_3_slot2`: the field, then which of its targets.
-    private void ClickCard(IPlayer player, IMenuSession session, RowMap rows, CardMap card, string buttonId)
+    private static string? FocusRefusal(RowMap rows, int row)
     {
-        if (!buttonId.StartsWith(rows.RowPrefix, StringComparison.Ordinal)) return;
+        if (row < 0 || row >= rows.Focusable.Length) return "out of range";
+        if (!rows.Focusable[row]) return "not focusable";   // a spacer or plain label
+        if (rows.FocusedRow < 0) return "FocusedRow < 0";
+        return null;
+    }
+
+    // `field_3_hit`, `field_3_aside`, `field_3_seg17` or `field_3_slot2`: the field, then which of its targets.
+    private string? ClickCard(IPlayer player, IMenuSession session, RowMap rows, CardMap card, string buttonId, bool trace)
+    {
+        if (!buttonId.StartsWith(rows.RowPrefix, StringComparison.Ordinal))
+            return trace ? $"card ignored: no field prefix '{rows.RowPrefix}'" : null;
         var rest = buttonId.AsSpan(rows.RowPrefix.Length);
         var digits = 0;
         while (digits < rest.Length && char.IsAsciiDigit(rest[digits])) digits++;
         if (!int.TryParse(rest[..digits], NumberStyles.None, CultureInfo.InvariantCulture, out var field)
             || field >= card.Main.Length)
-            return;
+            return "card ignored: no such field";
 
         var target = rest[digits..];
         if (target.SequenceEqual(card.HitSuffix))
-            ActivateRow(player, session, rows, card.Main[field], MenuKey.Mouse1);
-        else if (target.SequenceEqual(card.AsideSuffix))
-            ActivateRow(player, session, rows, card.Aside[field], MenuKey.Mouse1);
-        else if (target.StartsWith(card.SegmentSuffix, StringComparison.Ordinal)
-                 && int.TryParse(target[card.SegmentSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var segment))
+        {
+            var hit = ActivateRow(player, session, rows, card.Main[field], MenuKey.Mouse1, trace);
+            return trace ? $"card field {field} hit row {card.Main[field]} -> {hit}" : null;
+        }
+        if (target.SequenceEqual(card.AsideSuffix))
+        {
+            var aside = ActivateRow(player, session, rows, card.Aside[field], MenuKey.Mouse1, trace);
+            return trace ? $"card field {field} aside row {card.Aside[field]} -> {aside}" : null;
+        }
+        if (target.StartsWith(card.SegmentSuffix, StringComparison.Ordinal)
+            && int.TryParse(target[card.SegmentSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var segment))
+        {
             SetTrack(session, rows, card.Track[field], segment, card.Segments);
-        else if (card.SlotSuffix.Length > 0 && target.StartsWith(card.SlotSuffix, StringComparison.Ordinal)
-                 && int.TryParse(target[card.SlotSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var tile)
-                 && field < card.Picks.Length && tile < card.Picks[field].Length)
+            return trace ? $"card field {field} segment {segment}/{card.Segments}" : null;
+        }
+        if (card.SlotSuffix.Length > 0 && target.StartsWith(card.SlotSuffix, StringComparison.Ordinal)
+            && int.TryParse(target[card.SlotSuffix.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var tile)
+            && field < card.Picks.Length && tile < card.Picks[field].Length)
+        {
             PickSlot(player, session, rows, card.Main[field], card.Picks[field][tile]);
+            return trace ? $"card field {field} slot {tile}" : null;
+        }
+        return trace ? $"card field {field} ignored: no target of it matches" : null;
     }
 
     // A slot tile: its field's row opens its page, then the entry the slot names is picked there, as

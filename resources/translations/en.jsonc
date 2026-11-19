@@ -4,6 +4,9 @@
   "customhud.prefix": "[green][CustomHUD][default]",
   "customhud.nav.usage": "Usage: !setnav wasd | buttons | numbers | mouse (current: {0})",
   "customhud.nav.set": "Navigation set to [green]{0}[default].",
+  // !setnav numbers: .binds in chat, .binds_header in the console above the bind line, which is never translated.
+  "customhud.nav.binds": "The bind line for keys 1-9 is in your console ([green]~[default]): copy it and paste it there.",
+  "customhud.nav.binds_header": "Paste this line into the console to bind keys 1-9:",
   "customhud.scale.usage": "Usage: !hudscale {0}",
   "customhud.scale.set": "Menu scale set to [green]{0}%[default].",
 
@@ -645,9 +648,11 @@
   "customhud.mix.chip.captains": "captains",
   "customhud.mix.you": "You",
   "customhud.mix.not_ready": "Not ready",
-  // The table head over the captain picker's players; columns are tab-separated.
+  // The table head over the captain picker's players: a title per column, tab-separated, in this order;
+  // a column no player's row fills is left blank. head_kd, for rows without Ranks' figures, leaves the
+  // rating column empty so K/D stays over its figures.
   "customhud.mix.captains.head": "Player\tRating\tK/D\tHS",
-  "customhud.mix.captains.head_kd": "Player\tK/D",
+  "customhud.mix.captains.head_kd": "Player\t\tK/D",
   "customhud.mix.captains.ct": "CT captain",
   "customhud.mix.captains.t": "T captain",
   "customhud.mix.captains.picking": "Picking",

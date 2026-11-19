@@ -11,9 +11,10 @@ namespace CustomHUD.Rendering;
 //   ScrollKey, RootHandled, TabHandled,
 //   Closing, Rewind*, Settle, MovedOff -- game thread only.
 //   LastComposed        -- render thread only.
-//   Pending, Rows       -- written by the render thread, read by the game
+//   Pending             -- written by the render thread, read by the game
 //                          thread. Reference assignments of immutable values,
 //                          published through the Interlocked gate below.
+//   Rows                -- written by the game thread, read by the input bridge.
 //   Queued              -- Interlocked from both.
 //   OwnerSlot           -- effectively immutable once set.
 //

@@ -308,6 +308,44 @@
 	visibility: collapse;
 }
 
+/* variant-wide, a page with no sidebar (MixScrims' map vote): four to a line in the wider list,
+   4 x 263 + 4 x 8 = 1084 of the list's 1092, still two lines on the page. The shot keeps its
+   shape (263 / 285 of 158 is 146), so the card and all under the shot rise 12px. v2's list is
+   1112: menu_locker_v2.vcss. */
+.lk.view-maps-board.variant-wide .lk-slot
+{
+	width: 263px;
+	height: 264px;
+}
+
+.lk.view-maps-board.variant-wide .lk-thumb,
+.lk.view-maps-board.variant-wide .lk-mark,
+.lk.view-maps-board.variant-wide .lk-shade
+{
+	height: 146px;
+}
+
+.lk.view-maps-board.variant-wide .lk-slot .lk-text
+{
+	width: 235px;
+	margin-top: 112px;
+}
+
+.lk.view-maps-board.variant-wide .lk-note
+{
+	margin-top: 182px;
+}
+
+.lk.view-maps-board.variant-wide .lk-end
+{
+	margin-top: 159px;
+}
+
+.lk.view-maps-board.variant-wide .lk-meter
+{
+	width: 235px;
+}
+
 /* ---- maps-rows: one poll row per map, its share filling the row ---- */
 
 /* 880 of the list's 882, as wide as the turnout under the rows. */
@@ -650,6 +688,27 @@
 	margin-top: 5px;
 }
 
+/* variant-wide, a page with no sidebar (MixScrims' Change map and Map pool): five to a line,
+   5 x 208 + 5 x 8 = 1080 of the list's 1092, the shot 208 / 212 of 118, 116. v2's 1112 fits
+   five of the pool's own card: menu_locker_v2.vcss. */
+.lk.view-maps-pool.variant-wide .lk-slot
+{
+	width: 208px;
+	height: 194px;
+}
+
+.lk.view-maps-pool.variant-wide .lk-thumb,
+.lk.view-maps-pool.variant-wide .lk-mark
+{
+	height: 116px;
+}
+
+.lk.view-maps-pool.variant-wide .lk-slot .lk-text
+{
+	width: 184px;
+	margin-top: 124px;
+}
+
 /* A map that can't be picked dims its art and words; the tag saying why stays clear, on its shot
    just above its name. */
 .lk.view-maps-pool .lk-slot.disabled
@@ -816,6 +875,11 @@
 .lk.view-maps-rtv .lk-list
 {
 	padding-right: 0px;
+}
+
+.lk.view-maps-rtv .lk-list .lk-items
+{
+	width: 100%;
 }
 
 .lk.view-maps-rtv .lk-list .lk-slot

@@ -31,13 +31,19 @@ internal sealed partial class MixScrimsIntegration : IPageIntegration, IDisposab
     private readonly IMixScrims _api;
     private readonly ISwiftlyCore _core;
     private readonly IRankChips? _ranks;
+    private readonly IntegrationHost _host;
     private readonly CancellationTokenSource _clock;
 
-    private MixScrimsIntegration(IMixScrims api, ISwiftlyCore core, IRankChips? ranks)
+    // Newer than the members TryCreate requires (contract 2.11.0), so an older MixScrims still binds;
+    // it is read only through a NoInlining method, and only when present.
+    private readonly bool _knifeKnown = typeof(IMixScrims).GetMember(nameof(IMixScrims.GetKnifeRoundEnabled)).Length > 0;
+
+    private MixScrimsIntegration(IMixScrims api, ISwiftlyCore core, IRankChips? ranks, IntegrationHost host)
     {
         _api = api;
         _core = core;
         _ranks = ranks;
+        _host = host;
         _api.MapVoteCast += OnMapVoteCast;
         _api.TimeoutVoteCast += OnTimeoutVoteCast;
         _api.SurrenderVoteCast += OnSurrenderVoteCast;
@@ -54,7 +60,7 @@ internal sealed partial class MixScrimsIntegration : IPageIntegration, IDisposab
     public string Provider => "MixScrims";
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static IPageIntegration? TryCreate(IInterfaceManager interfaces, ISwiftlyCore core, IRankChips? ranks)
+    public static IPageIntegration? TryCreate(IInterfaceManager interfaces, ISwiftlyCore core, IRankChips? ranks, IntegrationHost host)
     {
         ApiProbe.Require(typeof(IMixScrims), "MixScrims 1.13.0",
             nameof(IMixScrims.GetKnifeRoundWinner), nameof(IMixScrims.GetStartingSideSecondsRemaining),
@@ -64,11 +70,10 @@ internal sealed partial class MixScrimsIntegration : IPageIntegration, IDisposab
             nameof(IMixScrims.GetSurrenderVoteCaller), nameof(IMixScrims.GetVoteKickSecondsRemaining),
             nameof(IMixScrims.GetVoteKickCaller), nameof(IMixScrims.GetPickOrder), nameof(IMixScrims.GetPickTimeoutSeconds),
             nameof(IMixScrims.GetPickSecondsRemaining), nameof(IMixScrims.GetPickedCtPlayerSlots),
-            nameof(IMixScrims.GetPickedTPlayerSlots), nameof(IMixScrims.GetCtCaptainSlot), nameof(IMixScrims.GetTCaptainSlot),
-            nameof(IMixScrims.GetCurrentPickIndex));
+            nameof(IMixScrims.GetPickedTPlayerSlots), nameof(IMixScrims.GetCtCaptainSlot), nameof(IMixScrims.GetTCaptainSlot));
         // The contract declares no key constant; this is the one MixScrims publishes under.
         return interfaces.TryGetSharedInterface<IMixScrims>("MixScrims.API", out var api) && api is not null
-            ? new MixScrimsIntegration(api, core, ranks)
+            ? new MixScrimsIntegration(api, core, ranks, host)
             : null;
     }
 
@@ -151,7 +156,18 @@ internal sealed partial class MixScrimsIntegration : IPageIntegration, IDisposab
 
     private void OnVoteKickCast(VoteKickCastEventArgs cast) => Invalidate(static menu => menu.Id == VoteKick);
 
-    private void OnClock() => Invalidate(Ticking);
+    // SwiftlyS2 drops a repeating timer whose callback throws, which would stop every clock on these pages.
+    private void OnClock()
+    {
+        try
+        {
+            Invalidate(Ticking);
+        }
+        catch (Exception ex)
+        {
+            _host.ReportTick(Provider, ex);
+        }
+    }
 
     private bool Ticking(IMenu menu) => menu.Id switch
     {
@@ -180,9 +196,18 @@ internal sealed partial class MixScrimsIntegration : IPageIntegration, IDisposab
     {
         if (steamId == 0) return null;
         foreach (var player in _core.PlayerManager.GetAllPlayers())
-            if (player.IsValid && player.SteamID == steamId) return player;
+            if (Connected(player) && player.SteamID == steamId) return player;
         return null;
     }
+
+    // The player in a slot MixScrims names, while they are on the server.
+    private IPlayer? PlayerAt(int slot) => _core.PlayerManager.GetPlayer(slot) is { } player && Connected(player) ? player : null;
+
+    // On the server, pawn or not. IPlayer.IsValid also wants a pawn, which a player who has just
+    // connected, is at team select or is changing team does not have; these pages read only the
+    // controller and the SteamID.
+    private static bool Connected(IPlayer player)
+        => player.Controller is { IsValid: true, IsHLTV: false, Connected: SwiftlyS2.Shared.SchemaDefinitions.PlayerConnectedState.Connected };
 
     // The name MixScrims gives the team on that side: its captain's, or the side's own.
     private string TeamName(Team side) => Directive.Clean(side == Team.CT ? _api.GetCtTeamName() : _api.GetTTeamName());

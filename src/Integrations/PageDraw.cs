@@ -1,3 +1,4 @@
+using CustomHUD.Rendering;
 using SwiftlyS2.Shared.Menu;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Translation;
@@ -98,12 +99,18 @@ internal sealed class PageDraw
         if (_nodes[index] is { } node) _nodes[index] = Append(node, payload);
     }
 
-    // Draws the component as other text: its row, key and click stay its own.
+    // Draws the component as other text: its row, key and click stay its own. The renderer's markers
+    // (`info` on a fact) do not carry over; a caller passes on what it keeps.
     public void Draw(int index, string text, string payload)
     {
         _nodes[index] = Row(text, payload);
         _redrawn[index] = true;
     }
+
+    // Whether the renderer marks the component `info`: focusable, and nothing happens when it is
+    // activated (a plain TextComponent).
+    public bool IsFact(int index)
+        => Components[index].IsFocusable && PanoramaComponentRenderer.IsFact(Components[index].GetType());
 
     // Only a row the cursor never lands on: dropping a focusable one would hide where focus is.
     public void Hide(int index)
@@ -133,6 +140,16 @@ internal sealed class PageDraw
     {
         var value = args.Length == 0 ? _strings[key] : _strings[key, args];
         return value.EndsWith(key, StringComparison.Ordinal) ? string.Empty : Directive.Clean(value);
+    }
+
+    // A translated table head ("Player\tK/D", a `head` row's text): each column made safe on its own,
+    // so the tabs between them still part the columns.
+    public string Columns(string key)
+    {
+        var value = _strings[key];
+        return value.EndsWith(key, StringComparison.Ordinal)
+            ? string.Empty
+            : string.Join('\t', value.Split('\t').Select(Directive.Clean));
     }
 
     // The layout's glyph for a label (a sidebar entry's, by its English text), or null.

@@ -25,9 +25,7 @@ namespace CustomHUD.Rendering;
 // silently stop matching raw nodes after an operator renames it.
 internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudTranslations? strings)
 {
-    // Text after the first tab becomes the right-hand value, after the second
-    // an icon token. Carried over from the private plugin so shop-style labels
-    // keep working, and it costs a consumer nothing to adopt.
+    // Text after the first tab becomes the right-hand value, after the second an icon token.
     private const char SegmentSeparator = '\t';
 
     public const int MaxRowSlots = 256;

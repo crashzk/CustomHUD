@@ -625,9 +625,9 @@
 								<Label class="lk-col-head lk-col-head-4" text="{s:col_4}" hittest="false" />
 								<Label class="lk-col-head lk-col-head-5" text="{s:col_5}" hittest="false" />
 							</Panel>
-							<Panel class="lk-listbox" hittest="false">
+							<Panel class="lk-listbox">
 								<Panel id="options" class="lk-list chud-scroll">
-									<Panel class="lk-items" hittest="false">
+									<Panel class="lk-items">
 										<Panel id="option_0" class="lk-slot hidden">
 											<Button id="option_0_hit" class="lk-hit">
 												<Panel id="option_0_icon" class="lk-rarity hidden" hittest="false" />

@@ -101,16 +101,25 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
         }
     }
 
-    // The equipped item's art, else the dearest with art; else the icon of the deepest level its items share.
+    // Stock categories with no item art, by the render of what they change (a kill screen is a healthshot's).
+    private static readonly Dictionary<string, string> CategoryRenders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Kill Screens"] = "weapons/base_weapons/weapon_healthshot",
+        ["Smoke Colors"] = "weapons/base_weapons/weapon_smokegrenade",
+        ["Hit Sounds"] = "music_kits/valve_01",
+    };
+
+    // The equipped item's art, else the dearest with art; on tiles, else a render; else the deepest level's icon.
     private static string CategoryArt(PageDraw page, string label, List<(ShopItemDefinition Item, ShopItemState State)> states)
     {
+        var tile = page.View == CategoriesView;
         var cover = states
             .Where(s => s.Item.ImageKey is { Length: > 0 })
             .OrderByDescending(s => s.State.Enabled)
             .ThenByDescending(s => s.Item.Price)
             .Select(s => s.Item.ImageKey)
             .FirstOrDefault();
-        if (cover is not null) return "image=" + Directive.Clean(cover);
+        if (cover is not null) return tile ? TileImage(cover) : "image=" + Directive.Clean(cover);
 
         string[]? shared = null;
         foreach (var (item, _) in states)
@@ -120,11 +129,19 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
                 ? levels
                 : [.. shared.Zip(levels).TakeWhile(p => string.Equals(p.First, p.Second, StringComparison.OrdinalIgnoreCase)).Select(p => p.First)];
         }
-        for (var s = (shared?.Length ?? 0) - 1; s >= 0; s--)
-            if (page.Icon(shared![s]) is { } icon)
+        string[] names = [.. Enumerable.Reverse(shared ?? []), label];
+        foreach (var name in names)
+            if (tile && CategoryRenders.TryGetValue(name, out var render))
+                return TileImage(render);
+        foreach (var name in names)
+            if (page.Icon(name) is { } icon)
                 return "glyph=" + icon;
-        return "glyph=" + (page.Icon(label) ?? "shop");
+        return "glyph=shop";
     }
+
+    // locker_shop.vcss stands an agent on the tile's foot and any other render (group=object) in its light.
+    private static string TileImage(string key)
+        => "image=" + Directive.Clean(key) + (key.TrimStart().StartsWith("characters/", StringComparison.OrdinalIgnoreCase) ? "" : ";group=object");
 
     // The meter only on tiles: in a list, bar= fills the row behind the text. Returns "N owned", or "".
     private static string ForSale(PageDraw page, List<(ShopItemDefinition Item, ShopItemState State)> states, decimal credits,

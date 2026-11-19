@@ -23,7 +23,7 @@ are long, so grep for the heading and read that range.
 | A new view or a restyle | `docs/DesignLanguage.md` "Principles", "Looks" and the layout's anatomy |
 | Sizes, wrapping, scrolling, images | `docs/PanoramaAuthoring.md` "Page layouts", "Scrolling grids", "Images", "The trap with no web analogue" |
 | A plugin's page or a directive | `docs/PluginIntegration.md` "What a Page Sends", "Provider Integrations" |
-| Input, threads, the HUD entity | `docs/PublicPort.md` |
+| Input, threads, the HUD entity | `docs/Architecture.md` |
 | Something seen in game | `docs/DesignLanguage.md` "Unverified in-game"; that plugin in `docs/TestingGuide.md` |
 
 ## The loop
@@ -35,7 +35,8 @@ are long, so grep for the heading and read that range.
    for every script here; 5.1 writes mojibake into the layouts.
 3. Run `pwsh -File scripts/audit.ps1` until it prints `PASS`. It runs the static checks, publishes
    as CI does, runs SoftDependencyCheck and the wiki check, and compiles the changed Panorama files
-   when CS2 is installed. `-Quick` runs the static half while you iterate.
+   when CS2 is installed. C# unchanged since the last full pass skips the publish and
+   SoftDependencyCheck; `-Force` runs them. `-Quick` runs the static half while you iterate.
 4. Report, as below.
 
 A pass proves the sheets parse and keep the rules. It does not prove that a layout looks right:
@@ -56,7 +57,7 @@ Each of these reached a player at least once. The audit fails the ones marked *(
 - A rule lists at most 30 selectors; past that CS2 drops the whole sheet. *(audit)*
 - One border colour per panel: CS2 draws every side in the top's colour. *(audit)*
 - Never put a `box-shadow` on a bar 4px or thinner. Glow and shadow draw much stronger in game than
-  in a browser. *(audit, thin bars)*
+  in a browser. *(audit warns, thin bars)*
 - Colours are tokens from `customhud_tokens.vcss`, and no define name is a prefix of another.
   *(audit)*
 - Use `/* */` comments, `animation-*` and `transition-*` longhands, and no `fill-parent-flow` in a
@@ -66,8 +67,8 @@ Each of these reached a player at least once. The audit fails the ones marked *(
 - `width: 100%` resolves to zero inside a `fit-children` parent and overruns a padded `clip` or
   `scroll` parent. Only a panel with a pixel height is known to scroll.
 - An SVG rasterises once at its declared size, so give a larger draw a `background-texture-size`.
-- A layout holds only `Panel`, `Label`, `Image` and `Button` with their allowed attributes, and a
-  picture is a class in a sheet. *(audit)*
+- A layout holds only `Panel`, `Label`, `Image` and `Button` with their allowed attributes *(audit)*,
+  and a picture is a class in a sheet.
 - Every `{s:var}` a layout shows must be written or blanked by the composer, or it shows literally.
 
 **Design and scope**

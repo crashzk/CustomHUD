@@ -33,8 +33,8 @@ internal sealed record FrameSnapshot(
     RowMap Rows,
     // Panorama only raises OnCustomHudClicked while capture is on, and capture
     // turns the player's mouse into a cursor -- so it is on for Mouse mode only.
-    // Not part of RequiresRespawn: a Mouse player with no Mouse profile keeps
-    // the same layout path, so the flag has to be diffed on update.
+    // Not part of RequiresRespawn: an operator's own MenuLayouts entry can serve both modes, so
+    // a switch to or from Mouse on it keeps layout path and profile; the flag is diffed on update.
     bool CaptureInput)
 {
     public static readonly FrameSnapshot Empty =
