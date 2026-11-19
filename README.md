@@ -20,13 +20,12 @@
 One renderer for every plugin's menus.
 
 - 🎨 **Drop-in** — one line in `menus.jsonc` redraws every `Core.Menu` menu; plugins need no changes
-- 🖼️ **Designed pages** — WeaponSkins, ShopCore, MapChooser, Ranks, VIPCore, Admins and MixScrims, with prices, votes, ranks and item art
+- 🖼️ **Designed pages** — WeaponSkins, MapChooser, Ranks, VIPCore, Admins, ShopCore
 - 📋 **The list** — every other plugin's menus, with switches, sliders and the keys that work
 - 🕹️ **Four navigation modes** — each player picks `buttons`, `wasd`, `numbers` or `mouse`
 - 🔍 **Menu scale** — each player resizes menus with `!hudscale`
 - 🍪 **Remembered choices** — mode and scale kept across restarts with Cookies
 - 🧱 **Layouts by name** — designed pages, the list or the classic look for each plugin, or your own Panorama layout
-- 💬 **Native text capture** — the game's centre text and alerts in the same style
 - 🧩 **Panels API and directives** — other plugins show panels and style their rows
 - 🌐 **Translations** — English, Lithuanian and partial Brazilian Portuguese
 
@@ -47,7 +46,6 @@ One renderer for every plugin's menus.
 | **[Supported Plugins](../../wiki/Supported-Plugins)** | The designed pages, and their views |
 | **[Layouts](../../wiki/Layouts)** | Which layout draws each menu |
 | **[Layout Variations](../../wiki/Layout-Variations)** | Your own look for a shipped layout, step by step |
-| **[Native Text Capture](../../wiki/Native-Text-Capture)** | The game's HUD text in CustomHUD's layouts |
 | **[Translations](../../wiki/Translations)** | Languages, and the line naming each plugin over its menus |
 
 ---
