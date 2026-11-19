@@ -19,10 +19,10 @@ namespace CustomHUD;
 
 [PluginMetadata(
     Id = "CustomHUD",
-    Version = "2.0.0",
+    Version = "1.0.0",
     Name = "CustomHUD",
     Author = "Shmitzas",
-    Description = "CS2-themed Panorama renderer for the SwiftlyS2 menu framework. Consumer plugins need no code changes.")]
+    Description = "CS2-themed Panorama renderer for the SwiftlyS2 menu framework")]
 public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
 {
     private ServiceProvider? _services;
