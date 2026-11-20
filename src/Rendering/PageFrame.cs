@@ -71,6 +71,14 @@ internal sealed record MenuPage(
     public static MenuPage Single(int count) => new(0, count, 0, 1, 0, -1, -1);
 }
 
+// PageFrame's mark on a label it leaves undrawn (PageDraw.HideLabel): the composer still counts the entry,
+// so focus and keys keep their places, and gives it no slot. A node type of CustomHUD's own rather than a
+// directive, so no provider can send it.
+internal sealed record UnlistedNode : MenuNode
+{
+    public static readonly UnlistedNode Instance = new();
+}
+
 // Core slides its window a row at a time and backfills the last page
 // (MenuFrameComposer.ResolvePage), so its pages overlap and move with the
 // cursor. This cuts the body into fixed pages from the top instead.
@@ -192,10 +200,13 @@ internal static class PageFrame
         if (integration is { } owner)
         {
             draw = new PageDraw(owner.Host, session, rendererId, components, rendered, context.Frame.Header, index, Math.Max(1, reachable.Count),
-                page.Start, body.Count, owner.Strings, owner.Regions, budget.Room(body, page.Start, page.Count, offMain), owner.Icons, owner.View);
+                page.Start, body.Count, owner.Strings, owner.Regions, budget.Room(body, page.Start, page.Count, offMain), owner.Icons, owner.View,
+                owner.Keyboard);
             owner.Host.Draw(owner.Integration, draw);
         }
 
+        // A label an integration hides is left out only where LabelSkip keeps the cursor off it.
+        var hideLabels = draw is not null && cameFrom is not null && HasAction(body, page.Start, page.Count);
         var nodes = new List<MenuNode>(page.Count);
         var selectables = 0;
         for (var k = 0; k < page.Count; k++)
@@ -215,6 +226,8 @@ internal static class PageFrame
                 selectables++;
                 node = MenuLineNode.Of(new MenuSelectionNode(page.Start + k == focusPosition, numbered ? selectables : 0), node);
             }
+            if (hideLabels && draw!.HidesLabel(k) && page.Start + k != focusPosition)
+                node = MenuLineNode.Of(node, UnlistedNode.Instance);
             nodes.Add(node);
         }
         if (draw is not null) nodes.AddRange(draw.AddedBefore(page.Count));
@@ -233,10 +246,7 @@ internal static class PageFrame
     // be reached. The answer is a SetFocus index; null leaves focus where it is.
     private static int? LabelSkip(List<IMenuComponent> body, int start, int count, int focusables, int focused, int from)
     {
-        var actionable = false;
-        for (var i = start; i < start + count && !actionable; i++)
-            actionable = body[i].IsFocusable && !IsLabel(body[i]);
-        if (!actionable) return null;
+        if (!HasAction(body, start, count)) return null;
 
         var labels = body.Where(c => c.IsFocusable).Select(IsLabel).ToArray();
         var at = Math.Clamp(focused, 0, focusables - 1);
@@ -248,6 +258,14 @@ internal static class PageFrame
             if (!labels[next]) return next;
         }
         return null;
+    }
+
+    // Whether the page holds a row the cursor stops on that is not a label.
+    private static bool HasAction(List<IMenuComponent> body, int start, int count)
+    {
+        for (var i = start; i < start + count; i++)
+            if (body[i].IsFocusable && !IsLabel(body[i])) return true;
+        return false;
     }
 
     // RENDER THREAD. Whether core's frame has its cursor on a label, which PanoramaComponentRenderer marks `info`.
@@ -322,7 +340,8 @@ internal sealed record DeferredCompose(
 // The integration drawing a page, with what it draws through: the layout's regions with slots
 // (menu_locker's banner, foot ...), where a row routed there takes no main-list slot, and the
 // main list's slot count. Icons is the layout's label-to-glyph map (MenuSidebarProfile.Icons);
-// View the page's view from the operator's PageViews and the profile, before any `view=`.
+// View the page's view from the operator's PageViews and the profile, before any `view=`;
+// Keyboard whether the player's nav mode is a keyboard one.
 internal sealed record PageIntegrationContext(
     IntegrationHost Host, IPageIntegration Integration, ILocalizer Strings, IReadOnlySet<string> Regions, int RowSlots,
-    IReadOnlyDictionary<string, string> Icons, string? View = null);
+    IReadOnlyDictionary<string, string> Icons, string? View = null, bool Keyboard = false);

@@ -201,7 +201,8 @@ internal sealed class PanoramaMenuRenderer(
                         .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
                     hook = new PageIntegrationContext(integrations, integration, strings.For(slot), regions, deferred.Profile.RowSlots,
                         deferred.Profile.Sidebar?.Icons ?? EmptyIcons,
-                        deferred.Profile.Page?.ResolveView(deferred.Context.Menu.Id, null, config.Current.PageViews));
+                        deferred.Profile.Page?.ResolveView(deferred.Context.Menu.Id, null, config.Current.PageViews),
+                        Keyboard: deferred.Mode != NavMode.Mouse);
                 }
                 // The cursor's last place on this page tells which way a keyboard move was going.
                 int? cameFrom = deferred.Mode == NavMode.Mouse ? null

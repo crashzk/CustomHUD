@@ -176,7 +176,7 @@ test plugins send most of them:
 - [ ] plain (any button)
 - [ ] value in the right-hand slot (tab-separated): ShopCore's prices,
       MapDecals' sliders
-- [ ] disabled: ShopCore's credits line on `!shop`, a VIPCore perk your group
+- [ ] disabled: ShopCore's Buy on an item you can't afford, a VIPCore perk your group
       has no access to, MapChooser's `START VOTE` on `!mapsvote` before you
       pick a map
 - [ ] truncated (ellipsis overflow): cut at the row's right edge, not after
@@ -236,9 +236,9 @@ short one. Test with `MaxVisibleLines` at `5`, then at `20`.
 - [ ] **numbers**: at `MaxVisibleLines 20` the AK-47 list turns in pages of
       six; `8` shows rows 7–12 keyed `1`–`6`, `8` on the last page wraps to
       page 1, and `7` on page 1 opens the last page
-- [ ] **numbers**: a disabled row (ShopCore's credits line on `!shop`) shows
-      no key and takes none, so the next row is keyed one after the row
-      before it, and the legend's `1-N` counts only the keyed rows
+- [ ] **numbers**: a disabled row (a VIPCore perk your group has no access
+      to, on `!vip`) shows no key and takes none, so the next row is keyed one
+      after the row before it, and the legend's `1-N` counts only the keyed rows
 - [ ] a Chat-input menu (`"InputMethod": "chat"` in `menus.jsonc`) keeps
       core's own scrolling window and shows no counter — its `!N` numbers
       must still pick the row they label
@@ -1068,9 +1068,23 @@ need 1.2.0). Open `!shop`, then Buy and a category.
 - [ ] an item you have on is outlined with `Equipped`, one you own reads
       `✓ Owned` with its price struck through, and one you cannot afford
       reads `need N` in red
-- [ ] an item's page shows its art large on the left with the name under it;
-      badges, the price with the balance it leaves, and the facts on the
-      right; Preview and Buy at the foot
+- [ ] in mouse mode, an item's page shows its art large on the left with the
+      name under it; badges, the price with the balance it leaves, and the
+      facts on the right; Preview and Buy at the foot
+- [ ] in wasd, `!shop` lists Buy and Inventory with no `Credits:` line over
+      them, the balance staying in the chip, and the cursor opens on Buy
+- [ ] in wasd, an item's page lists its art and name, the price with the
+      balance it leaves, and its facts (Duration, Type, and Team on a
+      team-only item), with no badge rows and no `Name [price]` line; then
+      `Preview item` and `Buy` as keyed rows like the menu's others, with no
+      `›`, Buy's price and coin at its right, and nothing under the rows
+- [ ] in wasd, Buy fades and loses its key on an item you can't afford and
+      on one you already own (a timed or permanent item, not a single-use
+      one). Open a `CT only` item's page as CT, join T with it open and move
+      the cursor: Preview and Buy both fade. With the cursor on a faded Buy
+      the legend drops `E`, and E still gets ShopCore's reason in chat
+- [ ] numbers: the same page keys Preview `1` and Buy `2`, and a faded Buy
+      takes no number
 - [ ] Inventory lists each owned item with its art, `Equipped` on the one you
       have on, and the time a timed item has left over a draining meter
 - [ ] with ShopCore 1.2.0, Buy → Visuals shows each subcategory as a tile:
@@ -1090,6 +1104,11 @@ need 1.2.0). Open `!shop`, then Buy and a category.
       when complete; hovering lights the tile's edge and warms its icon
 - [ ] two to six categories fill the page with taller tiles; a page of seven
       closes on two pairs, so no tile sits alone on a line
+- [ ] with five categories, the two wide tiles on the second line (Smoke
+      Colors, Tracers) show no thin grey line about 17px in from their right
+      edge beside the name and count; every name and count still starts 18px
+      in from the tile's left, and a name too long for its tile wraps before
+      the right edge
 - [ ] Inventory → Visuals: the same tiles, each with the time left on what
       runs out first (red in its last 15%) or `Permanent`
 - [ ] with ShopCore 1.1.9, the same pages still draw as tiles, with the item

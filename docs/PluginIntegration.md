@@ -311,6 +311,15 @@ plugin built. Any other custom renderer can read the same API.
   renders by name and `group=object` are for the mouse tiles only: the
   keyboard list shows a row's item art or its icon. An older ShopCore's rows
   carry only the count in their label, which the tiles fall back to.
+  In the keyboard list the root leaves out ShopCore's `Credits:` line, which
+  the balance chip shows, and an item's page is its name, its price and its
+  facts over Preview and Buy as keyed rows. Preview and Buy are `disabled`,
+  dimmed for the refusals ShopCore's API can tell in advance: both when
+  `IsItemVisibleToPlayer` is false, and Buy also when the player owns the
+  item and it can be owned, or `GetCredits` is below its price. Buy is the
+  button whose label holds the price, else ShopCore's last button. Nothing
+  dims for what the API cannot tell: a preview on cooldown or with no module
+  to show it, or a purchase a module's hook blocks.
 - **Admins:** every row's `Tag` is an `Admins.Contract` record (a player, a
   record, an action, a step's choice) and each page's `IMenu.Tag` its subject:
   the player, the record, the record list, the punishment draft, or the
