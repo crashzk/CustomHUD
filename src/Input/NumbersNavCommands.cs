@@ -1,8 +1,6 @@
 using CustomHUD.Config;
 using CustomHUD.Navigation;
 using CustomHUD.Services;
-using Microsoft.Extensions.Logging;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 
 namespace CustomHUD.Input;
@@ -14,30 +12,13 @@ namespace CustomHUD.Input;
 //
 // 1-6 select a row on the current page, 7/8 page, 9 closes.
 internal sealed class NumbersNavCommands(
-    ISwiftlyCore core,
     MenuInputBridge input,
     NavModeResolver navModes,
-    SteamIdCache steamIds,
-    ILogger logger)
+    SteamIdCache steamIds)
 {
     private const int SelectKeys = NavModeResolver.NumberKeys;
 
-    // `[Command("1")]` lands on the console as `sw_1`. Players migrating a
-    // config from a CounterStrikeSharp or MatchZy server already have `css_N` /
-    // `ms_N` in their autoexec, so register those as raw aliases too and let
-    // whichever prefix they already bound keep working.
-    private static readonly string[] AliasPrefixes = { "css_", "ms_" };
-
-    public void RegisterAliases()
-    {
-        foreach (var prefix in AliasPrefixes)
-            for (var n = 1; n <= 9; n++)
-            {
-                try { core.Command.RegisterCommandAlias(n.ToString(), $"{prefix}{n}", registerRaw: true); }
-                catch (Exception ex) { logger.LogWarning(ex, "[CustomHUD] Alias {Prefix}{N} registration failed.", prefix, n); }
-            }
-    }
-
+    // sw_N only: the printed binds (`!setnav numbers`) also send css_N and ms_N, so aliases for those would run a press once per name.
     [Command("1", permission: "", HelpText = "CustomHUD numbers nav: select option 1.")]
     public void On1(ICommandContext ctx) => Route(ctx, 1);
 

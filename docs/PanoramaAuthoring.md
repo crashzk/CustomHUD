@@ -163,8 +163,8 @@ names to empty strings.
 `Panels.Close` (empty by default) names a button that leaves every submenu
 level at once; the locker's is `nav_close`, `×`, at the footer's right. With a
 Close button the renderer hides Back where it has nowhere to go: on a root, and
-on the first level under a sidebar root it skips. The locker overrides
-`.chud-nav` inside `.ws-locker` to a nav item's 34px height.
+on the first level under a sidebar root it skips. The locker narrows
+`.chud-nav` inside `.ws-locker` to 52px, at a nav item's 34px height.
 `menu_skins_mouse_v2` has no footer: its `nav_back` and `nav_close` sit in a
 content bar at the top, Back holding `{s:crumb}` (`Variables.CrumbPanel` /
 `CrumbVar`, the title of the page it returns to) and the bar `{s:info}`
@@ -287,6 +287,10 @@ custom HUD does, but lay their lines out explicitly:
 * Leave a gutter beside the rows and style `.chud-scroll VerticalScrollBar`
   with `layout-position: fixed`, which keeps the bar in place while the content
   scrolls (see `menu_mouse.vcss`).
+* Leave `hittest` at its default on the scroll panel's parent and on every
+  panel between it and its rows, as on every grid seen scrolling in game. It
+  is not what stops a list from scrolling: the locker's list behaved the same
+  with those panels `hittest="false"` and without (see `menu_locker` below).
 * Declare exactly `RowSlots` rows, each starting `hidden`, in id order across
   the lines. The composer fills slots from 0 with no gaps, so every line but
   the last visible one is full. It only writes the classes a row actually has;
@@ -304,8 +308,8 @@ custom HUD does, but lay their lines out explicitly:
   empty grid for a tick instead, from the same build.
 * A layout with no footer paging sets `PageTiles`: past `RowSlots` rows, the
   renderer keeps the first and last slot of each chunk for a `«` / `»` card
-  (label = the arrow, value = the target page, class `Classes.PageTile`,
-  `page-tile`) that turns the page when clicked.
+  (label = the arrow, value = the target page in `Variables.PageFormat`, class
+  `Classes.PageTile`, `page-tile`) that turns the page when clicked.
 
 `menu_locker`'s regions around its list come and go per view, so its list box
 has a pixel height only while the list owns its column:
@@ -324,19 +328,35 @@ has a pixel height only while the list owns its column:
   always fits: a form that outgrew the page squished Grant to a strip. Past
   nine groups, where the form always outgrows it, its `variant-scroll` makes
   the cap a pixel height.
-* Both are `overflow: squish scroll`. Their items are `width: 100%`, which
-  under `clip` keeps the padding and runs over the scrollbar in the gutter.
-* The boxes and the items containers are `hittest="false"`, so nothing but
-  the scrollbar sits under the cursor in the gutter.
+* The list is built as the grids above: `#options.lk-list` is `overflow: clip
+  scroll` with no padding or flow, and `.lk-items` has a pixel width, the page
+  less the 14px gutter and, when they show, the aside and the detail pane.
+  `locker.vcss` lists every combination; a view with its own geometry sets its
+  own (`.lk.view-<name> .lk-list .lk-items`), and one with no gutter lets its
+  items fill the list. The box and the items container keep their `hittest`.
+* The detail pane is not rebuilt yet: `.lk-detail__body` is still `overflow:
+  squish scroll` round `width: 100%` items, with its box and items
+  `hittest="false"`.
+* `ranks-rank` keeps its padded scroll panel (`padding: 16px 20px`), its items
+  a pixel width inside that padding; Show all ranks overflows it.
 
-A list whose height came from `fill-parent-flow` showed a scrollbar that
-neither the wheel nor its thumb moved in game, both as `fill-parent-flow`
-itself and as `height: 100%` of a filling box (Start a vote, Shop). Every
-panel seen scrolling in game has a pixel height: the WeaponSkins grids and
-the tile grid. A view that keeps a filling box keeps that risk; give it a
-pixel height before it has to scroll. A `max-height` cap (`maps-rows`,
-`vip-grant`) has not been seen scrolling either: it reliably keeps what
-follows on the page, but keep the content under the cap where you can.
+Seen in game before the rebuild, while the list was a padded `overflow: squish
+scroll` panel round `width: 100%` items: once Start a vote's nine cards
+overflowed, a card lit up under the pointer but a click on it never reached
+the plugin, and neither the wheel nor the scrollbar's thumb moved the list;
+Smoke Colors' nine did not scroll either. Nominate's eight cards, on the same
+view and layout, fit and took clicks. Neither a pixel height on the box
+(576px) nor making the box and the items hit-testable changed it. The same
+padded recipe did scroll on `admins-player`, a tile line short, until its
+items got a pixel width, so padding and flow alone do not explain it: items
+that are a share of a filling column can be measured at one width and drawn
+at another. The rebuild gives the items a set width, as the WeaponSkins grids
+and the tile grid have, and drops the padding and flow as well. Rebuilt, Start
+a vote's overflowing list scrolls and takes clicks in game (19 November). A
+view that keeps a filling box keeps the scrollbar risk; give it a pixel height
+before it has to scroll. A `max-height` cap (`maps-rows`, `vip-grant`) has not
+been seen scrolling either: it reliably keeps what follows on the page, but
+keep the content under the cap where you can.
 
 ### Row meters
 
@@ -345,7 +365,7 @@ A row carrying `bar=N` gets `Classes.HasBar` (`has-bar`) and `Classes.Bar` with
 `.chud-meter__fill`, and the 101-rule width ladder, so a layout that includes
 it only has to place the meter in each row, with `hittest="false"` on both.
 Inside a row that flows right, put it in a panel with `flow-children: none`
-(the shipped lists use `.chud-row__clip`), or it takes a column of its own
+(the classic layouts use `.chud-row__clip`), or it takes a column of its own
 instead of sitting under the label. A row carrying `chosen` (the player's own
 pick) gets `Classes.Chosen`, `chosen`; the shipped sheets colour its name and
 meter fill with the accent, and the mouse layouts outline its tile or card in
@@ -457,6 +477,11 @@ A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 * Sections are styled by `.lk .lk-content .lk-slot.section …`, which outweighs
   a view's ordinary-row rules. A view rule that must not reach a section
   qualifies by kind (`.kind-toggle`, `.kind-action`) or group.
+* Keep `.lk-body` flowing right. With it flowless and the rail aligned over a
+  full-width column, CS2 drew no rail at all though the browser preview did.
+  To run a band across the rail's top, let the column overflow
+  (`overflow: noclip squish`) and push the rail down with a margin, as
+  `admins-ban` does.
 * The `_icon` panel (`.lk-rarity`) is a full-size layer under every other part:
   draw a card's background, box or glow on it. Foot slots have none; use
   `.lk-shade` there.
@@ -480,11 +505,11 @@ A view is a block of rules in its plugin's `locker_<plugin>.vcss`:
 `menu_list.vxml` (Wasd, Buttons, Numbers) and `menu_list_mouse.vxml` (Mouse)
 are generated too, with `menu_list_skins.vxml`: the keyboard file plus
 `econ_stickers.vcss`, for WeaponSkins. `scripts/generate-list-layout.ps1`
-writes them, and their `_v2` files, from `ListProfiles.KeySlots`, `MouseSlots`
-and `Segments` and the row anatomy that `ListProfiles.Row` names part by part.
-As with the locker, a part one side draws and the other doesn't name either
-never fills or shows its placeholder, so rerun the generator after changing
-either.
+writes them, and their `_v2` files, from `ListProfiles.KeySlots`, `MouseSlots`,
+`Segments` and `FootSlots` and the row anatomy that `ListProfiles.Row` names
+part by part. As with the locker, a part one side draws and the other doesn't
+name either never fills or shows its placeholder, so rerun the generator after
+changing either.
 
 * The rows reuse the locker's part classes and load `locker.vcss` before
   `list.vcss`, so the list only places what the locker already styles. Those
@@ -538,8 +563,10 @@ draw in two palettes from one file.
 ### Checking a change
 
 `pwsh -File scripts/audit.ps1` checks what neither CS2 nor `resourcecompiler`
-reports. It then publishes the plugin as CI does and compiles the changed
-Panorama files. `-Quick` stops after the static checks, a few seconds. A pass
+reports. It then publishes the plugin as CI does, runs SoftDependencyCheck and
+`docs/verify-wiki.ps1`, and compiles the changed Panorama files. C# unchanged
+since the last full pass skips the publish and SoftDependencyCheck; `-Force`
+runs them. `-Quick` stops after the static checks, a few seconds. A pass
 writes `build/audit/receipt.json`.
 
 * **Sheets:** every property against `scripts/panorama-properties.txt`;
@@ -561,7 +588,7 @@ where the layout needs `›`. After a CS2 update, refresh the property list from
 
 ### Before publishing
 
-* **Orphans.** After each build the script lists any addon file that has no
+* **Orphans.** After its first pass the script lists any addon file that has no
   source in `resources/panorama`, typically from a renamed or deleted file.
   Delete those files from **both** trees, or they ship with the next publish.
   It also lists files in the client tree's `custom_game\customhud` folders that
@@ -624,8 +651,11 @@ parent left at the default `overflow: squish` shrinks the child back inside its
 padding; a `clip` or `scroll` parent lets it keep that width, so the child
 starts after the left padding and ends both paddings past the padded edge
 (measured in game: the Ranks road's count sat 40px past a list padded 20px each
-side). Give a padded scroll panel `overflow: squish scroll`, or put the padding
-on a panel inside it.
+side). Give a scroll panel's content a pixel width, or put the padding on a
+panel inside it: a padded `overflow: squish scroll` panel keeps a `width:
+100%` child inside its padding, but the locker's list built that way stopped
+scrolling and taking clicks once Start a vote's cards overflowed it (see
+[Scrolling grids](#scrolling-grids)).
 
 ### Why Panorama silently eats mistakes
 

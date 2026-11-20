@@ -241,8 +241,8 @@ public static class LockerProfiles
         return profile;
     }
 
-    // MixScrims. Every menu is its own root: the control page's submenus are tiles, so there
-    // is no sidebar to mirror them (it would auto-open the first). The ballots everyone gets
+    // MixScrims. No sidebar: the control page is its submenus' root, so a sidebar would auto-open
+    // the first of them in its place, and the page draws them as tiles. The ballots everyone gets
     // mid-round draw as a small panel docked at the side; its map vote is MapChooser's board,
     // with stock-map art but no marks, since a player name is map-shaped too (entry_king).
     public static MenuLayoutProfile Mix()

@@ -330,6 +330,7 @@
 .lk.view-shop-grid .lk-list .lk-hit,
 .lk.view-maps-board .lk-list .lk-hit,
 .lk.view-maps-pool .lk-list .lk-hit,
+.lk.view-maps-pool .lk-list .kind-text .lk-hit:hover,
 .lk.view-ranks-stats .lk-list .lk-hit,
 .lk.view-ranks-stats .lk-list .lk-hit:hover,
 .lk.view-ranks-weapons .lk-list .lk-hit,
@@ -358,6 +359,12 @@
 	border: 1px solid chudNavBase;
 	background-color: gradient( linear, 0% 0%, 0% 100%, from( chudStoreTileHover ), to( chudStoreTileBase ) );
 	box-shadow: fill chudNavSoft 0px 0px 10px 0px;
+}
+
+/* A read-only map (MixScrims' Map pool) still matches the maps' hover above: no glow for it. */
+.lk.view-maps-pool .lk-list .kind-text .lk-hit:hover
+{
+	box-shadow: none;
 }
 
 /* The player's own pick: a heavier edge. Plugin tiles name .lk-list so they outrank

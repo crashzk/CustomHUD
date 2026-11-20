@@ -451,6 +451,10 @@ internal sealed partial class AdminsIntegration(
     [GeneratedRegex(@"\[/?[a-zA-Z]+\]")]
     private static partial Regex ChatColor();
 
+    // Admins writes every expiry in this one format, whatever the viewer's language (Messenger.Timestamp).
+    [GeneratedRegex(@"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")]
+    private static partial Regex Stamp();
+
     // Admins' chat messages carry colour tags; a page shows their words.
     private static string Plain(string text) => Directive.Clean(ChatColor().Replace(text, string.Empty)).Trim();
 

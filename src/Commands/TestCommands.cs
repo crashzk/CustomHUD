@@ -6,7 +6,6 @@ using SwiftlyS2.Shared.Translation;
 namespace CustomHUD.Commands;
 
 // Sends through IPlayer.SendCenter / SendAlert, never HudSurface, so the capture hook sees what any plugin sends.
-// custom_hud is the permission the private CustomHUD's ch_test used.
 internal sealed class TestCommands(CustomHudConfigProvider config, HudTranslations strings)
 {
     [Command("ch_test", permission: "custom_hud", HelpText = "Send yourself a sample native HUD message: ch_test center | alert [text].")]

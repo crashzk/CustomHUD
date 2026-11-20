@@ -17,14 +17,14 @@ namespace CustomHUD.Config;
 // But SendMsg sets `bypassPostEventAbstractHook` around its send, and
 // PostEventAbstractHook -- the hook behind [ServerNetMessageHandler] -- checks
 // that flag. So the ordinary server hook sees NONE of SwiftlyS2's own HUD text.
-// The capture therefore uses [ServerNetMessageInternalHandler], which hooks
+// The capture therefore uses HookServerMessageInternal, which hooks
 // CServerSideClient::SendNetMessage further down the stack where no bypass
 // exists, and which hands us the target player as well.
 //
 // SendCenterHTML (MessageType 100) is NOT a TextMsg at all: it is buffered and
 // re-sent every tick as the `show_survival_respawn_status` game event inside
 // CMsgSource1LegacyGameEvent. It is deliberately out of scope here -- see
-// docs/PublicPort.md.
+// docs/Architecture.md.
 public sealed class MessageChoices
 {
     // dest = 4. The one most servers actually want.

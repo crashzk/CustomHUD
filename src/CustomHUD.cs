@@ -19,10 +19,10 @@ namespace CustomHUD;
 
 [PluginMetadata(
     Id = "CustomHUD",
-    Version = "2.0.0",
+    Version = "1.0.0",
     Name = "CustomHUD",
     Author = "Shmitzas",
-    Description = "CS2-themed Panorama renderer for the SwiftlyS2 menu framework. Consumer plugins need no code changes.")]
+    Description = "CS2-themed Panorama renderer for the SwiftlyS2 menu framework")]
 public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
 {
     private ServiceProvider? _services;
@@ -133,11 +133,9 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
             sp.GetRequiredService<HudSurface>(),
             sp.GetRequiredService<ILogger<NativeTextCapture>>()));
         collection.AddSingleton(sp => new NumbersNavCommands(
-            Core,
             sp.GetRequiredService<MenuInputBridge>(),
             sp.GetRequiredService<NavModeResolver>(),
-            sp.GetRequiredService<SteamIdCache>(),
-            sp.GetRequiredService<ILogger<NumbersNavCommands>>()));
+            sp.GetRequiredService<SteamIdCache>()));
         collection.AddSingleton<SettingsCommands>();
         collection.AddSingleton<TestCommands>();
 
@@ -193,7 +191,6 @@ public sealed class CustomHUD(ISwiftlyCore core) : BasePlugin(core)
         _retryTimer = Core.Scheduler.RepeatBySeconds(5f, entityHost.DrainRetries);
 
         var numbers = _services.GetRequiredService<NumbersNavCommands>();
-        numbers.RegisterAliases();
         Core.Registrator.Register(numbers);
         Core.Registrator.Register(_services.GetRequiredService<SettingsCommands>());
         Core.Registrator.Register(_services.GetRequiredService<TestCommands>());

@@ -89,10 +89,11 @@ internal sealed partial class AdminsIntegration
 
         if (!history || row.SteamId64 == 0) return;
         var lines = History(page, row.SteamId64);
+        // Not a section: in game a rail slot that had held one kept its left-to-right row as a later page's field.
         page.Add($"{T(page, "history")}\t{(lines is null ? T(page, "loading") : lines.Length.ToString(CultureInfo.InvariantCulture))}",
-            "at=detail;section;group=history");
+            "at=detail;group=history-head");
         foreach (var line in lines?.Take(HistoryShown) ?? [])
-            page.Add(HistoryText(page, line), HistoryPayload(page, line, "at=detail;"));
+            page.Add(HistoryText(page, line), HistoryPayload(page, line, "at=detail;group=history;"));
     }
 
     // ---- One player's pages: what can be done as cards and tiles, their sheet beside

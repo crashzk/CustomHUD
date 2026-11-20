@@ -12,7 +12,8 @@ public interface ICustomHudPanels
     // Profile names from the server's CustomHUD config ("versus", "ready", "timeout").
     IReadOnlyCollection<string> Profiles { get; }
 
-    // False only when the profile is unknown; the draw itself happens next tick.
+    // False before CustomHUD has loaded, or when the profile is unknown or has no
+    // File; the draw itself happens next tick.
     // Variables missing from the call keep their previous value. Non-null classes
     // replace the set applied by the previous Show; null leaves it.
     // durationSeconds: null = profile default, <= 0 = until hidden.

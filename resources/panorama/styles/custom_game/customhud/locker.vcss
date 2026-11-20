@@ -396,7 +396,7 @@
 }
 
 /* The box takes the pane's leftover height; the body is a plain 100% of it, for the reason
-   given at .lk-list. */
+   given at .lk-listbox. */
 .lk-detail__box
 {
 	width: 100%;
@@ -506,10 +506,8 @@
 	white-space: nowrap;
 }
 
-/* The list scrolls in game only inside a box of fixed height, as the WeaponSkins grid does: one that
-   fills the column's leftover height drew a scrollbar that neither the wheel nor the thumb moved.
-   576 is the page, 534 under the tabs; a band sharing the column falls back to filling it. Squish
-   keeps the 100%-wide items inside the padding, clear of the scrollbar in the gutter. */
+/* A box of fixed height, as round every grid seen scrolling in game: 576 is the page, 534 under the
+   tabs; a band sharing the column falls back to filling it. */
 .lk-listbox
 {
 	width: 100%;
@@ -532,20 +530,40 @@
 	height: fill-parent-flow( 1.0 );
 }
 
+/* Built as the WeaponSkins grids and the tile grid, which scroll and take clicks in game: no padding
+   or flow on the scroll panel, one items panel of a set width in it. */
 .lk-list
 {
 	width: 100%;
 	height: 100%;
-	padding-right: 14px;
-	flow-children: down;
-	overflow: squish scroll;
+	overflow: clip scroll;
 }
 
+/* The page less the scrollbar's 14px gutter and, when shown, the aside (250 + 16) and the detail pane
+   (14 + 332). The page is 896 beside the sidebar, 1106 without it and 1126 in v2:
+   882 + 14 = 896, 616 + 14 + 266 = 896, 536 + 14 + 346 = 896, 270 + 14 + 266 + 346 = 896,
+   1092 + 14 = 1106, 826 + 14 + 266 = 1106, 746 + 14 + 346 = 1106, 480 + 14 + 266 + 346 = 1106,
+   1112 + 14 = 1126, 846 + 14 + 266 = 1126, 766 + 14 + 346 = 1126, 500 + 14 + 266 + 346 = 1126.
+   A view with its own geometry sets its own as .lk.view-<name> .lk-list .lk-items in its plugin's
+   sheet, which loads later, so only the five-class row outweighs it; a view with no gutter lets its
+   items fill the list. The v2 rows are here because menu_locker_v2.vcss loads after those sheets. */
 .lk-items
 {
-	width: 100%;
+	width: 882px;
 	flow-children: right-wrap;
 }
+
+.lk.has-aside .lk-items { width: 616px; }
+.lk.has-detail .lk-items, .lk.has-detailbar .lk-items { width: 536px; }
+.has-aside.has-detail .lk-items, .has-aside.has-detailbar .lk-items { width: 270px; }
+.lk.no-sidebar .lk-items { width: 1092px; }
+.no-sidebar.has-aside .lk-items { width: 826px; }
+.no-sidebar.has-detail .lk-items, .no-sidebar.has-detailbar .lk-items { width: 746px; }
+.no-sidebar.has-aside.has-detail .lk-items, .no-sidebar.has-aside.has-detailbar .lk-items { width: 480px; }
+.lk2.no-sidebar .lk-items { width: 1112px; }
+.lk2.no-sidebar.has-aside .lk-items { width: 846px; }
+.lk2.no-sidebar.has-detail .lk-items, .lk2.no-sidebar.has-detailbar .lk-items { width: 766px; }
+.lk2.no-sidebar.has-aside.has-detail .lk-items, .lk2.no-sidebar.has-aside.has-detailbar .lk-items { width: 500px; }
 
 /* The renderer's scroll rewind (LayoutClasses.Rewind), on the shell for three ticks after a new
    list replaces the last: the content measures 1px and draws past it, so the scroll offset clamps
@@ -1683,8 +1701,7 @@
 .lk-inline,
 .lk-act,
 .lk-act.act-off:hover,
-.lk.view-vip-perks .lk-list .kind-submenu .lk-end,
-.lk.view-mix-captains .lk-banner .lk-note
+.lk.view-vip-perks .lk-list .kind-submenu .lk-end
 {
 	border: 1px solid chudSurfaceEdge;
 	border-radius: 3px;
@@ -1720,8 +1737,7 @@
 .lk.view-maps-board .tag-accent .lk-tag,
 .lk.view-maps-pool .tag-accent .lk-tag,
 .lk.view-maps-rows .tag-accent .lk-tag,
-.lk.view-vip-tiers .lk-banner .tag-accent .lk-tag,
-.lk.view-mix-sides .tag-accent .lk-tag
+.lk.view-vip-tiers .lk-banner .tag-accent .lk-tag
 {
 	border: 1px solid chudAccentBase;
 	background-color: chudAccentBase;

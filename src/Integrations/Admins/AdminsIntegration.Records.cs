@@ -296,12 +296,23 @@ internal sealed partial class AdminsIntegration
         var text = Plain(draft.Preview(length));
         if (text.Length == 0) return;
 
-        // A ban's message is several lines, which Admins joins with " · ": the first is the sentence.
-        var cut = text.IndexOf(" · ", StringComparison.Ordinal);
+        // Admins joins a ban's lines with " · "; a mute's, gag's or silence's chat line is one sentence, laid out like a ban's here.
+        var lines = draft.Kind == AdminPunishment.Ban ? text.Split(" · ") : CommsLines(page, draft, text, length);
         var who = draft.Target is { } target ? Directive.Clean(target.Name) : T(page, "they");
         var kind = KindKey(draft.Kind);
         var type = length == TimeSpan.Zero ? T(page, $"quote.{kind}.permanent", who) : T(page, "quote." + kind, who, Long(page, length));
-        page.Add(cut > 0 ? text[..cut] : text, $"group=quote;type={type}" + (cut > 0 ? ";sub=" + text[(cut + 3)..] : ""));
+        page.Add(lines[0], $"group=quote;type={type}" + (lines.Length > 1 ? ";sub=" + string.Join('\n', lines[1..]) : ""));
+    }
+
+    // The expiry is the one Admins wrote into the sentence, so it reads in Admins' time zone, as a ban's does.
+    private static string[] CommsLines(PageDraw page, IAdminDraft draft, string text, TimeSpan length)
+    {
+        var kind = KindKey(draft.Kind);
+        var reason = draft.TypedInChat.Contains(AdminFlowStep.Reason) ? "<reason>" : Plain(draft.Reason ?? string.Empty);
+        var expires = length == TimeSpan.Zero ? T(page, "quote.never") : Stamp().Match(text) is { Success: true } stamp ? stamp.Value : null;
+        string[] lines = [T(page, $"quote.{kind}.head"), T(page, "quote.reason", reason)];
+        var by = T(page, $"quote.{kind}.by", $"{Directive.Clean(page.Player.Name)} ({page.Player.SteamID})");
+        return expires is null ? [.. lines, by] : [.. lines, T(page, "quote.expires", expires), by];
     }
 
     private static void Rail(PageDraw page, IAdminDraft draft, IReadOnlyList<AdminFlowStep> steps, int current, bool kick, bool changing)

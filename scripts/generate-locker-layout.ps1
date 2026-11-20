@@ -157,11 +157,10 @@ function Page([int] $Depth) {
     Line ($Depth + 3) "<Panel id=""thead"" class=""lk-thead"" $n>"
     for ($i = 0; $i -lt $Head; $i++) { Line ($Depth + 4) "<Label class=""lk-col-head lk-col-head-$i"" text=""{s:col_$i}"" $n />" }
     Line ($Depth + 3) '</Panel>'
-    # The box takes the column's leftover height, so the scroll panel inside it is a plain 100%
-    # like the WeaponSkins grid; the items stay out of hit-testing so nothing lies over the scrollbar.
-    Line ($Depth + 3) "<Panel class=""lk-listbox"" $n>"
+    # Box and items keep their hittest, as on the grids seen scrolling and taking clicks in game.
+    Line ($Depth + 3) '<Panel class="lk-listbox">'
     Line ($Depth + 4) '<Panel id="options" class="lk-list chud-scroll">'
-    Line ($Depth + 5) "<Panel class=""lk-items"" $n>"
+    Line ($Depth + 5) '<Panel class="lk-items">'
     for ($i = 0; $i -lt $MainSlots; $i++) { Slot ($Depth + 6) 'option_' $i $MainParts }
     Line ($Depth + 5) '</Panel>'
     Line ($Depth + 4) '</Panel>'

@@ -27,7 +27,7 @@ internal sealed partial class MixScrimsIntegration
         if (order.Count > 0) page.AddHeader($"{made} / {order.Count}\t{T(page, "chip.picked")}", "chip;glyph=lobby");
 
         for (var k = 0; k < page.Components.Count; k++)
-            if (page.Components[k] is MenuComponentBase { Tag: int slot } && _core.PlayerManager.GetPlayer(slot) is { IsValid: true } player)
+            if (page.Components[k] is MenuComponentBase { Tag: int slot } && PlayerAt(slot) is { } player)
                 DrawPoolRow(page, k, player);
 
         if (page.Regions.Contains("strip") && order.Count > 0) DrawPickOrder(page, order, ct, t, made);
@@ -52,7 +52,7 @@ internal sealed partial class MixScrimsIntegration
             {
                 var picked = side == Team.CT ? ct.Count : t.Count;
                 page.Add($"{TeamName(side)}\t{picked}/{Size(order, side, picked)}",
-                    $"at=foot;glyph={Emblem(side)};tags={TeamTag(page, side)}");
+                    $"at=foot;glyph={Emblem(side)};tag={TeamTag(page, side)};tagtone={Tone(side)}");
             }
         }
     }
@@ -108,7 +108,7 @@ internal sealed partial class MixScrimsIntegration
             var roster = side == Team.CT ? ct : t;
             var number = (i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (i < made && (side == Team.CT ? matched.Ct : matched.T) && nth < roster.Count
-                && _core.PlayerManager.GetPlayer(roster[nth]) is { IsValid: true } picked)
+                && PlayerAt(roster[nth]) is { } picked)
                 page.Add(number, $"at=strip;tone={tone};avatar={Initial(picked.Name)}");
             else if (i == now)
                 page.Add(number, $"at=strip;tone={tone};note={T(page, "draft.now")};chosen");
@@ -136,7 +136,7 @@ internal sealed partial class MixScrimsIntegration
 
         for (var n = 0; n < roster.Count; n++)
         {
-            if (_core.PlayerManager.GetPlayer(roster[n]) is not { IsValid: true } player) continue;
+            if (PlayerAt(roster[n]) is not { } player) continue;
             var sub = roster[n] == captain ? T(page, "draft.captain") : matched && n - 1 < picks.Count ? T(page, "draft.pick_n", picks[n - 1]) : "";
             var payload = $"at={at};avatar" + (sub.Length > 0 ? ";sub=" + sub : "");
             if (player.SteamID == page.Player.SteamID && player.SteamID != 0) payload += ";unit=" + T(page, "you");
@@ -167,7 +167,7 @@ internal sealed partial class MixScrimsIntegration
         long sum = 0;
         foreach (var slot in roster)
         {
-            if (_core.PlayerManager.GetPlayer(slot) is not { IsValid: true } player || _ranks.RankOf(player.SteamID) is not { } rank || !Rated(rank))
+            if (PlayerAt(slot) is not { } player || _ranks.RankOf(player.SteamID) is not { } rank || !Rated(rank))
                 return null;
             sum += rank.Points;
         }

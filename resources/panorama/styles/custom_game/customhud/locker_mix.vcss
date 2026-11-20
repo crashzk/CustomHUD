@@ -1,7 +1,7 @@
 /*
 	MixScrims' views on menu_locker. Every MixScrims menu is its own root, so none has a
-	sidebar and a page spans the whole 1108px. Surfaces come from the Looks in
-	locker.vcss; this sheet only arranges.
+	sidebar and a page spans the shell's whole width: 1106px, 1126px in v2. Surfaces come
+	from the Looks in locker.vcss; this sheet only arranges.
 */
 
 /* ---- shared: "You" after a player's name ---- */
@@ -38,7 +38,7 @@
 
 /* ---- mix-captains: both captain slots over the players ---- */
 
-/* 2 x 547 + 14 = 1108. */
+/* The two cards share the line: 2 x 546 + 14 = 1106, 2 x 556 + 14 = 1126 in v2. */
 .lk.view-mix-captains .lk-banner
 {
 	margin-bottom: 14px;
@@ -107,18 +107,6 @@
 	horizontal-align: right;
 	vertical-align: top;
 	margin: 8px 10px 0px 0px;
-}
-
-/* The card's own action (Clear, Random), drawn as its button. */
-.lk.view-mix-captains .lk-banner .lk-note
-{
-	margin: 8px 20px 0px 0px;
-	padding: 9px 18px;
-	font-family: chudFontBody;
-	font-size: 12px;
-	font-weight: bold;
-	color: chudTextMain;
-	letter-spacing: 2px;
 }
 
 /* The table: avatar and name, then rating, K/D and headshots in columns. */
@@ -226,6 +214,17 @@
 
 /* ---- mix-draft: the pick order over the page, a team down each side, the pool between ---- */
 
+/* The pool between the rosters, less its gutter: 560 + 14 = 574, 580 + 14 = 594 in v2. */
+.lk.view-mix-draft .lk-list .lk-items
+{
+	width: 560px;
+}
+
+.lk.lk2.view-mix-draft .lk-list .lk-items
+{
+	width: 580px;
+}
+
 /* The pick order: its label, then a cell per pick. */
 .lk.view-mix-draft .lk-strip .lk-slot.section
 {
@@ -301,7 +300,7 @@
 	opacity: 1;
 }
 
-/* The rosters: 250 + 16 either side of the pool's 576. */
+/* The rosters: 250 + 16 either side of the pool, which takes the rest (574px, 594px in v2). */
 .lk.view-mix-draft .lk-detail
 {
 	width: 250px;
@@ -552,6 +551,11 @@
 
 /* ---- mix-sides: the knife round's winner, then a card for each side ---- */
 
+.lk.view-mix-sides .lk-list .lk-items
+{
+	width: 100%;
+}
+
 .lk.view-mix-sides .lk-banner
 {
 	margin-bottom: 14px;
@@ -606,22 +610,36 @@
 	margin: 0px 22px 0px 0px;
 }
 
-/* The two sides: 2 x 546 + 14 = 1106 of 1108. */
+/* The two sides at the page's edges, Stay on the left and Switch on the right in whatever order
+   MixScrims adds them (grp-stay, grp-switch); untagged rows keep theirs. Placed rather than flowed,
+   so neither can wrap below the other: 2 x 546 + 14 = 1106 in the first design, and v2's 1126px
+   page leaves 34px between them. */
 .lk.view-mix-sides .lk-list
 {
 	padding-right: 0px;
+}
+
+.lk.view-mix-sides .lk-items
+{
+	flow-children: none;
 }
 
 .lk.view-mix-sides .lk-list .lk-slot
 {
 	width: 546px;
 	height: 498px;
-	margin: 0px 0px 0px 14px;
+	margin: 0px;
 }
 
-.lk.view-mix-sides #option_0
+.lk.view-mix-sides #option_1,
+.lk.view-mix-sides #option_0.grp-switch
 {
-	margin-left: 0px;
+	horizontal-align: right;
+}
+
+.lk.view-mix-sides #option_1.grp-stay
+{
+	horizontal-align: left;
 }
 
 .lk.view-mix-sides .lk-list .lk-glyph
@@ -707,7 +725,7 @@
 	margin: 408px 0px 0px 0px;
 }
 
-/* Your vote, in the card's corner. */
+/* Leading, on the side ahead in the vote, in the card's corner. */
 .lk.view-mix-sides .lk-list .lk-tags
 {
 	horizontal-align: right;
@@ -819,8 +837,9 @@
 	overflow: noclip noclip;
 }
 
-.lk.view-mix-ballot .lk-items
+.lk.view-mix-ballot .lk-list .lk-items
 {
+	width: 100%;
 	flow-children: right;
 }
 
@@ -1096,6 +1115,11 @@
 .lk.view-mix-control .lk-list
 {
 	padding-right: 0px;
+}
+
+.lk.view-mix-control .lk-list .lk-items
+{
+	width: 100%;
 }
 
 /* The steps: a circle each, joined by a line, the done ones ticked. The line hangs

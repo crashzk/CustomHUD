@@ -44,7 +44,7 @@ public sealed class CustomHudConfig
     public PanelChoices Panels { get; set; } = new();
 
     // Off by default -- prod servers stay quiet.
-    [Description("Log every menu frame drawn and every message captured.")]
+    [Description("Log every menu frame drawn, every message captured and every mouse click.")]
     public bool DetailedLogging { get; set; } = false;
 
     // Id this plugin registers its renderer under, and the value server owners
@@ -502,7 +502,7 @@ public sealed class MenuCardProfile
     public string AsideSuffix { get; set; } = "_aside";
     public string SegmentSuffix { get; set; } = "_seg";
     public int Segments { get; set; } = 51;
-    // `{0}` = input | toggle | slider | choice | action | text.
+    // `{0}` = input | toggle | slider | choice | selector | progress | action | text.
     public string KindClass { get; set; } = "kind-{0}";
     public string AsideClass { get; set; } = "aside-{0}";
     public string OnClass { get; set; } = "is-on";

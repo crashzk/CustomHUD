@@ -1,8 +1,8 @@
 # Configuration
 
 Advanced settings for server owners. Nothing here is required: the defaults are
-tuned for the best overall experience, and installation is covered in the
-[README](../README.md#installation).
+tuned for the best overall experience, and installation is covered in the wiki's
+[Installation](https://github.com/shmitzas/CustomHUD/wiki/Installation) page.
 
 ## Files
 
@@ -45,7 +45,7 @@ Written into `config.jsonc`:
 | `Menus.<Plugin>.Mouse`, `.Keyboard` | string | `menu_locker_v2`, `menu_list_v2`; WeaponSkins `menu_skins_mouse_v2`, `menu_list_skins_v2`; `Other` `menu_list_mouse_v2`, `menu_list_v2` | Layout per plugin and mode, by file name without `.vxml_c`; `_v2` is CS2's store look, the rest the first designs. See [Layout Resolution](#layout-resolution) |
 | `Messages.Center`, `Alert`, `Notify` | string | `"game"` | Native HUD text capture, see [Native Text Capture](#native-text-capture) |
 | `Panels.Versus`, `Ready`, `Timeout` | string | `panel_versus`, `panel_ready`, `panel_timeout` | Layout per panel for `CustomHUD.Panels.v1`, see [Panels](#panels) |
-| `DetailedLogging` | bool | `false` | Log every compose, diff, apply and input decision with a `[CustomHUD]` prefix |
+| `DetailedLogging` | bool | `false` | Log every frame drawn, with its menu id, layout and the time its build, compose, diff and write took, every captured message, and every mouse click with the branch it took or why it was dropped (`click … -> …`), with a `[CustomHUD]` prefix |
 
 Read when added by hand, never written (`[JsonIgnore]`):
 
@@ -81,14 +81,16 @@ These act only for players in `numbers` mode, on menus CustomHUD draws.
 
 | Command | Aliases | Permission | Description |
 |---------|---------|------------|-------------|
-| `!1` … `!6` | `css_1`…`css_6`, `ms_1`…`ms_6` | None | Select that choice on the current page |
-| `!7` | `css_7`, `ms_7` | None | Previous page |
-| `!8` | `css_8`, `ms_8` | None | Next page |
-| `!9` | `css_9`, `ms_9` | None | Close the menu |
+| `!1` … `!6` | - | None | Select that choice on the current page |
+| `!7` | - | None | Previous page |
+| `!8` | - | None | Next page |
+| `!9` | - | None | Close the menu |
 
-Players bind their number keys to the console names, e.g.
-`bind 1 "slot1; sw_1"`. Binds already pointing at `css_N` or `ms_N` from a
-CounterStrikeSharp or MatchZy server keep working.
+`!setnav numbers` prints one line to the player's console that binds keys 1–9
+when pasted back into it:
+`bind 1 "slot1; css_1; ms_1; sw_1"; …; bind 9 "slot9; css_9; ms_9; sw_9"`.
+Each key keeps its weapon slot, and its `css_N` and `ms_N` make the same binds
+work on CounterStrikeSharp and ModSharp servers; CustomHUD registers neither.
 
 ### Admin Commands
 
@@ -104,7 +106,7 @@ CounterStrikeSharp or MatchZy server keep working.
 | `wasd` | W / S move, A / D change a value, E select, R or Tab close | CustomHUD |
 | `buttons` | Whatever `menus.jsonc` binds (default Shift / F / E / Tab) | Core |
 | `numbers` | `1`-`6` select, `7` / `8` page, `9` close; A / D change the slider or selector picked last | CustomHUD |
-| `mouse` | Click. Footer `<` back, `×` close, `‹` / `›` page (only with more than one page); sliders and selectors step with their own `‹` `›` | CustomHUD |
+| `mouse` | Click. `<` back, `×` close, `‹` / `›` page (only with more than one page); sliders and selectors step with their own `‹` `›` | CustomHUD |
 
 - `buttons` is core's own name for keyboard input, the word `menus.jsonc` uses
   for `"InputMethod"`. Its keys are bound there, not in CustomHUD.
@@ -132,8 +134,8 @@ CounterStrikeSharp or MatchZy server keep working.
   has nowhere to go.
 - A menu whose plugin unbound Close (as MixScrims' picks do) has no way out in
   any mode: no `×`, no `<`, and R, Tab and `9` do nothing.
-- Mouse and numbers input plays no menu sounds; see
-  [Known Limitations](PluginIntegration.md#known-limitations).
+- Mouse and numbers input plays no menu sounds, nor do W, S and R in `wasd`
+  mode; see [Known Limitations](PluginIntegration.md#known-limitations).
 
 ## Pages
 
@@ -150,7 +152,7 @@ than the smallest of:
 
 Moving past a page's last row opens the next page, past the first row the
 previous one; both ends wrap. The footer shows the page (`2/5`, with a dot per
-page) while there is more than one.
+page up to eight) while there is more than one.
 
 Core itself scrolls a window one row at a time; CustomHUD cuts fixed pages from
 the top. **Chat-input menus** are the exception: core resolves `!N` against its
@@ -267,8 +269,9 @@ while the page has no spot.
 | `Spot.ShownClass`, `HasSubClass`, `HasNoteClass` | string | `has-spot`, `has-sub`, `has-note` | On the shell while a spot is drawn; on the spotlight with a `sub=` or a `note=` |
 | `Spot.LinkButton`, `LinkVar` | string | `spot_link`, `spot_link` | The Button a `link=` draws, and its label; hidden without one. Clicking it opens that root entry, then picks the entry its `pick` names there; Back from the page reached returns to the spotlight's page. Empty for a layout without the button |
 
-Every field, with a comment on each, is in
-[`src/Config/CustomHudConfig.cs`](../src/Config/CustomHudConfig.cs).
+Every field is in
+[`src/Config/CustomHudConfig.cs`](../src/Config/CustomHudConfig.cs), and `Page`'s in
+[`src/Config/MenuPageProfile.cs`](../src/Config/MenuPageProfile.cs).
 
 ## Hints
 
@@ -279,7 +282,7 @@ hides it. Without an entry, hints come from the player's translation file
 | Key | Shown on |
 |-----|----------|
 | `wasd`, `buttons`, `numbers`, `mouse` | Menus in that navigation mode |
-| `chat` | Menus whose input method is chat |
+| `chat` | Menus whose input method is chat, for `buttons` players |
 | `<key>.view` | The same, on menus with nothing to select (a vote tally kept open after voting) |
 
 `{up}`, `{down}`, `{select}` and `{close}` expand to the menu's keymap. In Mouse
@@ -348,14 +351,16 @@ Each `MessageLayouts` entry:
 
 > [!NOTE]
 > `SendCenterHTML` is not covered. It is not a `TextMsg`: it is buffered and
-> re-sent every tick as a game event, and the same buffer carries legacy
-> `Core.MenusAPI` menu text. See [PublicPort.md](PublicPort.md) §6.
+> re-sent every tick as a game event, and the same event carries the
+> centre-HTML menus of the legacy `Core.MenusAPI` and of `Core.Menu`'s own
+> `centerhtml` renderer. See [Architecture.md](Architecture.md) §6.
 
 ## Translations
 
 Everything CustomHUD says to players comes from
-`resources/translations/<language>.jsonc`, shipped in English (`en`) and
-Lithuanian (`lt`). SwiftlyS2 picks the language - the player's game language
+`resources/translations/<language>.jsonc`, shipped in English (`en`),
+Lithuanian (`lt`) and, for about half the lines, Brazilian Portuguese (`pt-BR`).
+SwiftlyS2 picks the language - the player's game language
 while `core.UsePlayerLanguage` is on (its default), otherwise `core.Language` -
 and falls back to `en` for a missing file or key.
 
@@ -366,7 +371,7 @@ and falls back to `en` for a missing file or key.
 | `customhud.hint.<key>` | Footer hints, one per [Hints](#hints) key |
 | `customhud.legend.<verb>` | Words in the list's key legend (`move`, `select`, `pick`, `page`, ...) |
 | `customhud.eyebrow.<plugin>` | Plugin names over a page's title; see [Eyebrows](#eyebrows) |
-| `customhud.lead`, `customhud.maps.*`, `customhud.ranks.*`, `customhud.shop.*`, `customhud.vip.*`, `customhud.weaponskins.*`, `customhud.weaponstats.*`, `customhud.prestige.*` | Text on the designed plugin pages |
+| `customhud.lead`, `customhud.maps.*`, `customhud.ranks.*`, `customhud.shop.*`, `customhud.vip.*`, `customhud.admins.*`, `customhud.mix.*`, `customhud.weaponskins.*`, `customhud.weaponstats.*`, `customhud.prestige.*` | Text on the designed plugin pages |
 
 To add a language, copy `en.jsonc` to `<code>.jsonc`. Chat replies take
 SwiftlyS2 colour tags (`[green]`, `[default]`); hints and `!ch_test`'s samples
@@ -375,12 +380,12 @@ input row's "type in chat" prompt, come from SwiftlyS2's translation files.
 
 ### Eyebrows
 
-A submenu's eyebrow, the gold line over its title, is its root menu's title. A
+A submenu's eyebrow, the line over its title, is its root menu's title. A
 menu that is its own root takes the first of these that exists:
 
 1. `customhud.eyebrow.<plugin>`, where `<plugin>` is the first part of the
-   menu's id: `missions` for `missions.main`. `DetailedLogging` logs each id as
-   `applied … menu=…`.
+   menu's id: `weaponskins` for `weaponskins.main`. `DetailedLogging` logs
+   each id as `applied … menu=…`.
 2. The eyebrow of a plugin CustomHUD has pages for (`shop`, `maps`, `ranks`,
    `vip`, `admins`, `mix`).
 3. `customhud.eyebrow.default`, for every other plugin.
@@ -393,16 +398,17 @@ your keys back into the new `en.jsonc`.
 
 ```jsonc
 "customhud.eyebrow.default": "My Server",
-"customhud.eyebrow.missions": "Missions",
-"customhud.eyebrow.k4arenas": ""
+"customhud.eyebrow.weaponskins": "Skins",
+"customhud.eyebrow.prestige": ""
 ```
 
 ## Theming
 
 Every colour the shipped layouts draw comes from `customhud_tokens.vcss`, one
-ladder per hue, so editing the accent's ladder re-themes every menu, page and
-panel. Layouts are client-side: rebuild and publish the Workshop addon after a
-change, or players keep the old look. See
+ladder per hue, so editing the accent's ladder re-themes the layouts without
+`_v2` in their name. The `_v2` layouts draw in CS2's store colours, copied from
+the game and never themed. Layouts are client-side: rebuild and publish the
+Workshop addon after a change, or players keep the old look. See
 [DesignLanguage.md](DesignLanguage.md#tokens) and
 [PanoramaAuthoring.md](PanoramaAuthoring.md).
 
@@ -472,7 +478,7 @@ That is why the file holds names, and the layouts they stand for live in code.
 | Panel visible but empty, or text in the wrong places | Panel ids, dialog variables or `Row` patterns do not match the layout | Fix the names in your layout's profile; inspect the panel with the F6 Panorama debugger |
 | A plugin's pages draw as plain rows | The plugin is missing, older than [the table](PluginIntegration.md#provider-integrations) needs, or publishes another contract | Read the `[CustomHUD]` log line naming it; update the plugin and CustomHUD together |
 | Navigation mode or scale is forgotten | No Cookies plugin (preferences last until a restart), Cookies added after startup, or a LAN server with SteamID 0 | Install Cookies and restart the server: plugin exports are discovered at startup |
-| Number keys do nothing | The player is not in `numbers` mode, or the keys are not bound | `!setnav numbers`, then bind keys to `sw_1`…`sw_9` |
+| Number keys do nothing | The player is not in `numbers` mode, or the keys are not bound | `!setnav numbers`, then paste the bind line it prints into the console |
 | Log warns `<key> reached the menu router…` | Core acted on a key despite CustomHUD's mask: closed the menu, moved its cursor or activated a row | [Report it](https://github.com/shmitzas/CustomHUD/issues/new?template=bug-report.yml) with your SwiftlyS2 version |
 | A menu has no way out | The plugin unbound Close | Expected: the plugin requires a choice |
 

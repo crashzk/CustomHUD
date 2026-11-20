@@ -109,7 +109,7 @@ presentation, with these deliberate exceptions:
 
 - CenterHTML and chat draw a divider as a row of `─`. A divider meant only for
   the sidebar should override `IsVisible` to return `true` only when
-  `session.Menu.Renderer.Id` is `customhud.panorama`, as WeaponSkins' does.
+  `session.Menu.Renderer.Id` is `customhud.panorama`.
 - Sidebar entries with player-dependent text, enabled or visibility providers
   stay in the normal body only.
 - A component that turned fitting off (`Overflow = None`, or a `MaxWidth` below
@@ -126,10 +126,10 @@ design for that kind of page:
 | Plugin | Menu ids | Views |
 |--------|----------|-------|
 | ShopCore | `shopcore.*` | `shop-categories` (a category as a tile), `shop-grid` (storefront cards), `shop-list` (a price list), `shop-product`, `shop-inventory` |
-| MapChooser | `mapchooser.*` | `maps-board` (vote cards), `maps-rows` (poll rows), `maps-pool`, `maps-rtv`, `maps-cycle` (the map cycle, each map's moves on its row) |
+| MapChooser | `mapchooser.*` | `maps-board` (vote cards), `maps-rows` (poll rows), `maps-pool`, `maps-rtv` (no MapChooser menu opens it yet), `maps-cycle` (the map cycle, each map's moves on its row) |
 | Ranks and its modules | `ranks.*`, `weaponstats.*`, `customcombos.*`, `prestige.*` | `ranks-rank`, `ranks-stats`, `ranks-weapons`, `ranks-board`, `ranks-settings` |
 | VIPCore | `vipcore.*` | `vip-perks`, `vip-options`, `vip-guns`, `vip-users`, `vip-grant`, `vip-tiers` (no VIPCore menu opens it yet) |
-| Admins | `admins.*` | `admins-players`, `admins-player` (one player's actions), `admins-ban` (a punishment's steps), `admins-bans` (bans and comms), `admins-record`, `admins-votes`, `admins-staff`; the ballot (`admins.vote`) as `mix-ballot`, MapChooser's `maps-board` for a map vote, or the list |
+| Admins | `admins.*` | `admins-players`, `admins-player` (one player's actions), `admins-ban` (a punishment's steps), `admins-bans` (bans and comms), `admins-record`, `admins-votes` and `admins-staff` (no Admins menu opens these two yet); the ballot (`admins.vote`) as `mix-ballot`, MapChooser's `maps-board` for a map vote, or the list |
 | MixScrims | `mixscrims.*` | `mix-captains`, `mix-draft` (the team pick), `mix-sides` (the knife round's side), `mix-ballot` (timeout, surrender and kick votes, docked at the side), `mix-control` |
 
 - An id no rule names gets `list`, the plain list. `PageViews` picks another by
@@ -140,13 +140,14 @@ design for that kind of page:
   "PageViews": { "mapchooser.eof-vote*": "maps-rows", "shopcore.buy.items": "shop-list" }
   ```
 
-- Admins' ballot opens with no root, so it has no sidebar; the integration
-  picks its view from the vote (see Provider Integrations).
-- MixScrims' menus are all their own root, so none has a sidebar; its map vote
-  is MapChooser's `maps-board`. Its team pick and side choice unbind Close, so
+- Admins' ballot has no sidebar, even when it opens over an admin's open menu;
+  the integration picks its view from the vote (see Provider Integrations).
+- No MixScrims menu has a sidebar, the `!mix` panel's submenus included; its
+  map vote is MapChooser's `maps-board`, four cards to a line across the wider
+  page (`variant=wide`). Its team pick and side choice unbind Close, so
   CustomHUD hides `×` and `<`. The `!mix` panel's map submenus
   (`mixscrims.change-map`, `mixscrims.map-pool`) draw as MapChooser's
-  `maps-pool` cards.
+  `maps-pool` cards, five to a line.
 - Ranks' modules open as tabs under its Statistics but keep ids of their own:
   `weaponstats.weapons` draws as `ranks-weapons`, and the modules' other pages
   and another player's statistics (`ranks.top.player`) as `ranks-stats`. The
@@ -206,9 +207,9 @@ WeaponSkins keeps using ordinary `Core.Menu`.
   tiles. An older WeaponSkins keeps one grid of every gun.
 - The weapon, knife and glove properties pages draw as an inspect card: the
   item's picture, rarity and name, then one field per entry (name tag, wear,
-  seed, StatTrak™, Souvenir, Stickers, Charms; gloves take only the wear). A
+  seed, StatTrak™, Souvenir, Stickers, Keychains; gloves take only the wear). A
   click on the wear bar sets wear in 0.02 steps. In the default locker a
-  weapon's Stickers and Charms are headings over their slots, drawn as tiles,
+  weapon's Stickers and Keychains are headings over their slots, drawn as tiles,
   each the picture of what is on it; a tile opens that slot's page, as the
   slot list would. Keyboard modes keep their list.
 - In the keyboard modes WeaponSkins' menus draw in `menu_list_skins_v2`
@@ -230,12 +231,12 @@ plugin built. Any other custom renderer can read the same API.
 | Ranks_WeaponStats | `Ranks.WeaponStats.Api.v1` | any | `weaponstats.*` | Weapon cards with the game's renders and their meters, hit groups as tiles |
 | Ranks_CustomCombos | `Ranks.CustomCombos.Api.v1` | 1.0.2 | `customcombos.*` | Each landed combo as a tile |
 | Ranks_Prestige | `Ranks.Prestige.Api.v1` | 1.0.1 | `prestige.*` | The level and the next-level meter as tiles |
-| WeaponSkins | `WeaponSkins.API` | A build whose API has `Agents`, `MusicKits`, `GetImageKey` | `weaponskins.*` | Item art, captions and the equipped mark, each category by the player's own finish with its counts, and the finish a weapon wears (or the agent worn) as a spotlight with a way to its properties |
+| WeaponSkins | `WeaponSkins.API` | 0.7.0 (`Agents`, `MusicKits`, `GetImageKey`, `TryGetMusicKit`) | `weaponskins.*` | Item art, captions and the equipped mark, each category by the player's own finish with its counts, and the finish a weapon wears (or the agent worn) as a spotlight with a way to its properties |
 | ShopCore | `ShopCore.API.v2` | 1.1.9 | `shopcore.*` | Prices in a value column, item art, and owned, equipped or unaffordable state |
 | MapChooser | `MapChooser.Api.v1` | 1.6.0 (contract 1.2.0) | `mapchooser.*` | The vote as cards or poll rows with each option's share, the vote's clock and turnout, the map menu as the sidebar, the pool with player limits, nominations and why a map can't be nominated, and the map cycle with each map's place and its moves on its row |
 | VIPCore | `VIPCore.Api.v1` | 1.2.0 (contract 1.1.0) | `vipcore.*` | The membership over its perk cards, choices as cards, admin pages as a table beside the selected player's grants |
 | Admins | `Admins.Menu.V2`, with `Admins.Admins.V2`, `Admins.Groups.V2`, `Admins.Bans.V2`, `Admins.Comms.V2` | 2.0.0 | `admins.*` | The players as a roster beside the selected player's sheet, a player's actions as cards and tiles, a punishment's steps over chips with the punishment as it stands and the message the player will read, bans and comms as a table beside the selected record, and the vote ballot |
-| MixScrims | `MixScrims.API` | 1.13.0 (contract 2.10.0) | `mixscrims.map-vote`, `team-pick`, `captain-pick`, `knife-side-pick`, `timeout-vote`, `surrender-vote`, `vote-kick`, `control`, `change-map`, `map-pool` | The map vote as MapChooser's board, the captain picker with both captain slots as cards, the team draft with its pick order, both rosters and the pick clock, the knife round's side choice, the ballots with who called them, the `!mix` panel as the match's road beside its switches, and its map submenus as MapChooser's pool cards |
+| MixScrims | `MixScrims.API` | 1.13.0 (contract 2.10.0) | `mixscrims.map-vote`, `team-pick`, `captain-pick`, `knife-side-pick`, `timeout-vote`, `surrender-vote`, `vote-kick`, `control`, `change-map`, `map-pool` | The map vote as MapChooser's board, the captain picker with both captain slots as cards, the team draft with its pick order, both rosters and the pick clock, the knife round's side choice, the ballots with who called them, the `!mix` panel as the match's road beside its switches (from contract 2.11.0 without a knife round the match skips), and its map submenus as MapChooser's pool cards |
 
 - **MixScrims:** every figure comes from `IMixScrims`, and every row from what
   MixScrims tags it with (a `MapPoolEntry`, a player's slot, a `Team`, Stay or
@@ -243,12 +244,14 @@ plugin built. Any other custom renderer can read the same API.
   gets each map's share, votes and art as MapChooser's does. The captain picker
   (`mix-captains`) draws its two slot rows as banner cards with the captain
   holding each and `Picking` on the side being filled, and each player with
-  their K/D, a `Not ready` tag while players ready up, and with Ranks their CS
-  Rating badge and headshot rate; its table head is added only where the slots
-  are banner cards, so the keyboard list keeps all its rows. The team pick
-  (`mix-draft`) draws the pick order as a strip (who was picked, `Now`, the
-  side still to pick), CT's roster beside the pool and T's opposite, each with
-  its captain, picks and open picks, a `Your pick` card with the pick clock
+  their K/D, a `Not ready` tag while players ready up, and with Ranks their
+  headshot rate and, in Premier mode, their CS Rating badge; its table head is
+  added only where the slots are banner cards, so the keyboard list keeps all
+  its rows, and names only the columns some player's row fills. The team pick
+  (`mix-draft`) draws the pick order as a strip (who
+  was picked, `Now`, the side still to pick), CT's roster beside the pool and
+  T's opposite, each with its captain, picks and open picks, a `Your pick`
+  card with the pick clock
   and the pool's figures as on the captain picker. The picks made are
   `GetPickOrder()` less the tail MixScrims projects after them: none while
   `GetActivePickingTeam()` is null, otherwise the smaller of
@@ -262,7 +265,9 @@ plugin built. Any other custom renderer can read the same API.
   `!mix` panel (`mix-control`) draws MixScrims' status line as a chip, its rows
   as tiles under Flow, Players and Map, and the match's phases down the page:
   done, current with the ready count, the map vote's votes, the pick or the
-  score, or still to come. Its Change map and Map pool submenus
+  score, or still to come. A knife round the match skips
+  (`GetKnifeRoundEnabled()`, contract 2.11.0) is left off; a MixScrims on
+  contract 2.10.0 always shows it. Its Change map and Map pool submenus
   (`maps-pool`) draw each `MapPoolEntry` row as a card with its name, its id
   under it where that differs, its Stock, Custom or Workshop badge and its art.
   Without Ranks the rating and headshot figures are left out and K/D is this
@@ -275,9 +280,9 @@ plugin built. Any other custom renderer can read the same API.
   limits, its nominations (`Nominated`, `Your pick`) and why it can't be
   nominated now (`Played recently`, `Needs 10 players`), under a chip with the
   map's time left. Every map carries its kind as a badge under its name
-  (`Stock map`, or `Workshop map` in blue), on every page and in the list. A
-  stock map shows its screenshot and logo, another map its prefix over stripes
-  in that prefix's tone.
+  (`Stock map`, `Custom map`, or `Workshop map` in blue), on every page and in
+  the list. A stock map shows its screenshot and logo, another map its prefix
+  over stripes in that prefix's tone.
   Start a vote shows the pool the same way: a ticked map is outlined and
   glows, and the start button is an action card whose line is its hint, which
   MapChooser words (what it does, or why no vote can start now).
@@ -289,17 +294,23 @@ plugin built. Any other custom renderer can read the same API.
   (`MapChooserCycleActions`): Move Up, Move Down and Remove, which asks first.
   That question (`MapChooserMenuIds.CycleRemove`) shows the map it is about, read
   from the row that opened it, over its Yes in red.
-- **ShopCore:** prices go out as `text=\t500`, so other renderers still read
-  `Neon Tracer [500]` and a long name never truncates its price. An item's
+- **ShopCore:** each item row is drawn as its name, a tab and its price, so the
+  price sits in the value column and a long name never truncates it; other
+  renderers still read ShopCore's own `Neon Tracer [500]`. An item's
   picture is its `ShopItemDefinition.ImageKey`; any other item shows its
   category's icon from `Sidebar.Icons`.
   A category or subcategory page (`shop-categories`) reads each row's items
   from its `Tag` (ShopCore 1.2.0+): the tile shows the art of the item you
-  have on, else the dearest with art, else the category's icon; on Buy the
+  have on, else the dearest with art, else the game's render for a stock
+  category whose items have none (Kill Screens a healthshot, Smoke Colors a
+  smoke grenade, Hit Sounds a music kit), else the category's icon; on Buy the
   cheapest item left to buy (red when you can't afford it) or `All owned`,
   and a meter of how much of what can be owned you own; in Inventory what
-  runs out first. An older ShopCore's rows carry only the count in their
-  label, which the tiles fall back to.
+  runs out first. An agent's render stands on the tile's foot; any other
+  carries `group=object` and sits in the tile's light, as an icon does. The
+  renders by name and `group=object` are for the mouse tiles only: the
+  keyboard list shows a row's item art or its icon. An older ShopCore's rows
+  carry only the count in their label, which the tiles fall back to.
 - **Admins:** every row's `Tag` is an `Admins.Contract` record (a player, a
   record, an action, a step's choice) and each page's `IMenu.Tag` its subject:
   the player, the record, the record list, the punishment draft, or the
@@ -321,9 +332,9 @@ What a page needs in order to be recognised is renderer-agnostic:
   a map's pool entry, the live vote counts.
 
 A plugin that is missing, older than the table says, or publishes another
-contract under the same key is skipped with one log line, and its menus draw as
-plain rows. A draw that throws falls back to the plugin's own rows for that page
-and logs once.
+contract under the same key is skipped, and its menus draw as plain rows; the
+last two log one line. A draw that throws falls back to the plugin's own rows
+for that page and logs once.
 
 CustomHUD compiles against each plugin's contract DLL in `lib/`
 (`Private=false`, never shipped); `scripts/update-contracts.ps1` rebuilds and
@@ -349,7 +360,7 @@ A page is built from the same components as any other menu. These directives, in
 a `MenuRawNode("customhud.panorama", "…")` on the entry, place it and say what
 it is; other renderers ignore them. Directives are separated by `;`, so a text
 value runs to the next one. A value that becomes part of a class name (`at=`,
-`view=`, `variant=`, `group=`, the tones, `glyph=`, `tagglyph=`, `swatch=`, an `act=`'s icon) must be a plain token: up to
+`view=`, `variant=`, `group=`, the tones, `glyph=`, `vglyph=`, `tagglyph=`, `swatch=`, an `act=`'s icon) must be a plain token: up to
 24 lowercase letters, digits and `-`.
 
 **Placement:**
@@ -362,7 +373,7 @@ value runs to the next one. A value that becomes part of a class name (`at=`,
 | `section` | A heading across the page that also starts a new line of cards; the text after a tab shows beside it (`Perks\t8 of 10 on`) |
 | `group=<token>` | Adds `grp-<token>` to the entry. On a `section`, every entry after it carries the group up to the next section, and the section itself does not |
 | `view=<token>` | On any entry, the first one wins: draw the page as that view |
-| `variant=<token>` | On any entry, header included: the shell also carries `variant-<token>`, a variant of its view that the view's stylesheet defines. `vip-grant` has two, which CustomHUD's VIPCore page asks for: `compact` group cards past six groups, and `scroll`, a form of fixed height, past nine. Mouse pages only |
+| `variant=<token>` | On any entry, header included: the shell also carries `variant-<token>`, a variant of its view that the view's stylesheet defines. `vip-grant` has two, which CustomHUD's VIPCore page asks for: `compact` group cards past six groups, and `scroll`, a form of fixed height, past nine. `maps-board` and `maps-pool` have `wide`, for a page with no sidebar, which CustomHUD's MixScrims pages ask for. Mouse pages only |
 | `inline` | Joins the entry straight before it as a second button on its slot, such as a Sell beside an owned item; in the list, `detail` and `foot` |
 | `fold` | The entry takes no slot on a mouse page, because another entry draws what it says (a hero card showing the lines it sums up). Keyboard pages still draw it, and the cursor still counts it |
 
@@ -383,7 +394,7 @@ value runs to the next one. A value that becomes part of a class name (`at=`,
 | `pips=K/N` | N pips, K of them lit; N up to 20 |
 | `nays=M` | With `pips=`, M more lit after the K as no votes, in red |
 | `bar2=N` | A second meter, 0-100, in the list |
-| `lead` | The leading entry: a gold `Leading` tag unless it has a tag of its own. On MapChooser's pages the single highest `bar=` leads without it, and on MapChooser's and MixScrims' pages the tag carries a trophy |
+| `lead` | The leading entry: a gold `Leading` tag unless it has a tag of its own. On MapChooser's and MixScrims' pages and Admins' ballot the single highest `bar=` leads without it, and the tag carries a trophy |
 | `map` | Reads a text entry's label as a map, for its art |
 | `hint` | On a header entry: its text is the page's footer line for a mouse player (`Click a map to vote`), in place of the mode's hint. Keyboard pages keep their keys |
 | `live=<menu id>` | On a header entry with no text: the sidebar entry whose `SubmenuComponent.Id` is that id gets a red dot, for a page with something running on it (MapChooser's vote) |
@@ -505,13 +516,14 @@ them:
 | `slot=<pick>\|<image>\|<name>` | A row that opens a page, once per slot | A tile under the field, in a layout with `Card.SlotTiles` (the default WeaponSkins locker's six): `image=` art for what is on the slot and `name` shown over it on hover; both empty for an empty slot. A click opens the row's page, then picks the entry there whose item or `Tag` reads as `<pick>`; an empty pick stops at the page itself |
 
 Every other row becomes a field, up to `Card.Slots` (8 in the locker). Value
-components need nothing more: CustomHUD marks each one with its kind, on/off
-state, slider position and formatted number (`kind=`, `on=`, `pct=`, `num=`),
-which a custom component may also send itself. A click on a field activates its
+components need nothing more: CustomHUD marks every one with its kind
+(`kind=`), a toggle with its on/off state (`on=`) and a slider with its
+position and formatted number (`pct=`, `num=`), which a custom component may
+also send itself. A click on a field activates its
 row; the bar under a field is 51 targets, each setting `n / 50` of the slider's
 range snapped to its `Step`. Other layouts ignore all of this and list the rows
 as usual. WeaponSkins' Stickers row carries its six slots this way, each
-picking the slot whose row is tagged with that number, and its Charms row one,
+picking the slot whose row is tagged with that number, and its Keychains row one,
 which opens the charm page itself.
 
 Append the raw node into the component's own line instead of wrapping it,
@@ -538,8 +550,8 @@ resolves.
 
 | Member | Description |
 |--------|-------------|
-| `Profiles` | Profile names from the server's config (`versus`, `ready`, `timeout`) |
-| `Show(playerId, profile, variables, classes?, durationSeconds?)` | Draws or updates a panel on the next tick. Variables missing from the call keep their value; non-null `classes` replace the previous set. `durationSeconds`: `null` = the profile's default, `<= 0` = until hidden. Returns `false` only for an unknown profile |
+| `Profiles` | Profile names: `versus`, `ready`, `timeout`, and any the server's `PanelLayouts` adds |
+| `Show(playerId, profile, variables, classes?, durationSeconds?)` | Draws or updates a panel on the next tick. Variables missing from the call keep their value; non-null `classes` replace the previous set. `durationSeconds`: `null` = the profile's default, `<= 0` = until hidden. Returns `false` for an unknown profile, one without a `File`, or before CustomHUD has loaded |
 | `Hide(playerId, profile)` | Hides one panel for one player |
 | `HideAll(playerId)` | Hides every panel the player has open |
 | `HideEverywhere(profile)` | Hides one profile for every player |
@@ -548,11 +560,12 @@ Calls are safe from any thread.
 
 ## Known Limitations
 
-- **Mouse and numbers input is silent.** `MenuSounds` is played by core's input
-  dispatcher, and no public API exposes the configured sound names.
+- **Mouse and numbers input is silent**, and so are W, S and R in `wasd` mode.
+  `MenuSounds` is played by core's input dispatcher, and no public API exposes
+  the configured sound names.
 - **Text colour is not drawn as such.** A `MenuTextStyle` colour reaches a
-  layout only as a class, through a profile's `ColorIcons`. Use `danger` or an
-  icon badge to mark a row.
+  layout only as a class, through a profile's `ColorIcons` or a page's
+  `ColorTones`. Use `danger` or an icon badge to mark a row.
 - **`SendCenterHTML` cannot be captured**, and `Core.MenusAPI` menus never reach
   the renderer.
 - **Out of scope:** toasts, countdowns and other HUD elements.

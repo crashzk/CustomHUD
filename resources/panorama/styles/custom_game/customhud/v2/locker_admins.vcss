@@ -14,6 +14,26 @@
 	width: 416px;
 }
 
+/* The list beside the sheet, less its gutter: 452 + 14 + 430 = 896, 662 + 14 + 430 = 1106 with no
+   sidebar, 682 + 14 + 430 = 1126 in v2. */
+.lk.view-admins-players.has-detail .lk-list .lk-items,
+.lk.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 452px;
+}
+
+.no-sidebar.view-admins-players.has-detail .lk-list .lk-items,
+.no-sidebar.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 662px;
+}
+
+.lk2.no-sidebar.view-admins-players.has-detail .lk-list .lk-items,
+.lk2.no-sidebar.view-admins-players.has-detailbar .lk-list .lk-items
+{
+	width: 682px;
+}
+
 .lk.view-admins-players .lk-list .lk-slot.disabled
 {
 	opacity: 0.55;
@@ -239,6 +259,40 @@
 	font-size: 10px;
 }
 
+/* The history heading looks like the sections above but keeps the row's own layout, count at the end. */
+.lk.view-admins-player .lk-detail .grp-history-head
+{
+	height: 22px;
+	margin: 12px 0px 6px 0px;
+}
+
+.lk.view-admins-player .lk-detail .grp-history-head .lk-text
+{
+	margin-left: 0px;
+}
+
+.lk.view-admins-player .lk-detail .grp-history-head .lk-name
+{
+	font-size: 10px;
+	color: chudGoldBase;
+	text-transform: uppercase;
+	letter-spacing: 3px;
+}
+
+.lk.view-admins-player .lk-detail .grp-history-head .lk-end
+{
+	margin-right: 0px;
+}
+
+.lk.view-admins-player .lk-detail .grp-history-head .lk-value
+{
+	font-family: chudFontMedium;
+	font-size: 11px;
+	color: chudStoreFaint;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
 /* Actions: five tiles to a line, 5 x (68 + 6) = 370 of 382. */
 .lk.view-admins-players .grp-action.kind-action
 {
@@ -419,7 +473,7 @@
 
 /* 466 less the gutter, set rather than 100% so tile lines wrap the same when the list is measured
    as when drawn: at 100% the Sessions page scrolled a tile line short of its last row. */
-.lk.view-admins-player .lk-items
+.lk.view-admins-player .lk-list .lk-items
 {
 	width: 452px;
 }
@@ -597,16 +651,11 @@
 
 /* ---- admins-ban: the steps, the length to pick, the ban as it stands ---- */
 
-/* The stepper spans both columns, so the rail is laid over the body's right edge
-   below it instead of beside the column. */
-.lk.view-admins-ban .lk-body
-{
-	flow-children: none;
-}
-
+/* The stepper runs on over the rail, so the column lets it overflow and the rail starts below it.
+   A flowless body with the rail laid over the column drew no rail in game. */
 .lk.view-admins-ban .lk-col
 {
-	width: 100%;
+	overflow: noclip squish;
 }
 
 .lk.view-admins-ban .lk-list
@@ -614,13 +663,18 @@
 	width: 548px;
 }
 
+/* 534 + 14 = 548: the list less its gutter. */
+.lk.view-admins-ban .lk-list .lk-items
+{
+	width: 534px;
+}
+
+/* 58 + 14 = 72: the stepper and its margin. */
 .lk.view-admins-ban .lk-detail
 {
 	width: 332px;
 	height: 504px;
-	horizontal-align: right;
-	vertical-align: bottom;
-	margin-left: 0px;
+	margin-top: 72px;
 }
 
 /* Under a tab strip the body is 42px shorter; the rail still starts below the stepper. */
@@ -629,12 +683,24 @@
 	height: 462px;
 }
 
-/* The stepper: five steps, each one's line running on to the next. */
+/* The stepper: five steps, each one's line running on to the next, across the column and the rail:
+   550 + 14 + 332 = 896, 760 + 14 + 332 = 1106 with no sidebar, 780 + 14 + 332 = 1126 in v2. */
 .lk.view-admins-ban .lk-banner
 {
+	width: 896px;
 	height: 58px;
 	margin-bottom: 14px;
 	padding: 0px 16px;
+}
+
+.lk.no-sidebar.view-admins-ban .lk-banner
+{
+	width: 1106px;
+}
+
+.lk2.no-sidebar.view-admins-ban .lk-banner
+{
+	width: 1126px;
 }
 
 .lk.view-admins-ban .lk-banner .lk-slot
@@ -1328,6 +1394,11 @@
 .lk.view-admins-votes .lk-list
 {
 	padding-right: 0px;
+}
+
+.lk.view-admins-votes .lk-list .lk-items
+{
+	width: 100%;
 }
 
 .lk.view-admins-votes .lk-list .lk-slot
