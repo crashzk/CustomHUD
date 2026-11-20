@@ -789,6 +789,8 @@ its last occupant had (`selected`, `disabled`, `danger`, `marquee`, `has-*`,
 
 In the three keyboard modes the cursor steps past an `info` fact (a label) the way it was moving,
 on any page that also holds something to act on; a page of facts alone keeps it, or could not be reached.
+On such a page an integration can leave a label out of the list when the page already shows it
+(`PageDraw.HideLabel`, ShopCore's `Credits:` line under the balance chip); it still counts for focus and keys.
 
 ## Payload directives
 
@@ -927,3 +929,8 @@ Valve's sources, not an observed result:
 - whether `min-width` keeps a one-character keycap (`W`, `9`) square in the
   legend, and whether `overflow: noclip` lets `mix-control`'s step connector
   reach into the next step's slot.
+- whether a `width: 100%` Label squished back inside its parent's padding
+  draws a thin line at its right edge. `shop-categories`' two wide tiles
+  showed one there; their name and count now carry the inset as their own
+  padding. `menu_skins_mouse_v2` keeps the pattern in `.sk-spot__info`,
+  `.sk-hero__text` and `.sk-field__box`.

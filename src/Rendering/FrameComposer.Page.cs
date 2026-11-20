@@ -92,6 +92,8 @@ internal sealed partial class FrameComposer
             if (e.Variant is { } entryVariant) variants.Add(entryVariant);
             // Drawn by another row of a mouse page; still counted, so focus and clicks keep their places.
             if (e.Fold && mode == NavMode.Mouse) continue;
+            // A label PageFrame leaves undrawn, counted the same way.
+            if (e.Unlisted) continue;
             if (e.Inline && previousHasInline && previous is [.., var owner] && owner == k - 1 && inlineOf[owner] < 0)
             {
                 inlineOf[owner] = k;

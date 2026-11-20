@@ -988,6 +988,10 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
                 // not an unsupported node.
                 break;
 
+            case UnlistedNode:
+                content.Unlisted = true;
+                break;
+
             default:
                 // New node types can appear in a future core release. Report
                 // and skip; a renderer that throws takes the menu down.
@@ -1150,6 +1154,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         public bool Info;
         // Drawn by another row (`fold`): a mouse page gives it no slot; keyboard pages draw it.
         public bool Fold;
+        // A label PageFrame leaves undrawn (UnlistedNode): a page gives it no slot; a row layout draws it.
+        public bool Unlisted;
         // A header node holding the page's own footer line for a mouse player (`hint`).
         public bool Hint;
         // A header node's `live=<entry id>`: that sidebar entry is happening now.

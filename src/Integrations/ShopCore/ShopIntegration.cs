@@ -40,6 +40,16 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
 
         switch (page.Menu.Id)
         {
+            // The chip above already shows the balance that ShopCore's first line states.
+            case "shopcore.main" when KeyList(page):
+                for (var k = 0; k < page.Components.Count; k++)
+                {
+                    if (!page.IsFact(k)) continue;
+                    page.HideLabel(k);
+                    break;
+                }
+                break;
+
             case "shopcore.buy.categories" or "shopcore.buy.subcategories":
                 page.Hint(T(page, "hint.categories"));
                 DrawCategories(page, credits, inventory: false);
@@ -54,7 +64,8 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
 
             case "shopcore.buy.item" when page.Menu.Tag is ShopItemDefinition item:
                 page.Hint(T(page, item.AllowPreview ? "hint.item" : "hint.item_buy"));
-                Showcase(page, item, credits);
+                if (KeyList(page)) Listing(page, item, credits);
+                else Showcase(page, item, credits);
                 break;
 
             case "shopcore.inventory.categories" or "shopcore.inventory.subcategories":
@@ -211,7 +222,7 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
     {
         var info = IndexOf(page, c => c is TextComponent and not ButtonComponent);
         if (info >= 0) page.Decorate(info, "fold");
-        page.Add(Name(page, item), $"at=banner;{Art(page, item)};type={Directive.Clean(Leaf(item.Category))}", 0);
+        AddBanner(page, item);
 
         var (duration, _) = DurationOf(page, item);
         var kind = KindOf(page, item);
@@ -219,21 +230,61 @@ internal sealed class ShopIntegration(IShopCoreApiV2 api) : IPageIntegration
         if (item.Duration is not null && duration.Length > 0) page.Add(duration, "group=badge;tone=info");
         if (TeamOf(page, item) is { } team) page.Add(team.Text, "group=badge;tone=" + team.Tone);
 
-        var after = credits - item.Price;
-        var balance = after >= 0
-            ? "sub=" + T(page, "balance", Directive.Money(credits), Directive.Money(after))
-            : "sub=" + T(page, "need", Directive.Money(-after)) + ";subtone=bad";
-        page.Add(Directive.Money(item.Price), $"group=price;type={T(page, "price")};glyph=credits;{balance}");
-
-        if (duration.Length > 0) page.Add($"{T(page, "fact.duration")}\t{duration}", "group=fact");
-        if (kind.Length > 0) page.Add($"{T(page, "fact.type")}\t{kind}", "group=fact");
-        if (TeamOf(page, item) is { } side) page.Add($"{T(page, "fact.team")}\t{side.Text}", "group=fact");
+        AddPriceAndFacts(page, item, credits, before: null);
 
         var price = Price(page, Credits(item.Price), Directive.Money(item.Price), "buy", "at=foot;primary;glyph=credits");
         for (var k = 0; k < page.Components.Count; k++)
             if (k != price && page.Components[k] is ButtonComponent)
                 page.Decorate(k, "at=foot;glyph=refresh");
     }
+
+    // The keyboard list leaves out the badges, which the facts repeat, and ShopCore's first line, which the banner
+    // and the price repeat. Preview and Buy are dimmed for the refusals ShopCore's API can tell in advance; it
+    // cannot tell a preview on cooldown or with no module to show it, or a purchase a module's hook blocks.
+    private void Listing(PageDraw page, ShopItemDefinition item, decimal credits)
+    {
+        var info = IndexOf(page, c => c is TextComponent and not ButtonComponent);
+        if (info >= 0) page.HideLabel(info);
+        AddBanner(page, item);
+        var actions = IndexOf(page, c => c is ButtonComponent);
+        AddPriceAndFacts(page, item, credits, before: actions >= 0 ? actions : null);
+
+        var open = api.IsItemVisibleToPlayer(page.Player, item);
+        var buyable = open && credits >= item.Price && !(Ownable(item) && api.GetItemState(page.Player, item.Id).Owned);
+        var buy = Price(page, Credits(item.Price), Directive.Money(item.Price), "buy", buyable ? "vglyph=credits" : "vglyph=credits;disabled");
+        // A Buy label without the price (an operator's shop.menu.buy.item.buy): ShopCore adds Buy as the menu's last row.
+        if (buy < 0 && page.FirstRow + page.Components.Count == page.RowCount && page.Components is [.., ButtonComponent])
+        {
+            buy = page.Components.Count - 1;
+            if (!buyable) page.Decorate(buy, "disabled");
+        }
+        for (var k = 0; k < page.Components.Count; k++)
+            if (k != buy && !open && page.Components[k] is ButtonComponent)
+                page.Decorate(k, "disabled");
+    }
+
+    private void AddBanner(PageDraw page, ShopItemDefinition item)
+        => page.Add(Name(page, item), $"at=banner;{Art(page, item)};type={Directive.Clean(Leaf(item.Category))}", 0);
+
+    // The price with the balance it leaves, then how long the item lasts, its kind and its team: before the
+    // row `before`, or last.
+    private static void AddPriceAndFacts(PageDraw page, ShopItemDefinition item, decimal credits, int? before)
+    {
+        var after = credits - item.Price;
+        var balance = after >= 0
+            ? "sub=" + T(page, "balance", Directive.Money(credits), Directive.Money(after))
+            : "sub=" + T(page, "need", Directive.Money(-after)) + ";subtone=bad";
+        page.Add(Directive.Money(item.Price), $"group=price;type={T(page, "price")};glyph=credits;{balance}", before);
+
+        var (duration, _) = DurationOf(page, item);
+        var kind = KindOf(page, item);
+        if (duration.Length > 0) page.Add($"{T(page, "fact.duration")}\t{duration}", "group=fact", before);
+        if (kind.Length > 0) page.Add($"{T(page, "fact.type")}\t{kind}", "group=fact", before);
+        if (TeamOf(page, item) is { } side) page.Add($"{T(page, "fact.team")}\t{side.Text}", "group=fact", before);
+    }
+
+    // The keyboard list (menu_list_v2 and its kin), not the locker, the mouse list or a row layout.
+    private static bool KeyList(PageDraw page) => page.Keyboard && page.Regions.Contains("foot");
 
     // How long it was bought for, and how long it has left.
     private string Owned(PageDraw page, ShopItemDefinition item)

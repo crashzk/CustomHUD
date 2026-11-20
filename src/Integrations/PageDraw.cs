@@ -7,7 +7,7 @@ namespace CustomHUD.Integrations;
 
 // One page as an integration draws it. The provider's components keep their places, so focus,
 // keys and clicks still reach them: an integration changes how a row draws, drops a row nobody
-// can focus, and adds rows nobody can focus. Game thread only.
+// can focus or a label the keyboard cursor steps past, and adds rows nobody can focus. Game thread only.
 internal sealed class PageDraw
 {
     private readonly IntegrationHost _host;
@@ -16,6 +16,7 @@ internal sealed class PageDraw
     private readonly MenuNode[] _rendered;
     private readonly MenuNode?[] _nodes;
     private readonly bool[] _redrawn;
+    private readonly bool[] _hiddenLabels;
     private readonly MenuNode[] _providerHeader;
     private readonly MenuNode[] _headerNodes;
     private readonly List<(int Before, MenuNode Node)> _added = [];
@@ -36,7 +37,8 @@ internal sealed class PageDraw
         IReadOnlySet<string> regions,
         int room,
         IReadOnlyDictionary<string, string> icons,
-        string? view = null)
+        string? view = null,
+        bool keyboard = false)
     {
         _host = host;
         _strings = strings;
@@ -44,6 +46,7 @@ internal sealed class PageDraw
         _rendered = rendered;
         _nodes = (MenuNode?[])rendered.Clone();
         _redrawn = new bool[rendered.Length];
+        _hiddenLabels = new bool[rendered.Length];
         _providerHeader = [.. header];
         _headerNodes = [.. header];
         HeaderLines = [.. header.Select(TextOf)];
@@ -57,6 +60,7 @@ internal sealed class PageDraw
         Regions = regions;
         Room = room;
         View = view;
+        Keyboard = keyboard;
     }
 
     public IMenuSession Session { get; }
@@ -83,6 +87,9 @@ internal sealed class PageDraw
 
     // The view drawing the page (maps-rows), or null on a layout without views; a provider's `view=` can still override it.
     public string? View { get; }
+
+    // Drawn for a keyboard mode (Wasd, Buttons, Numbers) rather than Mouse.
+    public bool Keyboard { get; }
 
     public object? ItemOf(int index) => CollectionItems.Of(Components[index]);
 
@@ -116,6 +123,14 @@ internal sealed class PageDraw
     public void Hide(int index)
     {
         if (!Components[index].IsFocusable) _nodes[index] = null;
+    }
+
+    // A label (IsFact) that another row already says. Left undrawn only where the keyboard cursor steps past
+    // it (PageFrame.LabelSkip), and drawn again while the cursor is on it; it keeps its place, so focus and
+    // keys still count it. A mouse page and a row layout draw it.
+    public void HideLabel(int index)
+    {
+        if (IsFact(index)) _hiddenLabels[index] = true;
     }
 
     public void Add(string text, string payload, int? before = null)
@@ -162,6 +177,8 @@ internal sealed class PageDraw
 
     internal bool Redrawn(int index) => _redrawn[index];
 
+    internal bool HidesLabel(int index) => _hiddenLabels[index];
+
     internal IEnumerable<MenuNode> AddedBefore(int index) => _added.Where(a => a.Before == index).Select(a => a.Node);
 
     internal IReadOnlyList<MenuNode> Header => _header;
@@ -173,6 +190,7 @@ internal sealed class PageDraw
     {
         Array.Copy(_rendered, _nodes, _rendered.Length);
         Array.Clear(_redrawn);
+        Array.Clear(_hiddenLabels);
         Array.Copy(_providerHeader, _headerNodes, _providerHeader.Length);
         _added.Clear();
         _header.Clear();

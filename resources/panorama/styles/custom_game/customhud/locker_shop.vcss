@@ -237,18 +237,20 @@
 	color: chudAccentStrong;
 }
 
-/* Bottom left: the name, large, and how many items it holds. */
+/* Bottom left: the name, large, and how many items it holds. The 18px inset is the padding of the only two
+   labels these rows fill (no type, unit or badge), so at width: 100% they fill .lk-text, 18 + 396 + 18 = 432
+   on a wide tile, rather than being squished inside its padding, where a thin line showed at their right edge. */
 .lk.view-shop-categories .lk-slot .lk-text
 {
 	width: 100%;
 	horizontal-align: left;
 	vertical-align: bottom;
 	margin: 0px 0px 16px 0px;
-	padding: 0px 18px;
 }
 
 .lk.view-shop-categories .lk-name
 {
+	padding: 0px 18px;
 	font-family: chudFontBody;
 	font-size: 22px;
 	font-weight: bold;
@@ -275,6 +277,7 @@
 .lk.view-shop-categories .lk-sub
 {
 	margin-top: 2px;
+	padding: 0px 18px;
 	font-family: chudFontBody;
 	font-size: 13px;
 	color: chudTextMuted;
