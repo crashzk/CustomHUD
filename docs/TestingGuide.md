@@ -784,6 +784,10 @@ navigation, focus restore on the in-hand weapon, disabled rows and text inputs
       is stale
 - [ ] the active entry follows you down: inside AK-47 finishes, Weapon Skins
       stays active
+- [ ] a renamed entry shows whole: with WeaponSkins' `menu.agents.title` set
+      to `Agents (VIP)` and `menu.musickits.title` to `MusicKits(Disabled)`,
+      the sidebar reads `AGENTS (VIP)` and either `MUSICKITS(DISABLED)` or its
+      start and `…`, each on one line beside its icon
 - [ ] a category opens with a tab strip over its guns: Rifles, Pistols, SMGs,
       Shotguns, Snipers, Heavy, Other. The open tab is light blue on a faint
       blue fill; Pistols holds the ten pistols, CZ75-Auto to USP-S, in two

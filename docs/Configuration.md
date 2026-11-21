@@ -227,7 +227,10 @@ layout, which draws that layout's profile, per plugin and menu, in its own
 **Sidebar** - root `SubmenuComponent` entries as shortcuts, root dividers as
 rules between them. The entry the player is anywhere beneath is marked: the one
 whose component id equals that page's menu id, else whose label equals its
-title.
+title. A page keeps a trailing bracket that is not a count, `Agents (VIP)`
+included. A root button, listed while `AutoOpen` skips the root page, loses a
+trailing bracket that is not a count: Ranks' `Help (shown in chat)` reads
+`Help`.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|

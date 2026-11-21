@@ -250,7 +250,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         {
             var panel = sidebar.ButtonPrefix + i;
             var item = i < items.Length ? items[i] : null;
-            var label = StripAside((item as TextComponent)?.Text ?? "");
+            var label = (item as TextComponent)?.Text ?? "";
+            if (item is ButtonComponent) label = StripAside(label);
             if (sidebar.CountVar.Length > 0)
             {
                 var (text, count) = SplitCount(label);
@@ -372,8 +373,8 @@ internal sealed partial class FrameComposer(CustomHudConfigProvider config, HudT
         return token is not null && PresetToken().IsMatch(token) ? token : null;
     }
 
-    // A trailing aside ("Help (shown in chat)") has no room on the sidebar's one short
-    // line, where the icon carries it; a count ("Knives (12)") stays for the badge.
+    // A root action's trailing aside ("Help (shown in chat)") has no room on the sidebar's one short
+    // line, where its icon carries it; a page's label is its name, and a count stays for the badge.
     internal static string StripAside(string label)
     {
         var match = TrailingAside().Match(label);

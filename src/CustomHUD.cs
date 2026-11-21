@@ -19,7 +19,7 @@ namespace CustomHUD;
 
 [PluginMetadata(
     Id = "CustomHUD",
-    Version = "1.0.1",
+    Version = "1.0.2",
     Name = "CustomHUD",
     Author = "Shmitzas",
     Description = "CS2-themed Panorama renderer for the SwiftlyS2 menu framework")]
