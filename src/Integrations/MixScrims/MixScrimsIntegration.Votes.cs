@@ -1,4 +1,3 @@
-using CustomHUD.Config;
 using MixScrims.Contract;
 using SwiftlyS2.Shared.Menu;
 using SwiftlyS2.Shared.Players;
@@ -41,16 +40,15 @@ internal sealed partial class MixScrimsIntegration
         }
     }
 
-    // A stock map shows its screenshot and logo, any other its id's prefix (aim_redline: AIM) over stripes in
-    // that prefix's tone. A workshop id is a number, so its prefix comes from the display name when that is
-    // shaped like a map's.
+    // As MapChooserIntegration.Art, by the map's id. A workshop id is a number, so its prefix comes from the
+    // display name when that is shaped like a map's.
     private static string? Art(MapPoolEntry map)
     {
         var id = map.Id.Trim().ToLowerInvariant();
-        if (LockerProfiles.StockMaps.Contains(id)) return "image=map/" + id;
         var prefix = Prefix(id) ?? Prefix(map.Name.Trim().ToLowerInvariant());
-        if (prefix is not null) return $"mark={prefix.ToUpperInvariant()};tone={prefix}";
-        return map.IsWorkshop ? "mark=WS" : null;
+        var mark = prefix is null ? null : $"mark={prefix.ToUpperInvariant()};tone={prefix}";
+        if (!map.IsWorkshop && Directive.IsMapName(id)) return $"image=map/{id};{mark}";
+        return mark ?? (map.IsWorkshop ? "mark=WS" : null);
     }
 
     private static string? Prefix(string name)
@@ -61,10 +59,9 @@ internal sealed partial class MixScrimsIntegration
         return Directive.IsToken(prefix) ? prefix : null;
     }
 
+    // Any map loaded by name is stock, custom or not.
     private static string Badge(PageDraw page, MapPoolEntry map)
-        => map.IsWorkshop ? $"badge={T(page, "kind.workshop")};badgetone=info"
-            : LockerProfiles.StockMaps.Contains(map.Id.Trim().ToLowerInvariant()) ? "badge=" + T(page, "kind.stock")
-            : "badge=" + T(page, "kind.custom");
+        => map.IsWorkshop ? $"badge={T(page, "kind.workshop")};badgetone=info" : "badge=" + T(page, "kind.stock");
 
     private static string Votes(PageDraw page, int count) => T(page, count == 1 ? "votes.one" : "votes.other", count);
 

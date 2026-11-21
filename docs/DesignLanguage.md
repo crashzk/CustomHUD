@@ -94,7 +94,7 @@ reused either.
 | `images/custom_game/customhud/faceit_lvl1..10.svg` | `panorama/images/custom_game/customhud/faceit_lvlN.vsvg_c` | badges for `icon=N` rows in `menu_teampick`, and the level badges in `locker_art.vcss` (`rank/levelN`) |
 | `images/custom_game/customhud/muted.svg` | `panorama/images/custom_game/customhud/muted.vsvg_c` | `ico-mute`: a white copy of the game's muted icon, which is painted red and so ignores `wash-color` |
 | `images/custom_game/customhud/fov_80.svg` … `fov_130.svg` | `panorama/images/custom_game/customhud/fov_N.vsvg_c` | `ico-fov-80` … `ico-fov-130`: a field-of-view dial per ten degrees, for VIPCore's FOV choices |
-| `images/custom_game/customhud/stripes.svg` | `panorama/images/custom_game/customhud/stripes.vsvg_c` | the tile `locker_maps.vcss` repeats over the ground of a map without a picture |
+| `images/custom_game/customhud/stripes.svg` | `panorama/images/custom_game/customhud/stripes.vsvg_c` | the tile `locker_maps.vcss` repeats over the ground of a map's stand-in, which shows where the map has no picture |
 
 The menu variants share `menu.vxml`'s variable vocabulary (`title`, `footer`,
 `option_N`, `option_N_key`, `option_N_right`), so any menu can be pointed at
@@ -173,7 +173,7 @@ family's own colour at a lower alpha.
 | Teams | `chudTeamCtBase #5aaeff` and `chudTeamTBase #f5973a`, each with `Strong`, `Dim`, `Soft`, `Fade` |
 | Legend | `chudLegendBase #c08cff`, `chudLegendStrong #d2b0ff`, `Dim`, `Soft`: the top tier |
 | Extend | `chudExtendBase #ffa500`, `chudExtendStrong #ffc266`, `Half`, `Dim`, `Soft`, `Wash`, `Fade`, and `chudExtendShade #2a1c0c` to `chudExtendDeep #120c06` for its art: MapChooser's Extend option, in the orange MapChooser draws it in |
-| Maps | `chudMapAwpBase` / `Deep`, `chudMapAimBase` / `Deep`, `chudMapSurfBase` / `Deep`, `chudMapOtherBase` / `Deep`: a map without a picture, by its prefix, under the `stripes.svg` tile |
+| Maps | `chudMapAwpBase` / `Deep`, `chudMapAimBase` / `Deep`, `chudMapSurfBase` / `Deep`, `chudMapOtherBase` / `Deep`: a map's stand-in, by its prefix, under the `stripes.svg` tile; drawn under the map's picture, it shows where the addon has none |
 | Surfaces | `chudSurfaceBase #0b0e13f2` for HUD panels (95% opaque); `chudSurfaceRaised #141a24dc` and `chudSurfaceDeep #0b0e13d9`, every menu shell's gradient, top then foot (the lists and both lockers, about 86%); `chudSurfaceEdge #2a3443` for hairlines and borders, with `chudSurfaceFade` its transparent end; `chudSurfaceRow #161d27` for a row or control at rest; `chudSurfaceHover #222c3a` |
 | Tiles | `chudTileBase #1c2431` and `chudTileDeep #0f141b`, a card's gradient, top then foot; `chudTileHover #283346`; `chudTileFade` |
 | Shadow and glass | `chudShadowDrop #000000b8`, `chudShadowText #000000cc`, `chudShadowDim`, `Soft`, `Fade`: black glazes under art and text. `chudGlassDim #ffffff26`, `Soft`, `Wash`: white glazes over art and bars |
@@ -568,7 +568,7 @@ slots also carry three `_act` Buttons over the hit's right end, one per `act=`
 ├─ #<p>N_hit.lk-hit
 │  ├─ #<p>N_icon.lk-rarity                 a full-size layer under everything; views draw boxes with it
 │  ├─ #<p>N_thumb.lk-thumb, #<p>N_logo.lk-logo   econ-<token>: picture, and a map's logo
-│  ├─ .lk-mark > {s:<p>N_mark}             avatar, prefix art, step number
+│  ├─ .lk-mark > {s:<p>N_mark}             avatar, prefix art, step number; under the picture when there is one
 │  ├─ .lk-shade                            a view's overlay above the art
 │  ├─ .lk-swatch, #<p>N_glyph, .lk-rating
 │  ├─ .lk-text > {s:<p>N_type} {s:<p>N} {s:<p>N_unit} {s:<p>N_badge} {s:<p>N_sub}
@@ -582,10 +582,18 @@ slots also carry three `_act` Buttons over the hit's right end, one per `act=`
 Every part starts collapsed and is shown by the class written with it, so an
 absent part never shows its `{s:…}` placeholder. Foot slots have no `_icon`
 layer, so a view that needs a box there draws it on `.lk-shade`; detailbar
-slots are a glyph and a value only. A view is a block of rules scoped by
-`.lk.view-<name>` in its plugin's sheet; `locker.vcss` draws the frame, the
-plain list every view starts from and most of the [looks](#looks) views join.
-Fixed-column card lines keep slack: see
+slots are a glyph and a value only. A slot with a picture and a mark
+(`has-thumb` and `has-mark`) draws the mark under the picture (`z-index: -1`)
+as its stand-in, since no class says whether the addon has the picture: where
+the two share a box, the mark shows only where the picture draws nothing, as
+for a map newer than the addon. A picture over a stand-in must stay opaque, so
+an unavailable map on `maps-pool` darkens its shot (`brightness`) rather than
+fading it. MapChooser's five views give the thumb and the mark one box, so a
+map's shot covers its striped prefix exactly, and put a card's tags on the
+shot's top-right corner, clear of its logo, whichever of the two shows. A view
+is a block of rules scoped by `.lk.view-<name>` in its plugin's sheet;
+`locker.vcss` draws the frame, the plain list every view starts from and most
+of the [looks](#looks) views join. Fixed-column card lines keep slack: see
 [PanoramaAuthoring.md](PanoramaAuthoring.md#page-layouts).
 
 ### `menu_list` and `menu_list_mouse` (the list)
@@ -645,7 +653,11 @@ sizes it, `track-wear` bands it), `kind-input` a field with a pen,
 `kind-submenu` a `›`. A row with art or an avatar reads as the thing itself:
 its value is gold and it draws no `›`. A picture sits on a dark tile, as the
 inventory frames a render; a rank emblem (a row with a tier tone) and a chip's
-picture keep their own outline and sit on the row. A row with both an avatar
+picture keep their own outline and sit on the row. A picture with a mark (a
+map's prefix, its stand-in) draws the tile on the rarity layer instead, with
+the mark's 26px square centred on it under the picture, so the square shows
+only where the addon has no picture and none of it shows round a 16:9 shot. A
+row with both an avatar
 and a glyph (a global record's globe) draws the glyph before the avatar: the
 page then carries `has-glyph-column`, and every avatar row on it keeps that
 column so the avatars line up.
@@ -801,7 +813,7 @@ A plugin can target CustomHUD directly through
 | Directive | Effect in these layouts |
 |---|---|
 | `icon=N` | rarity dot or tile tint `lvl-N` |
-| `image=key` | econ thumbnail on `thumb_N` in the WeaponSkins lockers, and on a slot's `_thumb` (a map's `_logo` too) in `menu_locker` and the list; ignored by the classic lists and the tile grid |
+| `image=key` | econ thumbnail on `thumb_N` in the WeaponSkins lockers, and on a slot's `_thumb` (a map's `_logo` too) in `menu_locker` and the list, over the entry's mark when it has one; ignored by the classic lists and the tile grid |
 | `tint=token` | `tint-<token>` beside the thumbnail; the WeaponSkins lockers and the list wash `spray-1`…`19` in `chudSprayTint01`…`19` |
 | `type=label` | caption beside the name plus `has-type` in the WeaponSkins lockers, and the `.lk-type` caption in `menu_locker` and the list; ignored by the classic lists and the tile grid |
 | `danger` | red bar and label, or red tile name |
@@ -934,3 +946,17 @@ Valve's sources, not an observed result:
   showed one there; their name and count now carry the inset as their own
   padding. `menu_skins_mouse_v2` keeps the pattern in `.sk-spot__info`,
   `.sk-hero__text` and `.sk-field__box`.
+- whether a negative `z-index` draws a slot's mark under its picture
+  (`.lk-slot.has-thumb.has-mark .lk-mark`, `-1`) and the list's tile under
+  that mark (`-2` on its rarity layer) while both stay over the row's own
+  ground; CS2's own sheets use values from `-1` to `-11`. A map's stand-in
+  relies on it. It also reaches the two other entries with a picture and a
+  mark, whose mark sits beside the picture and must still show: a
+  WeaponStats card's accuracy figure (`ranks-weapons`) and a MixScrims kick
+  target's avatar beside its rank emblem (`mix-ballot`); in the list, a
+  WeaponStats row's tile depends on the `-2` too. With it: whether
+  `brightness: 0.35` darkens an unavailable map's shot on `maps-pool`, and
+  whether a translucent ancestor (a panel fading in or out, a disabled list
+  row's art at 40%) fades a shot and the stand-in under it as one picture
+  rather than each on its own, which would show the stand-in through the
+  shot.

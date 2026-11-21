@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using CustomHUD.Config;
 using MapChooser.Contract;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menu;
@@ -218,18 +217,17 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
         if (page.Components is [ButtonComponent, ButtonComponent]) page.Decorate(0, "danger;glyph=trash");
     }
 
-    // A stock map shows its screenshot and logo. Any other map shows its prefix (aim_redline: AIM) over
-    // stripes in that prefix's tone. A workshop map's own name is not known until it loads, so its prefix
-    // comes from its pool name when that is shaped like a map's.
+    // A map loaded by a map-shaped name sends its picture's key and its prefix (de_dust2: DE), the stand-in the
+    // sheets draw under the picture for where the addon has none. A workshop map's name is unknown until it loads,
+    // so it sends a map-shaped pool name's prefix, under the shot the label fallback adds for a stock one (de_cache).
     private static string? Art(MapChooserMap? map)
     {
         if (map is null) return null;
         var loaded = map.MapName?.Trim().ToLowerInvariant();
-        if (loaded is not null && LockerProfiles.StockMaps.Contains(loaded)) return "image=map/" + loaded;
-
         var prefix = Prefix(loaded ?? map.Name.Trim().ToLowerInvariant());
-        if (prefix is not null) return $"mark={prefix.ToUpperInvariant()};tone={prefix}";
-        return map.WorkshopId is null ? null : "mark=WS";
+        var mark = prefix is null ? null : $"mark={prefix.ToUpperInvariant()};tone={prefix}";
+        if (map.WorkshopId is null && loaded is not null && Directive.IsMapName(loaded)) return $"image=map/{loaded};{mark}";
+        return mark ?? (map.WorkshopId is null ? null : "mark=WS");
     }
 
     private static string? Prefix(string name)
@@ -266,11 +264,9 @@ internal sealed class MapChooserIntegration : IPageIntegration, IDisposable
         return string.Join(" · ", steps.Where(s => s.Length > 0));
     }
 
-    // The map's kind, boxed under its name on every page and layout: a workshop map's in blue.
+    // The map's kind, boxed under its name on every page: workshop in blue; any map loaded by name is stock, custom or not.
     private static string Badge(PageDraw page, MapChooserMap map)
-        => map.WorkshopId is not null ? $"badge={T(page, "kind.workshop")};badgetone=info"
-            : map.MapName is { } loaded && LockerProfiles.StockMaps.Contains(loaded.Trim().ToLowerInvariant()) ? "badge=" + T(page, "kind.stock")
-            : "badge=" + T(page, "kind.custom");
+        => map.WorkshopId is not null ? $"badge={T(page, "kind.workshop")};badgetone=info" : "badge=" + T(page, "kind.stock");
 
     private static string Players(PageDraw page, MapChooserMap map) => (map.MinPlayers, map.MaxPlayers) switch
     {

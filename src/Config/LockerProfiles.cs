@@ -22,7 +22,7 @@ public static class LockerProfiles
         ("strip", 10, "mark glyph note value"),                                          // a row of small slots over the page: a pick order
     ];
 
-    // Stock maps with a 360p screenshot and a logo in the game (locker_art.vcss).
+    // Stock maps with a 360p screenshot and a logo in the game (locker_art.vcss), for the label fallback alone.
     public static readonly string[] StockMaps =
     [
         "ar_baggage", "ar_pool_day", "ar_shoots", "ar_shoots_night", "cs_italy", "cs_office", "de_ancient",
@@ -121,8 +121,8 @@ public static class LockerProfiles
         ["Tracers"] = "crosshair", ["Player Models"] = "agents", ["Memberships"] = "crown",
     });
 
-    // MapChooser. Its hub (mapchooser.hub) is the sidebar root and each page opens as its
-    // child; map names become art keys, workshop maps their prefix.
+    // MapChooser. Its hub (mapchooser.hub) is the sidebar root and each page opens as its child. A label sent
+    // with no picture, mark or not, gets its key if a listed stock map; with neither, its prefix if map-shaped.
     public static MenuLayoutProfile Maps()
     {
         var profile = With(Generic(), "maps", new()

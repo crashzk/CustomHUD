@@ -1,7 +1,7 @@
 /*
 	MapChooser's views on menu_locker. Map shots and logos come from locker_art.vcss
-	(econ-<token> on lk-thumb and lk-logo). A map without art gets its prefix as its
-	mark and tone (awp_lego_2: "awp"), which pick the stand-in art below.
+	(econ-<token> on lk-thumb and lk-logo), over the stand-in below: a map's prefix as its mark
+	and tone (awp_lego_2: "awp"), which shows where the addon has no shot for the map.
 */
 
 /* ---- shared: logos on the shot's corner, and the stand-in for maps without art ---- */
@@ -82,22 +82,14 @@
 	letter-spacing: 4px;
 }
 
-/* Tags on the shot: its top-right corner, or the top-left where a workshop map has no logo.
-   Their colours are the Solid pill look in locker.vcss. */
+/* Tags on the shot's top-right corner, clear of its logo. One corner for every card, since no class
+   says whether a shot or its stand-in shows. Their colours are the Solid pill look in locker.vcss. */
 .lk.view-maps-board .lk-tags,
 .lk.view-maps-pool .lk-tags
 {
 	horizontal-align: right;
 	vertical-align: top;
 	margin: 10px 10px 0px 0px;
-}
-
-/* The tags' own 6px left margin brings the first one to 10px from the corner. */
-.lk.view-maps-board .has-mark .lk-tags,
-.lk.view-maps-pool .has-mark .lk-tags
-{
-	horizontal-align: left;
-	margin: 10px 0px 0px 4px;
 }
 
 .lk.view-maps-board .lk-tag,
@@ -724,6 +716,13 @@
 .lk.view-maps-pool .lk-slot.disabled .lk-text
 {
 	opacity: 0.35;
+}
+
+/* A shot over a stand-in stays opaque, or the stripes would show through it: it darkens instead. */
+.lk.view-maps-pool .lk-slot.disabled.has-thumb.has-mark .lk-thumb
+{
+	opacity: 1.0;
+	brightness: 0.35;
 }
 
 .lk.view-maps-pool .lk-slot.disabled .lk-tags

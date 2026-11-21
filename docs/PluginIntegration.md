@@ -69,7 +69,7 @@ left edge. Each row is drawn from the component behind it:
 - **Title path:** the menus above it (`MapDecals Menu › Choose a decal to
   edit`). ShopCore, MapChooser, Ranks, VIPCore, Admins and MixScrims root menus
   show their plugin's name instead, and MapChooser's and MixScrims' map votes
-  draw each stock map's screenshot.
+  draw each stock map's screenshot, or its prefix where the addon has none.
 - **Legend:** the footer shows the keys that work on the focused row, in the
   menu's own keymap: `W S move · E switch · R back` on a toggle, `A D change` on
   a slider or selector, `1-6 pick · 7 8 page · 9 close` in numbers mode, which
@@ -269,7 +269,8 @@ plugin built. Any other custom renderer can read the same API.
   (`GetKnifeRoundEnabled()`, contract 2.11.0) is left off; a MixScrims on
   contract 2.10.0 always shows it. Its Change map and Map pool submenus
   (`maps-pool`) draw each `MapPoolEntry` row as a card with its name, its id
-  under it where that differs, its Stock, Custom or Workshop badge and its art.
+  under it where that differs, its Stock or Workshop badge and its art, as
+  MapChooser's maps are.
   Without Ranks the rating and headshot figures are left out and K/D is this
   map's.
 - **MapChooser:** the ballot gets each option's share as `text=\t45;vunit=%` and
@@ -279,10 +280,17 @@ plugin built. Any other custom renderer can read the same API.
   menu id stays open until the vote ends. The pool pages show each map's player
   limits, its nominations (`Nominated`, `Your pick`) and why it can't be
   nominated now (`Played recently`, `Needs 10 players`), under a chip with the
-  map's time left. Every map carries its kind as a badge under its name
-  (`Stock map`, `Custom map`, or `Workshop map` in blue), on every page and in
-  the list. A stock map shows its screenshot and logo, another map its prefix
-  over stripes in that prefix's tone.
+  map's time left. Every map carries its kind as a badge under its name, on
+  every page and in the list: `Workshop map` in blue for a map loaded by its
+  Workshop id, `Stock map` for one loaded by name (a custom map loaded by name
+  included). A map loaded by a map-shaped name (`de_dust2`) sends the key of
+  its screenshot and logo (`image=map/<name>`) with its prefix over stripes in
+  that prefix's tone (`mark=`, `tone=`), which the views draw under the
+  screenshot: it shows where the Workshop addon has no screenshot for the map,
+  as for one Valve added after the addon's last update. A workshop map sends
+  its prefix alone, but where its pool name is a stock map's (`de_cache`) the
+  label read in [What a Page Sends](#what-a-page-sends) still draws that map's
+  screenshot over the prefix, and the badge stays `Workshop map`.
   Start a vote shows the pool the same way: a ticked map is outlined and
   glows, and the start button is an action card whose line is its hint, which
   MapChooser words (what it does, or why no vote can start now).
@@ -508,7 +516,13 @@ Without any raw node, a row's text still splits on tabs:
 layouts that declare `Row.ThumbPanel` and include `econ_thumbs.vcss`, plus
 `econ_stickers.vcss` for `stickers/` keys. The image bytes stay in the player's
 game install; the addon ships one CSS class per key, regenerated after a CS2
-update with `scripts/generate-econ-thumbs.ps1`.
+update with `scripts/generate-econ-thumbs.ps1`. A key the addon has no class
+for draws nothing, and no stylesheet can tell. An entry that also carries a
+mark (`mark=` or `avatar`) draws it under the picture as its stand-in. Where a
+view gives the two one box (MapChooser's and MixScrims' map views, which rely
+on it, and the list) the mark shows only where the picture draws nothing; the
+page layout's plain `list` view starts it at the left of the picture's box, so
+part of it shows beside a square picture.
 
 ## Card Pages
 

@@ -15,9 +15,9 @@
         rank/levelN        the 1..10 level badges this addon ships
 
     Map rules name the panel because one key draws two pictures. The header
-    comment lists the maps, which LockerProfiles.StockMaps must match: an image
-    key for a map without art would leave a blank card instead of the
-    typographic one.
+    comment lists the maps, which LockerProfiles.StockMaps must match: a key
+    the label fallback (ImageLabels) gives a listed map without art would leave
+    a blank card instead of the typographic one.
 
     Only paths are written; every image resolves from the player's own CS2 install.
 

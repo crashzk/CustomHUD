@@ -216,7 +216,7 @@ internal sealed partial class AdminsIntegration(
                 continue;
             }
 
-            // A map's art comes from its name, and a mark would cover it.
+            // A map's art comes from its name, and a number mark would only draw under it.
             var parts = new List<string>(3);
             if (!map) parts.Add($"mark={option.Index + 1}");
             if (shares)

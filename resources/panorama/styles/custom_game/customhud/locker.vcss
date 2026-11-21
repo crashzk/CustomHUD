@@ -719,6 +719,12 @@
 	visibility: visible;
 }
 
+/* With a picture too, the mark draws under it: in a shared box, a stand-in shown only where the addon has no picture. */
+.lk-slot.has-thumb.has-mark .lk-mark
+{
+	z-index: -1;
+}
+
 .lk-mark__text
 {
 	horizontal-align: center;

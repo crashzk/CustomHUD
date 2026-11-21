@@ -25,8 +25,14 @@ internal static partial class Directive
     // What the composer accepts where a value becomes part of a class name.
     public static bool IsToken(string value) => PlainToken().IsMatch(value);
 
+    // A lower-case map name with a prefix (de_dust2), the shape FrameComposer reads a label as a map by.
+    public static bool IsMapName(string value) => MapName().IsMatch(value);
+
     private static readonly NumberFormatInfo Grouped = new() { NumberGroupSeparator = " " };
 
     [GeneratedRegex("^[a-z0-9-]{1,24}$")]
     private static partial Regex PlainToken();
+
+    [GeneratedRegex("^[a-z0-9]+_[a-z0-9_]+$")]
+    private static partial Regex MapName();
 }

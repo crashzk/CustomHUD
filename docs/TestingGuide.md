@@ -541,10 +541,25 @@ Per plugin:
       other locker page or detail pane that overflows
 - [ ] Maps: on `!mapsvote` pick a few maps (a workshop one too, if the pool
       has one) and start the vote. Stock maps draw over their screenshot and
-      logo, a workshop map as a striped card in its prefix's colour with its
-      prefix large (`awp_…` as `AWP`), and Extend, when offered, in orange
-      with a glow behind its icon. Under each map's name sits a small boxed
-      label with its kind: `Stock map`, `Workshop map` in blue, or `Custom map`
+      logo, with no stripes or prefix showing round or through the shot, a
+      workshop map as a striped card in its prefix's colour with its
+      prefix large (`awp_…` as `AWP`), or over that map's screenshot where
+      its pool name is a stock map's (`"Name": "de_cache"`), and Extend, when
+      offered, in orange with a glow behind its icon. Under each map's name
+      sits a small boxed label with its kind: `Workshop map` in blue for
+      every workshop map, `Stock map` for any other. A card's tags
+      (`Leading`, `Your vote`) sit on its shot's top-right corner, a workshop
+      map's too
+- [ ] a map the pool loads by a map-shaped name that the addon has no
+      screenshot for (a custom map on the server, or a pool entry such as
+      `"Id": "de_nothere"` that is never played): on the board, the poll rows,
+      `!nominate` and the cycle it is a striped card or row with its prefix
+      large (`DE`), badged `Stock map`; in the keyboard list its prefix sits in
+      a small square centred on the dark picture tile, where a stock map's
+      screenshot would be
+- [ ] `!nominate` with a stock map on cooldown (`Played recently`): its card's
+      screenshot is dark with no stripes through it, as faint as before; an
+      unavailable map the addon has no screenshot for shows its stripes faint
 - [ ] each map card carries its share (`45%`), its votes and a meter; the
       leader reads `Leading` with a trophy, in gold with a gold meter, and your
       pick has a light-blue outline and a `Your vote` tag
@@ -599,8 +614,10 @@ Per plugin:
 - [ ] Ranks with its modules installed: Statistics' tabs include Weapon stats,
       Overall Hit Stats, Combos and Prestige, and each opens on the same page,
       sidebar and tabs still in place, never in the plain mouse list; Weapon
-      stats draws as weapon cards (`ranks-weapons`), and `<` returns to
-      Statistics with no flicker
+      stats draws as weapon cards (`ranks-weapons`), each with its accuracy
+      figure (`41.5%`) at the right of its `Accuracy` line, and `<` returns to
+      Statistics with no flicker. In the keyboard list each weapon's picture
+      sits on a dark tile
 - [ ] VIP (VIPCore 1.2.0 with its modules): `!vip` opens Perks under a VIP
       sidebar (Perks, Customize, Gun menu, then VIP users and Grant VIP for an
       admin). Perks shows your tier, its expiry with days left and every group
@@ -648,7 +665,9 @@ keeps what their pages know about a menu that is its own root:
 - [ ] Grant VIP is the same four pages as with the mouse
 - [ ] MapChooser's vote shows `MAP VOTE` there, each stock map's screenshot
       at the start of its row, and each share filling its row from the left:
-      blue, the leader's gold, your own pick's light blue even when it leads
+      blue, the leader's gold, your own pick's light blue even when it leads.
+      No square or prefix shows round a screenshot, and a disabled row's
+      screenshot (`!nominate`, a map on cooldown) shows none through it
 
 ### Panels
 
@@ -993,6 +1012,9 @@ waiting for the end of the map.
       `DisableVoteMenuExit` on, and closes itself when the vote ends
 - [ ] `!revote` reopens the vote with the current shares and your current vote
       in light blue; picking another map moves your vote, and the tally returns
+- [ ] close the tally and `!revote` a few times, in mouse mode and in wasd:
+      while the board or the list fades in and out, no stripes or prefix
+      (`DE`) flash through a stock map's screenshot
 - [ ] the ballot's mouse footer says `Click a map to vote`
 - [ ] with `"PageViews": { "mapchooser.eof-vote*": "maps-rows" }` the ballot
       is one poll row per option, its share filling the row, and under the
@@ -1028,8 +1050,8 @@ waiting for the end of the map.
 - [ ] with `maps.jsonc` naming maps for display (`"Name": "Dust II"`,
       `"Id": "de_dust2"`), the ballot, `!nominate`, `!votemap` and the admin
       change-map and set-next-map pages still show each stock map's screenshot
-      and logo; every map shows its kind boxed under its name (`Stock map`,
-      `Workshop map`, `Custom map`), and the pool pages show each map's
+      and logo; every map shows its kind boxed under its name (`Stock map`, or
+      `Workshop map` for a workshop map), and the pool pages show each map's
       player limits (`Any players`, `8–20 players`)
 - [ ] on a server without CustomHUD the vote menu shows map names only and
       closes once you vote, as before
@@ -1245,8 +1267,12 @@ wasd and once in mouse mode, once with Ranks installed and once without.
       the caller's teammates: in a keyboard mode the list's `ballot` view,
       Yes and No as its two big rows; in mouse mode `mix-ballot`, a small
       panel docked at the left. A vote closes it, and so does the close key
+- [ ] mouse, `!votekick <name>` with Ranks in Competitive mode: the ballot
+      shows the target's avatar beside their skill-group emblem
 - [ ] the map vote (`mixscrims.map-vote`) draws as MapChooser's: stock maps
-      over their screenshot, each map's share and votes, `Your vote` on yours
+      over their screenshot, a map loaded by a map-shaped name that the addon
+      has no screenshot for as its prefix over stripes, each map's share and
+      votes, `Your vote` on yours
 - [ ] mouse, in both designs (`menu_locker_v2` and `menu_locker`): the map
       vote has no sidebar, so its cards run four to a line across the page: no
       card cut at the right edge or wrapped early, no wide empty gap after the
@@ -1267,10 +1293,12 @@ wasd and once in mouse mode, once with Ranks installed and once without.
       pool lists the maps with no number keys and a legend that offers nothing
       to select
 - [ ] mouse: `!mix` → Change map and Map pool open as `maps-pool` cards, five
-      to a line: stock maps over their screenshot, others a prefix mark, each
-      with its badge and its id under the name where they differ; a Change map
-      card loads that map, and Map pool's cards are not greyed out and neither
-      light up under the pointer nor take a click
+      to a line: stock maps, and a workshop map whose name is a stock map's,
+      over their screenshot; other workshop maps and maps the addon has no
+      screenshot for a prefix mark, each with its `Stock map` or
+      `Workshop map` badge and its id under the name where they differ; a
+      Change map card loads that map, and Map pool's cards are not greyed out
+      and neither light up under the pointer nor take a click
 - [ ] mouse, in both designs: those two pages have no sidebar, so five cards
       fill each line: no card cut at the right edge or wrapped early, no wide
       empty gap after the fifth, art neither stretched nor squished; check

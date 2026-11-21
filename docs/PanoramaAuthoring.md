@@ -446,10 +446,16 @@ generator, then `watch-panorama.ps1`. `locker_art.vcss` comes from
 `scripts/generate-locker-art.ps1` (`-Source2Viewer <cli>` or `-Listing <file>`,
 as for econ thumbnails): map screenshots and logos, skill-group and Wingman
 emblems from the game, the replacement rank icon sets in its `$CustomIconSets`
-table, and the addon's level badges. Rerun it when a CS2
-update adds a map, and keep `LockerProfiles.StockMaps` equal to the map list in
-its header comment: a listed map without art draws a blank card, and art for a
-map not listed is never used. Keep `$CustomIconSets` equal to
+table, and the addon's level badges. Rerun it when a CS2 update adds a map,
+then republish the addon. MapChooser's and MixScrims' pages need no plugin
+release for the new map: their integrations send every map loaded by a
+map-shaped name with its key (`map/<name>`) and its prefix as the stand-in
+drawn under the picture, so a map the addon has no class for shows the
+stand-in until then. The label fallback (`ImageLabels`: Admins' map vote and
+other rows read by their label) picks the map up with the next release that
+updates `LockerProfiles.StockMaps`, which must still equal the map list in the
+header comment: there a listed map without art draws a blank card, and art for
+a map not listed is never used. Keep `$CustomIconSets` equal to
 `RankArt.CustomIconSets` the same way: the plugin only sends a number the
 stylesheet has a class for.
 

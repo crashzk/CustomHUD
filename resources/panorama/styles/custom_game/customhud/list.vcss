@@ -463,6 +463,31 @@
 	font-size: 16px;
 }
 
+/* A picture with a stand-in (a map's prefix): the tile moves to the rarity layer, under the stand-in,
+   which locker.vcss draws under the picture. 26px keeps it inside a 16:9 shot's 34px band. */
+.ls .has-thumb.has-mark .lk-rarity
+{
+	z-index: -2;
+	background-color: chudTileDeep;
+}
+
+.ls .has-thumb.has-mark .lk-thumb
+{
+	background-color: transparent;
+}
+
+.ls .has-thumb.has-mark .lk-mark
+{
+	width: 26px;
+	height: 26px;
+	margin: 0px 0px 0px 17px;
+}
+
+.ls .has-thumb.has-mark .lk-mark__text
+{
+	font-size: 12px;
+}
+
 /* A page whose avatar rows carry a glyph (a global record's globe) puts it before the avatar, in a column every
    avatar row keeps, so a row without one (a local record) still lines up. */
 .ls.has-glyph-column .has-mark .lk-mark
