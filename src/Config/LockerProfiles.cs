@@ -25,10 +25,9 @@ public static class LockerProfiles
     // Stock maps with a 360p screenshot and a logo in the game (locker_art.vcss).
     public static readonly string[] StockMaps =
     [
-        "ar_baggage", "ar_pool_day", "ar_shoots", "ar_shoots_night", "cs_italy", "cs_office", "cs_shelter",
-        "de_ancient", "de_ancient_night", "de_anubis", "de_boulder", "de_cache", "de_debris", "de_dust", "de_dust2",
-        "de_eldorado", "de_fachwerk", "de_inferno", "de_mirage", "de_nuke", "de_overpass", "de_poseidon", "de_train",
-        "de_vertigo",
+        "ar_baggage", "ar_pool_day", "ar_shoots", "ar_shoots_night", "cs_italy", "cs_office", "de_ancient",
+        "de_ancient_night", "de_anubis", "de_cache", "de_cbble", "de_debris", "de_dust", "de_dust2", "de_eldorado",
+        "de_inferno", "de_mirage", "de_nuke", "de_overpass", "de_poseidon", "de_train", "de_vertigo",
     ];
 
     // Swatch, switch, meter and pips are drawn from classes alone, so only the
